@@ -1,0 +1,282 @@
+workflow:
+  id: censuechat-product-development
+  name: CensusChat Natural Language Data Platform Development
+  version: 1.0
+  description: >-
+    Comprehensive workflow for developing CensusChat from concept to market launch,
+    leveraging BMAD B2B Data Products methodology to ensure systematic development
+    of a natural language Census data query platform with open-source community focus.
+
+phases:
+  - id: strategic-foundation
+    name: Strategic Foundation & Market Analysis
+    description: >-
+      Establish market positioning, validate customer needs, and define 
+      value propositions for natural language Census data access
+    agents:
+      - data-product-strategist
+      - data-value-analyst
+      - data-commercial-lead
+    tasks:
+      - assess-data-value
+      - validate-data-demand
+      - competitive-market-analysis
+    outputs:
+      - Market opportunity assessment
+      - Customer segment analysis
+      - Value proposition frameworks
+      - Competitive positioning strategy
+    duration: 2 weeks
+    success_criteria:
+      - Clear value prop for 3 user segments
+      - 15+ customer interviews completed
+      - Competitive differentiation defined
+      - Market size validated ($2M+ SOM)
+
+  - id: product-architecture
+    name: Product Architecture & Technical Design
+    description: >-
+      Design comprehensive product architecture combining Census data,
+      DuckDB performance, MCP natural language interface, and security
+    agents:
+      - data-ops-engineer
+      - data-trust-specialist
+      - data-product-strategist
+    tasks:
+      - design-data-product
+      - build-data-trust
+      - technical-architecture-design
+    templates:
+      - data-product-prd-tmpl
+      - technical-architecture-tmpl
+    checklists:
+      - data-quality-checklist
+      - data-compliance-checklist
+    outputs:
+      - Complete product architecture
+      - Security framework design
+      - API specifications
+      - Database optimization plan
+    duration: 2 weeks
+    success_criteria:
+      - Sub-2-second query response target
+      - SQL injection prevention validated
+      - MCP integration design complete
+      - Scalability plan documented
+
+  - id: service-ecosystem-design
+    name: Service Layer & Ecosystem Strategy
+    description: >-
+      Design professional services, community engagement, and partnership
+      ecosystem to support open-source + freemium business model
+    agents:
+      - data-services-designer
+      - data-ecosystem-builder
+      - data-monetization-architect
+    tasks:
+      - create-data-services
+      - establish-data-ecosystem
+      - community-strategy-design
+    outputs:
+      - Service catalog and pricing
+      - Community engagement strategy
+      - Partnership framework
+      - Open source governance model
+    duration: 1 week
+    success_criteria:
+      - 3+ service packages defined
+      - Community platform designed
+      - 5+ potential partnerships identified
+      - Contributor onboarding process
+
+  - id: mvp-development
+    name: MVP Development & Testing
+    description: >-
+      Build minimum viable product with core natural language querying,
+      basic Census data access, and security validation
+    agents:
+      - data-ops-engineer
+      - data-trust-specialist
+    tasks:
+      - mvp-development
+      - security-testing
+      - performance-optimization
+    outputs:
+      - Working MVP platform
+      - Security test results
+      - Performance benchmarks
+      - API documentation
+    duration: 3 weeks
+    success_criteria:
+      - Core queries working end-to-end
+      - <2 second response time achieved
+      - Security vulnerabilities resolved
+      - 10+ test queries validated
+
+  - id: validation-testing
+    name: User Validation & Pilot Testing
+    description: >-
+      Conduct user testing with target segments, gather feedback,
+      and iterate on core functionality
+    agents:
+      - data-commercial-lead
+      - data-product-strategist
+      - data-services-designer
+    tasks:
+      - user-testing-protocol
+      - pilot-customer-engagement
+      - feedback-analysis
+    outputs:
+      - User testing results
+      - Feature iteration plan
+      - Pilot customer feedback
+      - Product roadmap updates
+    duration: 2 weeks
+    success_criteria:
+      - 20+ user test sessions
+      - 75%+ user satisfaction
+      - Key feature requests identified
+      - 3+ pilot customers confirmed
+
+  - id: community-launch
+    name: Open Source Community Launch
+    description: >-
+      Launch open source repository, community platform, and initial
+      marketing to build developer and user community
+    agents:
+      - data-ecosystem-builder
+      - data-commercial-lead
+      - data-services-designer
+    tasks:
+      - open-source-launch
+      - community-platform-setup
+      - content-marketing-launch
+    outputs:
+      - GitHub repository live
+      - Community platform active
+      - Launch marketing campaign
+      - Documentation complete
+    duration: 1 week
+    success_criteria:
+      - Repository public with docs
+      - 100+ GitHub stars in first week
+      - Community platform members
+      - Initial media coverage
+
+  - id: growth-optimization
+    name: Growth & Monetization Optimization
+    description: >-
+      Optimize freemium conversion, expand service offerings,
+      and scale community engagement
+    agents:
+      - data-monetization-architect
+      - data-commercial-lead
+      - data-ecosystem-builder
+    tasks:
+      - conversion-optimization
+      - service-expansion
+      - partnership-development
+    outputs:
+      - Pricing optimization
+      - Expanded service catalog
+      - Partnership agreements
+      - Growth metrics dashboard
+    duration: Ongoing
+    success_criteria:
+      - 5%+ freemium conversion
+      - $10K+ monthly recurring revenue
+      - 3+ active partnerships
+      - 1000+ monthly active users
+
+decision_points:
+  - id: market-validation-gate
+    after_phase: strategic-foundation
+    criteria:
+      - Clear market opportunity validated
+      - Customer pain points confirmed
+      - Competitive advantage identified
+      - Business model viability proven
+
+  - id: technical-feasibility-gate
+    after_phase: product-architecture
+    criteria:
+      - Technical architecture validated
+      - Performance targets achievable
+      - Security requirements met
+      - Resource requirements acceptable
+
+  - id: mvp-quality-gate
+    after_phase: mvp-development
+    criteria:
+      - Core functionality working
+      - Performance targets met
+      - Security vulnerabilities resolved
+      - User experience acceptable
+
+  - id: launch-readiness-gate
+    after_phase: validation-testing
+    criteria:
+      - User validation positive
+      - Product quality sufficient
+      - Community strategy ready
+      - Launch marketing prepared
+
+censuechat_specifics:
+  target_users:
+    - data_journalists: "Investigative reporters needing demographic insights"
+    - academic_researchers: "Social scientists studying population trends"
+    - policy_analysts: "Government workers informing policy decisions"
+    - civic_technologists: "Developers building community tools"
+
+  unique_value_props:
+    - natural_language: "Ask questions in plain English, get Census insights"
+    - performance: "Sub-second responses on 11M+ Census records"
+    - accessibility: "No SQL or API knowledge required"
+    - open_source: "Transparent, community-driven development"
+
+  technical_requirements:
+    - data_processing: "DuckDB for analytical query performance"
+    - nl_interface: "Model Context Protocol (MCP) implementation"
+    - security: "SQL validation restricting to SELECT statements"
+    - data_source: "US Census ACS 5-year detailed tables"
+
+  business_model:
+    - freemium_saas: "Basic queries free, advanced features paid"
+    - usage_api: "Pay-per-query for developers"
+    - enterprise: "Custom deployments for large organizations"
+    - services: "Training and consulting revenue"
+
+collaboration_points:
+  - Weekly cross-agent strategy alignment
+  - Bi-weekly technical architecture reviews  
+  - Community feedback integration sessions
+  - Monthly business model optimization reviews
+
+tools_required:
+  - Development environments (React, Node.js, DuckDB)
+  - Census API access and documentation
+  - MCP protocol implementation tools
+  - Community platform (Discord, GitHub Discussions)
+  - Analytics and monitoring tools
+
+success_metrics:
+  - Technical: Query response time, data accuracy, uptime
+  - User: Monthly active users, query volume, retention
+  - Community: GitHub engagement, contributor growth
+  - Business: Freemium conversion, revenue growth, partnerships
+
+risk_factors:
+  - Census API rate limiting or changes
+  - Competition from established players
+  - Community engagement challenges
+  - Technical performance bottlenecks
+  - Monetization model validation
+  - Open source sustainability
+
+mitigation_strategies:
+  - Multiple data source options beyond Census API
+  - Strong differentiation through natural language interface
+  - Proactive community building and engagement
+  - Performance optimization from day one
+  - Diverse revenue stream development
+  - Sustainable open source governance model
