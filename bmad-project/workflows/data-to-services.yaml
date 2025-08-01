@@ -1,0 +1,246 @@
+workflow:
+  id: data-to-services
+  name: Data Assets to Service Offerings Transformation
+  version: 1.0
+  description: >-
+    Systematic workflow for transforming existing data assets into comprehensive
+    service offerings that drive customer success and create sustainable revenue
+    streams through professional services, consulting, and managed solutions.
+
+phases:
+  - id: service-opportunity-analysis
+    name: Service Opportunity Analysis
+    description: >-
+      Analyze existing data assets and customer interactions to identify
+      high-value service opportunities and delivery models
+    agents:
+      - data-services-designer
+      - data-value-analyst
+    tasks:
+      - analyze-service-opportunities
+      - assess-delivery-capabilities
+    outputs:
+      - Service opportunity assessment
+      - Customer journey mapping
+      - Capability gap analysis
+      - Service portfolio recommendations
+    duration: 2-3 weeks
+    success_criteria:
+      - 5+ service opportunities identified
+      - Customer pain points mapped to services
+      - Internal capability assessment complete
+      - ROI projections for each service
+
+  - id: service-design-development
+    name: Service Design & Methodology Development
+    description: >-
+      Design comprehensive service offerings with delivery methodologies,
+      pricing models, and success frameworks
+    agents:
+      - data-services-designer
+      - data-monetization-architect
+    tasks:
+      - create-data-services
+      - design-delivery-methodologies
+    templates:
+      - data-services-catalog-tmpl
+      - service-delivery-methodology-tmpl
+    checklists:
+      - service-design-checklist
+    outputs:
+      - Complete service catalog
+      - Delivery methodologies and playbooks
+      - Pricing strategy for each service
+      - Success metrics and KPIs
+    duration: 3-4 weeks
+    success_criteria:
+      - Services designed for repeatability
+      - Delivery methodologies documented
+      - Pricing models market-tested
+      - Success metrics defined
+
+  - id: service-productization
+    name: Service Productization & Automation
+    description: >-
+      Transform custom services into repeatable, scalable products with
+      standardized processes and automation where appropriate
+    agents:
+      - data-services-designer
+      - data-ops-engineer
+    tasks:
+      - productize-services
+      - automate-delivery-processes
+    outputs:
+      - Productized service offerings
+      - Automated delivery tools
+      - Self-service components
+      - Training and certification programs
+    duration: 4-6 weeks
+    success_criteria:
+      - 80% of services standardized
+      - Key processes automated
+      - Self-service options available
+      - Delivery efficiency improved 50%+
+
+  - id: team-enablement
+    name: Team Enablement & Capability Building
+    description: >-
+      Build internal capabilities and partner ecosystem to deliver
+      services at scale with consistent quality
+    agents:
+      - data-services-designer
+      - data-ecosystem-builder
+    tasks:
+      - build-delivery-capabilities
+      - develop-partner-network
+    outputs:
+      - Training programs for internal teams
+      - Partner certification frameworks
+      - Quality assurance processes
+      - Performance monitoring systems
+    duration: 3-4 weeks
+    success_criteria:
+      - Team capabilities aligned with service needs
+      - Partner network established
+      - Quality standards implemented
+      - Performance metrics tracking
+
+  - id: service-launch
+    name: Service Launch & Market Introduction
+    description: >-
+      Launch service offerings to market with comprehensive marketing,
+      sales enablement, and customer success programs
+    agents:
+      - data-commercial-lead
+      - data-services-designer
+    tasks:
+      - launch-service-offerings
+      - enable-sales-teams
+    outputs:
+      - Service launch campaigns
+      - Sales enablement materials
+      - Customer case studies
+      - Success story documentation
+    duration: 2-3 weeks
+    success_criteria:
+      - Services launched successfully
+      - Sales teams enabled and active
+      - First customers acquired
+      - Positive market feedback
+
+  - id: service-optimization
+    name: Service Optimization & Scaling
+    description: >-
+      Optimize service delivery, expand offerings, and scale operations
+      based on customer feedback and market response
+    agents:
+      - data-services-designer
+      - data-monetization-architect
+      - data-ecosystem-builder
+    tasks:
+      - optimize-service-delivery
+      - expand-service-portfolio
+      - scale-operations
+    outputs:
+      - Service optimization recommendations
+      - Expanded service catalog
+      - Scaled delivery operations
+      - Enhanced partner ecosystem
+    duration: Ongoing
+    success_criteria:
+      - Service margins improved
+      - Customer satisfaction high
+      - Delivery capacity scaled
+      - Market position strengthened
+
+decision_points:
+  - id: service-viability-gate
+    after_phase: service-opportunity-analysis
+    criteria:
+      - Service opportunities validated
+      - Market demand confirmed
+      - Internal capabilities assessed
+      - Business case approved
+
+  - id: design-quality-gate
+    after_phase: service-design-development
+    criteria:
+      - Service designs complete
+      - Delivery methodologies proven
+      - Pricing models validated
+      - Success metrics defined
+
+  - id: productization-readiness-gate
+    after_phase: service-productization
+    criteria:
+      - Services sufficiently standardized
+      - Automation delivering value
+      - Quality maintained at scale
+      - Team readiness confirmed
+
+  - id: launch-readiness-gate
+    after_phase: team-enablement
+    criteria:
+      - Team capabilities sufficient
+      - Partner network active
+      - Quality processes implemented
+      - Go-to-market plan ready
+
+service_categories:
+  implementation_services:
+    - Data integration and setup
+    - Custom analytics development
+    - Platform configuration
+    - Migration and onboarding
+
+  consulting_services:
+    - Data strategy development
+    - Use case identification
+    - ROI optimization
+    - Best practices advisory
+
+  managed_services:
+    - Ongoing data management
+    - Platform maintenance
+    - Performance optimization
+    - Compliance monitoring
+
+  training_services:
+    - User training programs
+    - Administrator certification
+    - Best practices workshops
+    - Custom curriculum development
+
+  success_services:
+    - Customer success management
+    - Health checks and optimization
+    - Expansion planning
+    - Executive business reviews
+
+collaboration_points:
+  - Service design reviews with customer-facing teams
+  - Regular feedback sessions with existing customers
+  - Partner ecosystem development meetings
+  - Cross-functional service optimization reviews
+
+tools_required:
+  - Service design and documentation tools
+  - Customer relationship management systems
+  - Training and certification platforms
+  - Project management and delivery tools
+  - Performance monitoring and analytics
+
+success_metrics:
+  - Service Revenue: Target growth and margins
+  - Customer Satisfaction: NPS and retention rates
+  - Delivery Efficiency: Time and cost optimization
+  - Team Utilization: Capacity and productivity
+  - Partner Performance: Quality and growth metrics
+
+risk_factors:
+  - Service quality inconsistency
+  - Delivery capacity constraints
+  - Customer adoption challenges
+  - Competition in services market
+  - Team capability gaps
+  - Partner performance issues

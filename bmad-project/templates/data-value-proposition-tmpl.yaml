@@ -1,0 +1,439 @@
+template:
+  id: data-value-proposition-template
+  name: Data Product Value Proposition Framework
+  version: 1.0
+  output:
+    format: markdown
+    filename: sales/{{customer_segment}}-value-proposition.md
+    title: "Value Proposition: {{product_name}} for {{customer_segment}}"
+
+workflow:
+  mode: interactive
+  elicitation: value-proposition-development
+  custom_elicitation:
+    title: "Value Proposition Development Process"
+    sections:
+      - id: customer-focus
+        options:
+          - "Single customer use case"
+          - "Customer segment analysis"
+          - "Multi-segment comparison"
+          - "Competitive differentiation"
+          - "Proceed with current focus"
+
+sections:
+  - id: customer-profile
+    title: Customer Profile & Context
+    instruction: |
+      Define the specific customer you're targeting and their business context.
+    template: |
+      # {{product_name}} Value Proposition
+      ## For {{customer_segment}}
+      
+      ### Customer Profile
+      
+      **Target Customer**: {{target_customer_description}}
+      - **Company Size**: {{company_size_range}}
+      - **Industry**: {{primary_industry}}
+      - **Geography**: {{geographic_focus}}
+      - **Annual Revenue**: {{revenue_range}}
+      - **Data Maturity**: {{data_maturity_level}}
+      
+      **Primary Buyer Persona**
+      - **Role/Title**: {{buyer_role}}
+      - **Department**: {{buyer_department}}
+      - **Seniority Level**: {{buyer_seniority}}
+      - **Decision Authority**: {{decision_authority}}
+      - **Budget Range**: {{budget_authority}}
+      
+      **Current State Assessment**
+      - **Existing Solutions**: {{current_solutions}}
+      - **Technology Stack**: {{current_technology}}
+      - **Team Capabilities**: {{team_capabilities}}
+      - **Budget Allocation**: {{current_budget_allocation}}
+      - **Strategic Priorities**: {{strategic_priorities}}
+
+  - id: jobs-to-be-done
+    title: Jobs to Be Done Analysis
+    instruction: |
+      Identify the functional, emotional, and social jobs customers are trying to accomplish.
+    elicit: true
+    template: |
+      ### Jobs to Be Done Analysis
+      
+      **Functional Jobs** (What they're trying to accomplish)
+      {{#each functional_jobs}}
+      **{{job_name}}**
+      - Description: {{job_description}}
+      - Current Process: {{current_process}}
+      - Frequency: {{job_frequency}}
+      - Importance: {{job_importance}}/10
+      - Satisfaction: {{current_satisfaction}}/10
+      - Success Criteria: {{success_criteria}}
+      {{/each}}
+      
+      **Emotional Jobs** (How they want to feel)
+      {{#each emotional_jobs}}
+      **{{emotion_name}}**
+      - Desired Feeling: {{desired_emotion}}
+      - Current State: {{current_emotion}}
+      - Trigger Situations: {{emotion_triggers}}
+      - Impact on Performance: {{performance_impact}}
+      {{/each}}
+      
+      **Social Jobs** (How they want to be perceived)
+      {{#each social_jobs}}
+      **{{social_aspect}}**
+      - Desired Perception: {{desired_perception}}
+      - Key Stakeholders: {{key_stakeholders}}
+      - Success Indicators: {{social_success_indicators}}
+      - Reputation Factors: {{reputation_factors}}
+      {{/each}}
+
+  - id: pain-points
+    title: Pain Points & Frustrations
+    instruction: |
+      Document specific pains and frustrations in the current state.
+    template: |
+      ### Pain Points & Frustrations
+      
+      **Data Access Pains**
+      {{#each data_access_pains}}
+      **{{pain_name}}**
+      - Description: {{pain_description}}
+      - Frequency: {{pain_frequency}}
+      - Intensity: {{pain_intensity}}/10
+      - Cost Impact: ${{cost_impact}} annually
+      - Time Impact: {{time_impact}} hours/week
+      - Workarounds: {{current_workarounds}}
+      {{/each}}
+      
+      **Data Quality Pains**
+      {{#each data_quality_pains}}
+      **{{pain_name}}**
+      - Description: {{pain_description}}
+      - Business Impact: {{business_impact}}
+      - Error Rate: {{error_rate}}%
+      - Detection Time: {{detection_time}}
+      - Resolution Time: {{resolution_time}}
+      - Cascading Effects: {{cascading_effects}}
+      {{/each}}
+      
+      **Process Efficiency Pains**
+      {{#each process_pains}}
+      **{{pain_name}}**
+      - Description: {{pain_description}}
+      - Manual Effort: {{manual_effort}} hours
+      - Error Prone Steps: {{error_prone_steps}}
+      - Scalability Issues: {{scalability_issues}}
+      - Resource Requirements: {{resource_requirements}}
+      {{/each}}
+      
+      **Strategic Decision Pains**
+      {{#each decision_pains}}
+      **{{pain_name}}**
+      - Description: {{pain_description}}
+      - Decision Delay: {{decision_delay}}
+      - Confidence Level: {{confidence_level}}/10
+      - Risk Factors: {{risk_factors}}
+      - Competitive Impact: {{competitive_impact}}
+      {{/each}}
+
+  - id: value-creation
+    title: Value Creation Framework
+    instruction: |
+      Quantify the specific value your data product creates for customers.
+    template: |
+      ### Value Creation Framework
+      
+      **Direct Economic Value**
+      
+      *Cost Reduction*
+      {{#each cost_reductions}}
+      **{{cost_category}}**
+      - Current Annual Cost: ${{current_cost}}
+      - Potential Reduction: {{reduction_percentage}}%
+      - Annual Savings: ${{annual_savings}}
+      - Implementation Time: {{implementation_time}}
+      - Confidence Level: {{confidence_level}}%
+      {{/each}}
+      
+      *Revenue Enhancement*
+      {{#each revenue_enhancements}}
+      **{{revenue_category}}**
+      - Current Annual Revenue: ${{current_revenue}}
+      - Potential Increase: {{increase_percentage}}%
+      - Additional Revenue: ${{additional_revenue}}
+      - Time to Realization: {{realization_time}}
+      - Market Risk: {{market_risk_level}}
+      {{/each}}
+      
+      **Indirect Economic Value**
+      
+      *Risk Mitigation*
+      {{#each risk_mitigations}}
+      **{{risk_category}}**
+      - Risk Event Probability: {{risk_probability}}%
+      - Potential Loss: ${{potential_loss}}
+      - Risk Reduction: {{risk_reduction}}%
+      - Expected Value: ${{expected_value}}
+      - Insurance Equivalent: ${{insurance_equivalent}}
+      {{/each}}
+      
+      *Efficiency Gains*
+      {{#each efficiency_gains}}
+      **{{efficiency_category}}**
+      - Current Process Time: {{current_time}} hours
+      - Time Savings: {{time_savings}}%
+      - Hourly Value: ${{hourly_value}}
+      - Annual Value: ${{annual_efficiency_value}}
+      - Quality Improvement: {{quality_improvement}}%
+      {{/each}}
+      
+      **Strategic Value**
+      
+      *Competitive Advantage*
+      {{#each competitive_advantages}}
+      **{{advantage_category}}**
+      - Advantage Description: {{advantage_description}}
+      - Differentiation Level: {{differentiation_level}}/10
+      - Market Impact: {{market_impact}}
+      - Sustainability: {{advantage_sustainability}}
+      - Premium Value: {{premium_value}}%
+      {{/each}}
+      
+      *Innovation Enablement*
+      {{#each innovation_enablers}}
+      **{{innovation_category}}**
+      - Innovation Opportunity: {{innovation_opportunity}}
+      - Market Potential: ${{market_potential}}
+      - Development Time: {{development_time_reduction}}
+      - Success Probability: {{success_probability}}%
+      - Strategic Value: {{strategic_value_rating}}/10
+      {{/each}}
+
+  - id: solution-fit
+    title: Solution Fit & Capabilities
+    instruction: |
+      Demonstrate how your data product specifically addresses customer needs.
+    template: |
+      ### Solution Fit & Capabilities
+      
+      **Core Data Capabilities**
+      {{#each data_capabilities}}
+      **{{capability_name}}**
+      - Customer Need: {{addresses_need}}
+      - Data Asset: {{data_asset_used}}
+      - Quality Level: {{quality_level}}
+      - Update Frequency: {{update_frequency}}
+      - Coverage: {{data_coverage}}
+      - Unique Advantage: {{unique_advantage}}
+      {{/each}}
+      
+      **Service Capabilities**
+      {{#each service_capabilities}}
+      **{{service_name}}**
+      - Customer Need: {{addresses_need}}
+      - Service Type: {{service_type}}
+      - Delivery Model: {{delivery_model}}
+      - Timeline: {{service_timeline}}
+      - Success Metrics: {{service_success_metrics}}
+      - Competitive Advantage: {{service_advantage}}
+      {{/each}}
+      
+      **Platform Capabilities**
+      {{#each platform_capabilities}}
+      **{{platform_feature}}**
+      - Customer Need: {{addresses_need}}
+      - Functionality: {{feature_functionality}}
+      - User Experience: {{user_experience}}
+      - Integration: {{integration_options}}
+      - Scalability: {{scalability_factor}}
+      - Differentiation: {{platform_differentiation}}
+      {{/each}}
+      
+      **Unique Value Drivers**
+      {{#each unique_value_drivers}}
+      **{{value_driver}}**
+      - Description: {{driver_description}}
+      - Customer Benefit: {{customer_benefit}}
+      - Competitive Differentiation: {{competitive_diff}}
+      - Proof Points: {{proof_points}}
+      - Customer Validation: {{customer_validation}}
+      {{/each}}
+
+  - id: value-quantification
+    title: ROI & Value Quantification
+    instruction: |
+      Create a compelling financial case for your data product.
+    template: |
+      ### ROI & Value Quantification
+      
+      **Investment Summary**
+      
+      *Year 1 Costs*
+      - Software/Platform: ${{software_cost_y1}}
+      - Implementation Services: ${{implementation_cost}}
+      - Training & Enablement: ${{training_cost}}
+      - Internal Resources: ${{internal_resource_cost}}
+      - **Total Year 1 Investment**: ${{total_investment_y1}}
+      
+      *Ongoing Annual Costs*
+      - Software/Platform: ${{software_cost_annual}}
+      - Support & Maintenance: ${{support_cost_annual}}
+      - Internal Resources: ${{internal_cost_annual}}
+      - **Total Annual Operating**: ${{total_operating_annual}}
+      
+      **Value Realization Timeline**
+      
+      | Value Category | Month 3 | Month 6 | Month 12 | Month 24 | Month 36 |
+      |----------------|---------|---------|----------|----------|----------|
+      | Cost Savings | ${{savings_m3}} | ${{savings_m6}} | ${{savings_m12}} | ${{savings_m24}} | ${{savings_m36}} |
+      | Revenue Enhancement | ${{revenue_m3}} | ${{revenue_m6}} | ${{revenue_m12}} | ${{revenue_m24}} | ${{revenue_m36}} |
+      | Risk Reduction | ${{risk_m3}} | ${{risk_m6}} | ${{risk_m12}} | ${{risk_m24}} | ${{risk_m36}} |
+      | **Total Value** | ${{total_m3}} | ${{total_m6}} | ${{total_m12}} | ${{total_m24}} | ${{total_m36}} |
+      
+      **Financial Summary**
+      
+      | Metric | Year 1 | Year 2 | Year 3 | 3-Year Total |
+      |--------|--------|--------|--------|--------------|
+      | Total Investment | ${{investment_y1}} | ${{investment_y2}} | ${{investment_y3}} | ${{investment_total}} |
+      | Total Value Created | ${{value_y1}} | ${{value_y2}} | ${{value_y3}} | ${{value_total}} |
+      | Net Benefit | ${{net_y1}} | ${{net_y2}} | ${{net_y3}} | ${{net_total}} |
+      | ROI % | {{roi_y1}}% | {{roi_y2}}% | {{roi_y3}}% | {{roi_total}}% |
+      | Payback Period | {{payback_period}} months | - | - | - |
+      | NPV (10% discount) | ${{npv_total}} | - | - | - |
+      | IRR | {{irr_percentage}}% | - | - | - |
+
+  - id: competitive-comparison
+    title: Competitive Value Comparison
+    instruction: |
+      Compare your value proposition against alternatives customers might consider.
+    template: |
+      ### Competitive Value Comparison
+      
+      **Alternative Solutions Analysis**
+      
+      | Criteria | Status Quo | Build Internal | {{competitor_1}} | {{competitor_2}} | **{{our_solution}}** |
+      |----------|------------|----------------|------------------|------------------|---------------------|
+      | **Implementation Time** | {{status_quo_time}} | {{build_time}} | {{comp1_time}} | {{comp2_time}} | **{{our_time}}** |
+      | **Total Cost (3 years)** | ${{status_quo_cost}} | ${{build_cost}} | ${{comp1_cost}} | ${{comp2_cost}} | **${{our_cost}}** |
+      | **Data Quality** | {{status_quo_quality}}/10 | {{build_quality}}/10 | {{comp1_quality}}/10 | {{comp2_quality}}/10 | **{{our_quality}}/10** |
+      | **Scalability** | {{status_quo_scale}}/10 | {{build_scale}}/10 | {{comp1_scale}}/10 | {{comp2_scale}}/10 | **{{our_scale}}/10** |
+      | **Support Level** | {{status_quo_support}} | {{build_support}} | {{comp1_support}} | {{comp2_support}} | **{{our_support}}** |
+      | **Risk Level** | {{status_quo_risk}}/10 | {{build_risk}}/10 | {{comp1_risk}}/10 | {{comp2_risk}}/10 | **{{our_risk}}/10** |
+      
+      **Unique Advantages**
+      {{#each unique_advantages}}
+      **{{advantage_name}}**
+      - Advantage: {{advantage_description}}
+      - Customer Impact: {{customer_impact}}
+      - Competitive Gap: {{competitive_gap}}
+      - Proof Points: {{proof_points}}
+      {{/each}}
+      
+      **Why Choose Us**
+      {{#each why_choose_us_reasons}}
+      {{@index}}. **{{reason_title}}**: {{reason_description}}
+      {{/each}}
+
+  - id: customer-success-stories
+    title: Customer Success Stories & Proof Points
+    instruction: |
+      Provide concrete evidence of value delivery through customer examples.
+    template: |
+      ### Customer Success Stories & Proof Points
+      
+      **Featured Case Studies**
+      
+      {{#each case_studies}}
+      **{{customer_name}} - {{customer_industry}}**
+      - **Challenge**: {{customer_challenge}}
+      - **Solution**: {{solution_implemented}}
+      - **Results**: {{results_achieved}}
+      - **ROI**: {{customer_roi}}% in {{roi_timeframe}}
+      - **Quote**: "{{customer_quote}}"
+      {{/each}}
+      
+      **Aggregate Success Metrics**
+      
+      | Success Metric | Average Result | Best Result | Customer Count |
+      |----------------|----------------|-------------|----------------|
+      | Cost Reduction | {{avg_cost_reduction}}% | {{best_cost_reduction}}% | {{cost_customers}} |
+      | Revenue Increase | {{avg_revenue_increase}}% | {{best_revenue_increase}}% | {{revenue_customers}} |
+      | Time Savings | {{avg_time_savings}} hrs/week | {{best_time_savings}} hrs/week | {{time_customers}} |
+      | Decision Speed | {{avg_decision_speed}}% faster | {{best_decision_speed}}% faster | {{decision_customers}} |
+      | Data Quality | {{avg_quality_improvement}}% | {{best_quality_improvement}}% | {{quality_customers}} |
+      
+      **Customer Testimonials**
+      {{#each testimonials}}
+      > "{{testimonial_text}}"
+      > 
+      > — {{customer_name}}, {{customer_title}} at {{company_name}}
+      {{/each}}
+
+  - id: implementation-value
+    title: Implementation & Success Framework
+    instruction: |
+      Outline how customers will realize value and what success looks like.
+    template: |
+      ### Implementation & Success Framework
+      
+      **Value Realization Roadmap**
+      
+      **Phase 1: Quick Wins (First 30 Days)**
+      {{#each phase_1_wins}}
+      - **{{win_name}}**: {{win_description}}
+        - Expected Value: ${{win_value}}
+        - Success Metric: {{win_metric}}
+        - Milestone: {{win_milestone}}
+      {{/each}}
+      
+      **Phase 2: Core Implementation (Days 31-90)**
+      {{#each phase_2_implementations}}
+      - **{{implementation_name}}**: {{implementation_description}}
+        - Expected Value: ${{implementation_value}}
+        - Success Metric: {{implementation_metric}}
+        - Dependencies: {{implementation_dependencies}}
+      {{/each}}
+      
+      **Phase 3: Full Value Realization (Days 91-180)**
+      {{#each phase_3_optimizations}}
+      - **{{optimization_name}}**: {{optimization_description}}
+        - Expected Value: ${{optimization_value}}
+        - Success Metric: {{optimization_metric}}
+        - Scaling Factor: {{optimization_scaling}}
+      {{/each}}
+      
+      **Success Guarantees**
+      {{#each success_guarantees}}
+      **{{guarantee_name}}**
+      - Commitment: {{guarantee_commitment}}
+      - Measurement: {{guarantee_measurement}}
+      - Timeframe: {{guarantee_timeframe}}
+      - Remedy: {{guarantee_remedy}}
+      {{/each}}
+      
+      **Risk Mitigation**
+      {{#each risk_mitigations}}
+      **{{risk_name}}**
+      - Risk Description: {{risk_description}}
+      - Probability: {{risk_probability}}%
+      - Mitigation Strategy: {{mitigation_strategy}}
+      - Contingency Plan: {{contingency_plan}}
+      {{/each}}
+
+value_proposition_principles:
+  - customer_outcome_focused
+  - quantified_business_value
+  - differentiated_positioning
+  - proof_point_supported
+  - implementation_realistic
+  - risk_addressed
+
+validation_methods:
+  - customer_interviews
+  - pilot_programs
+  - competitive_analysis
+  - financial_modeling
+  - reference_validation

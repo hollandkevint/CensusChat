@@ -1,0 +1,252 @@
+workflow:
+  id: data-product-greenfield
+  name: B2B Data Product Development (Greenfield)
+  version: 1.0
+  description: >-
+    Comprehensive workflow for developing new B2B data products from concept
+    to market launch, ensuring systematic value creation through data assets,
+    professional services, and scalable platforms.
+
+phases:
+  - id: data-asset-assessment
+    name: Data Asset Assessment & Value Discovery
+    description: >-
+      Inventory data assets, identify high-value use cases, and quantify
+      business value for target customer segments
+    agents:
+      - data-product-strategist
+      - data-value-analyst
+    tasks:
+      - assess-data-value
+      - validate-data-demand
+    templates:
+      - data-value-proposition-tmpl
+    checklists:
+      - data-product-readiness-checklist
+    outputs:
+      - Data asset inventory and quality assessment
+      - Value proposition frameworks by customer segment
+      - Market demand validation report
+      - Use case prioritization matrix
+    duration: 2-3 weeks
+    success_criteria:
+      - 5+ high-value use cases identified
+      - 20%+ ROI validated for customers
+      - Clear competitive differentiation
+      - Market opportunity quantified
+
+  - id: product-architecture
+    name: Product Architecture & Design
+    description: >-
+      Design comprehensive product architecture combining data layer,
+      service layer, and platform capabilities
+    agents:
+      - data-ops-engineer
+      - data-trust-specialist
+      - data-product-strategist
+    tasks:
+      - design-data-product
+      - build-data-trust
+    templates:
+      - data-product-prd-tmpl
+      - data-trust-framework-tmpl
+    checklists:
+      - data-quality-checklist
+      - data-compliance-checklist
+    outputs:
+      - Complete product architecture document
+      - Technical specifications and API design
+      - Security and compliance framework
+      - Quality assurance procedures
+    duration: 3-4 weeks
+    success_criteria:
+      - Architecture supports scalability requirements
+      - Security framework meets enterprise standards
+      - API design enables third-party integrations
+      - Quality processes ensure data integrity
+
+  - id: service-layer-design
+    name: Service Layer & Monetization Design
+    description: >-
+      Design professional services offerings and revenue models that
+      enhance data value and drive customer success
+    agents:
+      - data-services-designer
+      - data-monetization-architect
+    tasks:
+      - create-data-services
+    templates:
+      - data-services-catalog-tmpl
+      - data-pricing-model-tmpl
+    checklists:
+      - data-monetization-checklist
+    outputs:
+      - Service catalog with delivery methodologies
+      - Pricing model with multiple tiers
+      - Revenue projection models
+      - Customer success frameworks
+    duration: 2-3 weeks
+    success_criteria:
+      - Service offerings designed for scale
+      - Pricing model validated with customers
+      - Revenue projections support business case
+      - Clear path to profitability
+
+  - id: ecosystem-strategy
+    name: Ecosystem & Partnership Strategy
+    description: >-
+      Develop partner networks and ecosystem strategies to amplify
+      data product value through collaboration
+    agents:
+      - data-ecosystem-builder
+      - data-commercial-lead
+    tasks:
+      - establish-data-ecosystem
+    templates:
+      - data-ecosystem-strategy-tmpl
+    outputs:
+      - Partnership strategy and target partners
+      - Data sharing and collaboration models
+      - Ecosystem governance framework
+      - Partner onboarding processes
+    duration: 2-3 weeks
+    success_criteria:
+      - 10+ potential partners identified
+      - Partnership models defined
+      - Value-sharing frameworks established
+      - Go-to-market partnerships secured
+
+  - id: platform-development
+    name: Platform Development & Implementation
+    description: >-
+      Build and deploy the data product platform with core functionality,
+      integrations, and user interfaces
+    agents:
+      - data-ops-engineer
+      - data-trust-specialist
+    tasks:
+      - technical-implementation
+      - security-implementation
+      - quality-assurance
+    outputs:
+      - Working platform with core features
+      - API documentation and SDKs
+      - Security implementations and testing
+      - Quality monitoring and alerting
+    duration: 8-12 weeks
+    success_criteria:
+      - Platform meets performance requirements
+      - Security vulnerabilities addressed
+      - Quality metrics within targets
+      - API ready for customer integration
+
+  - id: market-launch
+    name: Market Launch & Customer Acquisition
+    description: >-
+      Launch product to market with comprehensive go-to-market strategy,
+      customer acquisition, and success programs
+    agents:
+      - data-commercial-lead
+      - data-services-designer
+      - data-ecosystem-builder
+    tasks:
+      - market-launch-execution
+      - customer-acquisition
+      - partner-activation
+    outputs:
+      - Go-to-market execution plan
+      - Customer acquisition campaigns
+      - Partner program activation
+      - Success metrics dashboard
+    duration: 4-6 weeks
+    success_criteria:
+      - Launch metrics meet targets
+      - Customer acquisition pipeline active
+      - Partner ecosystem engaged
+      - Revenue tracking operational
+
+  - id: growth-optimization
+    name: Growth & Optimization
+    description: >-
+      Optimize product performance, expand customer base, and scale
+      ecosystem for sustainable growth
+    agents:
+      - data-monetization-architect
+      - data-ecosystem-builder
+      - data-commercial-lead
+    tasks:
+      - growth-optimization
+      - ecosystem-expansion
+      - revenue-optimization
+    outputs:
+      - Growth optimization recommendations
+      - Expanded ecosystem partnerships
+      - Revenue model refinements
+      - Scale strategy implementation
+    duration: Ongoing
+    success_criteria:
+      - Growth metrics trending positive
+      - Ecosystem contributing to revenue
+      - Customer satisfaction high
+      - Market position strengthening
+
+decision_points:
+  - id: value-validation-gate
+    after_phase: data-asset-assessment
+    criteria:
+      - Clear value proposition validated
+      - Market demand confirmed
+      - Competitive advantage identified
+      - Business case supports investment
+
+  - id: technical-feasibility-gate
+    after_phase: product-architecture
+    criteria:
+      - Technical architecture validated
+      - Security requirements achievable
+      - Quality standards implementable
+      - Resource requirements acceptable
+
+  - id: business-model-gate
+    after_phase: service-layer-design
+    criteria:
+      - Revenue model validated
+      - Service delivery proven
+      - Pricing accepted by market
+      - Path to profitability clear
+
+  - id: launch-readiness-gate
+    after_phase: platform-development
+    criteria:
+      - Platform quality acceptable
+      - Security standards met
+      - Customer success processes ready
+      - Go-to-market plan approved
+
+collaboration_points:
+  - Cross-agent strategy alignment sessions weekly
+  - Technical-business review meetings bi-weekly
+  - Customer feedback integration continuously
+  - Partner ecosystem updates monthly
+
+tools_required:
+  - Data processing and analytics platforms
+  - API development and management tools
+  - Security and compliance frameworks
+  - Customer relationship management systems
+  - Project management and collaboration tools
+
+success_metrics:
+  - Data Quality: 99.9%+ accuracy and completeness
+  - Customer Adoption: 80%+ activation within 30 days
+  - Revenue Growth: Target MRR and expansion metrics
+  - Partner Engagement: Active ecosystem participation
+  - Market Position: Competitive differentiation maintained
+
+risk_factors:
+  - Data quality issues affecting trust
+  - Competitive responses to market entry
+  - Technical scalability challenges
+  - Customer adoption slower than expected
+  - Partner ecosystem development delays
+  - Regulatory compliance requirements changes

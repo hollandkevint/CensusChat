@@ -1,0 +1,577 @@
+template:
+  id: data-product-prd-template
+  name: B2B Data Product Requirements Document
+  version: 1.0
+  output:
+    format: markdown
+    filename: docs/{{product_name}}-prd.md
+    title: "PRD: {{product_name}} - {{product_tagline}}"
+
+workflow:
+  mode: interactive
+  elicitation: data-product-definition
+  custom_elicitation:
+    title: "Data Product Definition Process"
+    sections:
+      - id: product-type
+        options:
+          - "New data product from scratch"
+          - "Enhance existing data asset"
+          - "Competitive product alternative"
+          - "Platform expansion product"
+          - "Proceed with current concept"
+
+sections:
+  - id: executive-summary
+    title: Executive Summary
+    instruction: |
+      Create a compelling 2-page summary that executives can use to understand and approve the data product.
+    template: |
+      # {{product_name}} Product Requirements Document
+      
+      ## Executive Summary
+      
+      **Product Vision**: {{product_vision}}
+      
+      **Target Market**: {{target_market_description}}
+      
+      **Customer Problem**: {{customer_problem_statement}}
+      
+      **Our Solution**: {{solution_overview}}
+      
+      **Market Opportunity**: {{market_size_estimate}}
+      
+      **Competitive Advantage**: {{unique_value_proposition}}
+      
+      **Business Impact**:
+      - Revenue Target: ${{revenue_target}} in Year 1
+      - Customer Target: {{customer_target}} customers
+      - Market Share Goal: {{market_share_goal}}%
+      
+      **Investment Requirements**:
+      - Development: ${{development_cost}}
+      - Operations: ${{operations_cost}}
+      - Marketing: ${{marketing_cost}}
+      - Total: ${{total_investment}}
+      
+      **ROI Projection**: {{roi_projection}}% IRR over {{projection_period}} years
+
+  - id: market-analysis
+    title: Market & Customer Analysis
+    instruction: |
+      Analyze the market opportunity and customer needs that justify this data product.
+    elicit: true
+    template: |
+      ## Market & Customer Analysis
+      
+      ### Target Customer Segments
+      
+      **Primary Segment**: {{primary_customer_segment}}
+      - Company Size: {{primary_company_size}}
+      - Industry: {{primary_industry}}
+      - Role/Title: {{primary_buyer_role}}
+      - Pain Points: {{primary_pain_points}}
+      - Current Solutions: {{primary_current_solutions}}
+      
+      **Secondary Segment**: {{secondary_customer_segment}}
+      - Company Size: {{secondary_company_size}}
+      - Industry: {{secondary_industry}}
+      - Role/Title: {{secondary_buyer_role}}
+      - Pain Points: {{secondary_pain_points}}
+      - Current Solutions: {{secondary_current_solutions}}
+      
+      ### Market Sizing
+      
+      **Total Addressable Market (TAM)**: ${{tam_size}}
+      - Methodology: {{tam_methodology}}
+      - Sources: {{tam_sources}}
+      
+      **Serviceable Addressable Market (SAM)**: ${{sam_size}}
+      - Target segments: {{sam_segments}}
+      - Geographic focus: {{sam_geography}}
+      
+      **Serviceable Obtainable Market (SOM)**: ${{som_size}}
+      - Realistic capture rate: {{som_capture_rate}}%
+      - Timeframe: {{som_timeframe}} years
+      
+      ### Customer Use Cases
+      
+      {{#each use_cases}}
+      **Use Case {{@index}}: {{use_case_name}}**
+      - Customer Need: {{customer_need}}
+      - Current Process: {{current_process}}
+      - Desired Outcome: {{desired_outcome}}
+      - Success Metrics: {{success_metrics}}
+      - Value Creation: {{value_creation}}
+      {{/each}}
+
+  - id: competitive-landscape
+    title: Competitive Landscape
+    instruction: |
+      Analyze direct and indirect competition to identify positioning opportunities.
+    template: |
+      ## Competitive Landscape
+      
+      ### Direct Competitors
+      
+      {{#each direct_competitors}}
+      **{{competitor_name}}**
+      - Market Position: {{market_position}}
+      - Strengths: {{competitor_strengths}}
+      - Weaknesses: {{competitor_weaknesses}}
+      - Pricing: {{competitor_pricing}}
+      - Customer Base: {{competitor_customers}}
+      {{/each}}
+      
+      ### Indirect Competitors
+      
+      {{#each indirect_competitors}}
+      **{{competitor_name}}**
+      - Alternative Approach: {{alternative_approach}}
+      - Market Share: {{market_share}}
+      - Why Customers Choose: {{customer_reasons}}
+      {{/each}}
+      
+      ### Competitive Positioning
+      
+      **Our Differentiation**:
+      {{#each differentiation_factors}}
+      - **{{factor_name}}**: {{factor_description}}
+      {{/each}}
+      
+      **Positioning Statement**:
+      {{positioning_statement}}
+      
+      **Competitive Response Strategy**:
+      {{competitive_response_strategy}}
+
+  - id: data-specifications
+    title: Data Asset Specifications
+    instruction: |
+      Define the core data assets, quality standards, and delivery mechanisms.
+    template: |
+      ## Data Asset Specifications
+      
+      ### Core Data Assets
+      
+      {{#each data_assets}}
+      **{{asset_name}}**
+      - Description: {{asset_description}}
+      - Source: {{data_source}}
+      - Update Frequency: {{update_frequency}}
+      - Historical Depth: {{historical_depth}}
+      - Coverage: {{data_coverage}}
+      - Quality SLA: {{quality_sla}}
+      {{/each}}
+      
+      ### Data Schema & Structure
+      
+      **Primary Entities**:
+      {{#each primary_entities}}
+      - {{entity_name}}: {{entity_description}}
+      {{/each}}
+      
+      **Key Attributes**:
+      {{#each key_attributes}}
+      - {{attribute_name}} ({{data_type}}): {{attribute_description}}
+      {{/each}}
+      
+      **Relationships**:
+      {{#each data_relationships}}
+      - {{relationship_description}}
+      {{/each}}
+      
+      ### Data Quality Standards
+      
+      | Quality Dimension | Target | Measurement | Monitoring |
+      |-------------------|---------|-------------|------------|
+      | Accuracy | {{accuracy_target}}% | {{accuracy_measurement}} | {{accuracy_monitoring}} |
+      | Completeness | {{completeness_target}}% | {{completeness_measurement}} | {{completeness_monitoring}} |
+      | Timeliness | {{timeliness_target}} | {{timeliness_measurement}} | {{timeliness_monitoring}} |
+      | Consistency | {{consistency_target}}% | {{consistency_measurement}} | {{consistency_monitoring}} |
+      
+      ### Delivery Mechanisms
+      
+      **API Access**
+      - REST API: {{rest_api_description}}
+      - GraphQL: {{graphql_description}}
+      - Streaming: {{streaming_description}}
+      - Rate Limits: {{rate_limits}}
+      
+      **Bulk Access**
+      - File Formats: {{file_formats}}
+      - Delivery Methods: {{delivery_methods}}
+      - Scheduling: {{bulk_scheduling}}
+      
+      **Integration Options**
+      - Cloud Platforms: {{cloud_integrations}}
+      - BI Tools: {{bi_integrations}}
+      - Custom Connectors: {{custom_connectors}}
+
+  - id: product-features
+    title: Product Features & Capabilities
+    instruction: |
+      Define the complete product offering including data, services, and platform capabilities.
+    template: |
+      ## Product Features & Capabilities
+      
+      ### Data Layer Features
+      
+      **Core Data Access**
+      {{#each data_access_features}}
+      - **{{feature_name}}**: {{feature_description}}
+        - Priority: {{feature_priority}}
+        - Effort: {{development_effort}}
+        - Dependencies: {{feature_dependencies}}
+      {{/each}}
+      
+      **Data Enhancement**
+      {{#each enhancement_features}}
+      - **{{feature_name}}**: {{feature_description}}
+        - Priority: {{feature_priority}}
+        - Effort: {{development_effort}}
+        - Dependencies: {{feature_dependencies}}
+      {{/each}}
+      
+      ### Service Layer Features
+      
+      **Implementation Services**
+      {{#each implementation_services}}
+      - **{{service_name}}**: {{service_description}}
+        - Duration: {{service_duration}}
+        - Deliverables: {{service_deliverables}}
+        - Prerequisites: {{service_prerequisites}}
+      {{/each}}
+      
+      **Success Services**
+      {{#each success_services}}
+      - **{{service_name}}**: {{service_description}}
+        - Frequency: {{service_frequency}}
+        - Deliverables: {{service_deliverables}}
+        - Success Metrics: {{service_metrics}}
+      {{/each}}
+      
+      ### Platform Layer Features
+      
+      **User Interface**
+      {{#each ui_features}}
+      - **{{feature_name}}**: {{feature_description}}
+        - User Personas: {{target_personas}}
+        - Use Cases: {{feature_use_cases}}
+        - Priority: {{feature_priority}}
+      {{/each}}
+      
+      **Integration Platform**
+      {{#each integration_features}}
+      - **{{feature_name}}**: {{feature_description}}
+        - Technical Requirements: {{technical_requirements}}
+        - Supported Systems: {{supported_systems}}
+        - Priority: {{feature_priority}}
+      {{/each}}
+
+  - id: business-model
+    title: Business Model & Pricing
+    instruction: |
+      Define how the product creates, delivers, and captures value.
+    template: |
+      ## Business Model & Pricing
+      
+      ### Value Proposition Canvas
+      
+      **Customer Jobs**:
+      {{#each customer_jobs}}
+      - {{job_description}}
+      {{/each}}
+      
+      **Pain Points**:
+      {{#each pain_points}}
+      - {{pain_description}} (Intensity: {{pain_intensity}}/10)
+      {{/each}}
+      
+      **Gain Creators**:
+      {{#each gain_creators}}
+      - {{gain_description}}
+      {{/each}}
+      
+      **Pain Relievers**:
+      {{#each pain_relievers}}
+      - {{reliever_description}}
+      {{/each}}
+      
+      ### Revenue Model
+      
+      **Primary Revenue Streams**:
+      {{#each revenue_streams}}
+      - **{{stream_name}}**: {{stream_description}}
+        - Pricing Model: {{pricing_model}}
+        - Target Contribution: {{revenue_contribution}}%
+        - Growth Rate: {{growth_rate}}% annually
+      {{/each}}
+      
+      ### Pricing Strategy
+      
+      **Packaging & Tiers**:
+      
+      | Package | Price | Data Access | Services | Platform | Target Customer |
+      |---------|-------|-------------|----------|----------|-----------------|
+      | {{tier_1_name}} | ${{tier_1_price}} | {{tier_1_data}} | {{tier_1_services}} | {{tier_1_platform}} | {{tier_1_target}} |
+      | {{tier_2_name}} | ${{tier_2_price}} | {{tier_2_data}} | {{tier_2_services}} | {{tier_2_platform}} | {{tier_2_target}} |
+      | {{tier_3_name}} | ${{tier_3_price}} | {{tier_3_data}} | {{tier_3_services}} | {{tier_3_platform}} | {{tier_3_target}} |
+      
+      **Value-Based Pricing Justification**:
+      {{value_pricing_justification}}
+      
+      **Competitive Price Analysis**:
+      {{competitive_pricing_analysis}}
+
+  - id: technical-architecture
+    title: Technical Architecture
+    instruction: |
+      Define the technical architecture required to deliver the data product.
+    template: |
+      ## Technical Architecture
+      
+      ### System Architecture Overview
+      
+      **Architecture Pattern**: {{architecture_pattern}}
+      
+      **Core Components**:
+      {{#each architecture_components}}
+      - **{{component_name}}**: {{component_description}}
+        - Technology: {{component_technology}}
+        - Scalability: {{component_scalability}}
+        - Dependencies: {{component_dependencies}}
+      {{/each}}
+      
+      ### Infrastructure Requirements
+      
+      **Compute Requirements**:
+      - Processing: {{compute_processing}}
+      - Memory: {{compute_memory}}
+      - Storage: {{compute_storage}}
+      - Network: {{compute_network}}
+      
+      **Scalability Requirements**:
+      - Current Load: {{current_load}}
+      - Peak Load: {{peak_load}}
+      - Growth Projection: {{growth_projection}}
+      - Scaling Strategy: {{scaling_strategy}}
+      
+      ### Security & Compliance
+      
+      **Security Controls**:
+      {{#each security_controls}}
+      - **{{control_name}}**: {{control_description}}
+        - Implementation: {{control_implementation}}
+        - Compliance: {{control_compliance}}
+      {{/each}}
+      
+      **Compliance Requirements**:
+      {{#each compliance_requirements}}
+      - **{{requirement_name}}**: {{requirement_description}}
+        - Standards: {{compliance_standards}}
+        - Audit Frequency: {{audit_frequency}}
+      {{/each}}
+
+  - id: go-to-market
+    title: Go-to-Market Strategy
+    instruction: |
+      Define how the product will be launched, marketed, and sold.
+    template: |
+      ## Go-to-Market Strategy
+      
+      ### Launch Strategy
+      
+      **Launch Phases**:
+      
+      **Phase 1: Limited Beta ({{phase_1_timeline}})**
+      - Target: {{phase_1_target}}
+      - Objectives: {{phase_1_objectives}}
+      - Success Metrics: {{phase_1_metrics}}
+      - Key Activities: {{phase_1_activities}}
+      
+      **Phase 2: General Availability ({{phase_2_timeline}})**
+      - Target: {{phase_2_target}}
+      - Objectives: {{phase_2_objectives}}
+      - Success Metrics: {{phase_2_metrics}}
+      - Key Activities: {{phase_2_activities}}
+      
+      **Phase 3: Scale Growth ({{phase_3_timeline}})**
+      - Target: {{phase_3_target}}
+      - Objectives: {{phase_3_objectives}}
+      - Success Metrics: {{phase_3_metrics}}
+      - Key Activities: {{phase_3_activities}}
+      
+      ### Marketing Strategy
+      
+      **Positioning Strategy**: {{positioning_strategy}}
+      
+      **Marketing Channels**:
+      {{#each marketing_channels}}
+      - **{{channel_name}}**: {{channel_description}}
+        - Investment: ${{channel_investment}}
+        - Expected Results: {{channel_results}}
+        - Success Metrics: {{channel_metrics}}
+      {{/each}}
+      
+      ### Sales Strategy
+      
+      **Sales Model**: {{sales_model}}
+      
+      **Sales Process**:
+      {{#each sales_process_steps}}
+      - **{{step_name}}**: {{step_description}}
+        - Duration: {{step_duration}}
+        - Owner: {{step_owner}}
+        - Success Criteria: {{step_success}}
+      {{/each}}
+      
+      **Channel Strategy**:
+      {{#each sales_channels}}
+      - **{{channel_name}}**: {{channel_description}}
+        - Target Contribution: {{channel_contribution}}%
+        - Investment Required: ${{channel_investment}}
+      {{/each}}
+
+  - id: success-metrics
+    title: Success Metrics & KPIs
+    instruction: |
+      Define how success will be measured and tracked.
+    template: |
+      ## Success Metrics & KPIs
+      
+      ### Business Metrics
+      
+      **Revenue Metrics**:
+      | Metric | Year 1 Target | Year 2 Target | Year 3 Target |
+      |--------|---------------|---------------|---------------|
+      | Annual Recurring Revenue | ${{arr_year_1}} | ${{arr_year_2}} | ${{arr_year_3}} |
+      | Monthly Recurring Revenue | ${{mrr_year_1}} | ${{mrr_year_2}} | ${{mrr_year_3}} |
+      | Average Contract Value | ${{acv_year_1}} | ${{acv_year_2}} | ${{acv_year_3}} |
+      | Customer Lifetime Value | ${{clv_year_1}} | ${{clv_year_2}} | ${{clv_year_3}} |
+      
+      **Customer Metrics**:
+      | Metric | Year 1 Target | Year 2 Target | Year 3 Target |
+      |--------|---------------|---------------|---------------|
+      | Total Customers | {{customers_year_1}} | {{customers_year_2}} | {{customers_year_3}} |
+      | Net New Customers | {{new_customers_year_1}} | {{new_customers_year_2}} | {{new_customers_year_3}} |
+      | Customer Retention Rate | {{retention_year_1}}% | {{retention_year_2}}% | {{retention_year_3}}% |
+      | Net Revenue Retention | {{nrr_year_1}}% | {{nrr_year_2}}% | {{nrr_year_3}}% |
+      
+      ### Product Metrics
+      
+      **Usage Metrics**:
+      {{#each usage_metrics}}
+      - **{{metric_name}}**: {{metric_description}}
+        - Current Baseline: {{metric_baseline}}
+        - Target: {{metric_target}}
+        - Measurement: {{metric_measurement}}
+      {{/each}}
+      
+      **Quality Metrics**:
+      {{#each quality_metrics}}
+      - **{{metric_name}}**: {{metric_description}}
+        - Current Baseline: {{metric_baseline}}
+        - Target: {{metric_target}}
+        - Measurement: {{metric_measurement}}
+      {{/each}}
+      
+      ### Operational Metrics
+      
+      **Service Delivery**:
+      {{#each service_metrics}}
+      - **{{metric_name}}**: {{metric_description}}
+        - Target: {{metric_target}}
+        - SLA: {{metric_sla}}
+        - Measurement: {{metric_measurement}}
+      {{/each}}
+
+  - id: roadmap-timeline
+    title: Development Roadmap & Timeline
+    instruction: |
+      Create a detailed development and launch timeline.
+    template: |
+      ## Development Roadmap & Timeline
+      
+      ### Development Phases
+      
+      **Phase 1: Foundation ({{foundation_timeline}})**
+      
+      *Data Infrastructure*
+      {{#each foundation_data_tasks}}
+      - {{task_name}} ({{task_duration}})
+      {{/each}}
+      
+      *Platform Development*
+      {{#each foundation_platform_tasks}}
+      - {{task_name}} ({{task_duration}})
+      {{/each}}
+      
+      *Service Design*
+      {{#each foundation_service_tasks}}
+      - {{task_name}} ({{task_duration}})
+      {{/each}}
+      
+      **Phase 2: MVP ({{mvp_timeline}})**
+      
+      *Core Features*
+      {{#each mvp_feature_tasks}}
+      - {{task_name}} ({{task_duration}})
+      {{/each}}
+      
+      *Integration & Testing*
+      {{#each mvp_integration_tasks}}
+      - {{task_name}} ({{task_duration}})
+      {{/each}}
+      
+      *Go-to-Market Preparation*
+      {{#each mvp_gtm_tasks}}
+      - {{task_name}} ({{task_duration}})
+      {{/each}}
+      
+      **Phase 3: Scale ({{scale_timeline}})**
+      
+      *Advanced Features*
+      {{#each scale_feature_tasks}}
+      - {{task_name}} ({{task_duration}})
+      {{/each}}
+      
+      *Ecosystem Development*
+      {{#each scale_ecosystem_tasks}}
+      - {{task_name}} ({{task_duration}})
+      {{/each}}
+      
+      ### Critical Dependencies
+      
+      {{#each critical_dependencies}}
+      **{{dependency_name}}**
+      - Description: {{dependency_description}}
+      - Owner: {{dependency_owner}}
+      - Due Date: {{dependency_due_date}}
+      - Risk Level: {{dependency_risk}}
+      - Mitigation: {{dependency_mitigation}}
+      {{/each}}
+      
+      ### Risk Management
+      
+      {{#each project_risks}}
+      **{{risk_name}}**
+      - Probability: {{risk_probability}}%
+      - Impact: {{risk_impact}}/10
+      - Mitigation Strategy: {{risk_mitigation}}
+      - Owner: {{risk_owner}}
+      {{/each}}
+
+validation_framework:
+  market_validation: "Customer interviews, pilot programs, pricing tests"
+  technical_validation: "Architecture review, scalability testing, security audit"
+  business_validation: "Financial modeling, competitive analysis, go-to-market plan"
+  product_validation: "Feature prioritization, user testing, quality standards"
+
+data_product_principles:
+  - customer_value_first
+  - data_quality_foundation
+  - service_enabled_success
+  - platform_enabled_scale
+  - trust_built_in
+  - ecosystem_ready

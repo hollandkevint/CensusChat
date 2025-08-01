@@ -1,8 +1,8 @@
 # CensusChat - Natural Language Census Data Query Platform
 
-**Status:** Early Development  
+**Status:** Phase 3 - MVP Development  
 **Methodology:** BMAD B2B Data Products Framework  
-**License:** Open Source (TBD)
+**License:** MIT
 
 ## Overview
 
@@ -70,26 +70,50 @@ bmad-project/
 
 ## Quick Start
 
-### For Users
-1. Visit [CensusChat Platform] (coming soon)
-2. Sign up for free account (100 queries/month)
-3. Ask questions like: "Show me population growth in cities over 100K"
-4. Export results as CSV, JSON, or integrate via API
+### 🚀 Using Docker (Recommended)
 
-### For Developers
 ```bash
 # Clone repository
 git clone https://github.com/[username]/CensusChat.git
 cd CensusChat
 
-# Install dependencies
+# Copy environment files
+cp backend/.env.example backend/.env
+
+# Start development environment
+make dev
+# or
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+# Access applications
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:3001/api/v1
+# API Health: http://localhost:3001/health
+```
+
+### 💻 Local Development
+
+```bash
+# Backend (Terminal 1)
+cd backend
 npm install
-
-# Set up local database
-npm run setup:database
-
-# Start development server
 npm run dev
+
+# Frontend (Terminal 2)
+cd frontend
+npm install
+npm run dev
+```
+
+### 🛠️ Available Commands
+
+```bash
+make help          # Show all available commands
+make dev           # Start development environment
+make build         # Build production images
+make test          # Run all tests
+make lint          # Run linters
+make logs          # Show container logs
 ```
 
 ### For Contributors
@@ -100,23 +124,27 @@ npm run dev
 
 ## Project Status
 
-### Completed
-- [x] Market research and competitive analysis
-- [x] Technical feasibility validation with DuckDB + Census data
-- [x] Business model and pricing strategy
-- [x] BMAD methodology setup and agent configuration
+### Completed ✅
+- [x] Phase 1: Market research and competitive analysis
+- [x] Phase 2: Technical feasibility validation with DuckDB + Census data
+- [x] Phase 2: Business model and pricing strategy
+- [x] Phase 2: BMAD methodology setup and agent configuration
+- [x] Phase 3: Backend API server setup (Express, TypeScript, DuckDB)
+- [x] Phase 3: Frontend application setup (Next.js 14+, React 19, Tailwind)
+- [x] Phase 3: Docker containerization and orchestration
+- [x] Phase 3: CI/CD pipeline with GitHub Actions
 
-### In Progress
-- [ ] Customer discovery interviews (Target: 15 interviews across segments)
-- [ ] MVP prototype development
-- [ ] Security framework implementation
-- [ ] Performance testing with full ACS dataset
+### In Progress 🚧
+- [ ] Phase 3: Natural Language Processing (NLP) service implementation
+- [ ] Phase 3: Census data ingestion pipeline
+- [ ] Phase 3: Query interface and visualization components
+- [ ] Phase 3: Authentication and user management
 
-### Upcoming
-- [ ] Open source community launch
-- [ ] Beta testing with partner organizations
-- [ ] Content marketing and community engagement
-- [ ] Enterprise pilot programs
+### Upcoming 📋
+- [ ] Phase 4: Beta testing with initial users
+- [ ] Phase 4: Performance optimization and caching
+- [ ] Phase 5: Open source community launch
+- [ ] Phase 5: Enterprise features and scaling
 
 ## Documentation
 

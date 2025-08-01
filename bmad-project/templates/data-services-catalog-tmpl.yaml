@@ -1,0 +1,676 @@
+template:
+  id: data-services-catalog-template
+  name: B2B Data Services Catalog Framework
+  version: 1.0
+  output:
+    format: markdown
+    filename: services/{{service_category}}-services-catalog.md
+    title: "{{company_name}} {{service_category}} Services Catalog"
+
+workflow:
+  mode: interactive
+  elicitation: service-design-process
+  custom_elicitation:
+    title: "Data Services Design Process"
+    sections:
+      - id: service-focus
+        options:
+          - "Implementation & onboarding services"
+          - "Consulting & advisory services"
+          - "Managed & ongoing services"
+          - "Training & enablement services"
+          - "Custom development services"
+
+sections:
+  - id: service-overview
+    title: Service Portfolio Overview
+    instruction: |
+      Define the complete service portfolio that enhances your data product value.
+    template: |
+      # {{company_name}} Data Services Catalog
+      ## {{service_category}} Services
+      
+      ### Service Portfolio Vision
+      {{service_portfolio_vision}}
+      
+      ### Service Strategy
+      Our data services are designed to bridge the gap between raw data access and business value realization. We provide comprehensive support that ensures customer success and maximizes the ROI of our data products.
+      
+      **Core Service Principles:**
+      - **Customer Success First**: Every service designed to drive customer outcomes
+      - **Scalable Delivery**: Repeatable processes that scale with growth
+      - **Expert-Led**: Industry experts delivering specialized knowledge
+      - **Outcome-Focused**: Results measured by customer business impact
+      - **Continuous Value**: Ongoing services that compound customer success
+      
+      ### Service Categories Overview
+      
+      | Service Category | Purpose | Delivery Model | Typical Duration |
+      |------------------|---------|----------------|------------------|
+      | {{category_1_name}} | {{category_1_purpose}} | {{category_1_delivery}} | {{category_1_duration}} |
+      | {{category_2_name}} | {{category_2_purpose}} | {{category_2_delivery}} | {{category_2_duration}} |
+      | {{category_3_name}} | {{category_3_purpose}} | {{category_3_delivery}} | {{category_3_duration}} |
+      | {{category_4_name}} | {{category_4_purpose}} | {{category_4_delivery}} | {{category_4_duration}} |
+
+  - id: implementation-services
+    title: Implementation & Onboarding Services
+    instruction: |
+      Detail services that help customers successfully implement and onboard to your data product.
+    elicit: true
+    template: |
+      ## Implementation & Onboarding Services
+      
+      ### Quick Start Implementation
+      
+      **Service Description:**
+      {{quick_start_description}}
+      
+      **What's Included:**
+      {{#each quick_start_components}}
+      - **{{component_name}}**: {{component_description}}
+        - Duration: {{component_duration}}
+        - Deliverable: {{component_deliverable}}
+      {{/each}}
+      
+      **Ideal For:**
+      {{quick_start_ideal_customer}}
+      
+      **Success Criteria:**
+      {{#each quick_start_success_criteria}}
+      - {{success_criterion}}
+      {{/each}}
+      
+      **Investment:** ${{quick_start_price}}
+      **Timeline:** {{quick_start_timeline}}
+      
+      ### Standard Implementation
+      
+      **Service Description:**
+      {{standard_impl_description}}
+      
+      **Implementation Process:**
+      
+      **Phase 1: Discovery & Planning ({{phase_1_duration}})**
+      {{#each phase_1_activities}}
+      - {{activity_name}}: {{activity_description}}
+      {{/each}}
+      
+      **Phase 2: Configuration & Integration ({{phase_2_duration}})**
+      {{#each phase_2_activities}}
+      - {{activity_name}}: {{activity_description}}
+      {{/each}}
+      
+      **Phase 3: Testing & Go-Live ({{phase_3_duration}})**
+      {{#each phase_3_activities}}
+      - {{activity_name}}: {{activity_description}}
+      {{/each}}
+      
+      **Phase 4: Knowledge Transfer ({{phase_4_duration}})**
+      {{#each phase_4_activities}}
+      - {{activity_name}}: {{activity_description}}
+      {{/each}}
+      
+      **Investment:** ${{standard_impl_price}}
+      **Timeline:** {{standard_impl_timeline}}
+      
+      ### Enterprise Implementation
+      
+      **Service Description:**
+      {{enterprise_impl_description}}
+      
+      **Enterprise Features:**
+      {{#each enterprise_features}}
+      - **{{feature_name}}**: {{feature_description}}
+      {{/each}}
+      
+      **Dedicated Team:**
+      - {{team_lead_role}}: {{team_lead_description}}
+      - {{team_architect_role}}: {{team_architect_description}}
+      - {{team_consultant_role}}: {{team_consultant_description}}
+      
+      **Investment:** ${{enterprise_impl_price}}
+      **Timeline:** {{enterprise_impl_timeline}}
+
+  - id: consulting-services
+    title: Consulting & Advisory Services
+    instruction: |
+      Define strategic consulting services that help customers maximize data value.
+    template: |
+      ## Consulting & Advisory Services
+      
+      ### Data Strategy Consulting
+      
+      **Service Description:**
+      {{data_strategy_description}}
+      
+      **Consulting Approach:**
+      
+      **Assessment Phase:**
+      {{#each assessment_activities}}
+      - {{activity_name}}: {{activity_description}}
+      {{/each}}
+      
+      **Strategy Development:**
+      {{#each strategy_activities}}
+      - {{activity_name}}: {{activity_description}}
+      {{/each}}
+      
+      **Implementation Planning:**
+      {{#each planning_activities}}
+      - {{activity_name}}: {{activity_description}}
+      {{/each}}
+      
+      **Key Deliverables:**
+      {{#each strategy_deliverables}}
+      - {{deliverable_name}}: {{deliverable_description}}
+      {{/each}}
+      
+      **Investment:** ${{strategy_consulting_price}}
+      **Timeline:** {{strategy_consulting_timeline}}
+      
+      ### Use Case Development
+      
+      **Service Description:**
+      {{use_case_development_description}}
+      
+      **Development Process:**
+      
+      **Discovery Workshops:**
+      - Business process mapping
+      - Pain point identification  
+      - Opportunity assessment
+      - Stakeholder alignment
+      
+      **Use Case Design:**
+      - Value proposition definition
+      - Success metrics establishment
+      - Implementation roadmap
+      - ROI projections
+      
+      **Pilot Planning:**
+      - Pilot scope definition
+      - Success criteria establishment
+      - Risk mitigation planning
+      - Resource requirements
+      
+      **Investment:** ${{use_case_price}} per use case
+      **Timeline:** {{use_case_timeline}} per use case
+      
+      ### Analytics Advisory
+      
+      **Service Description:**
+      {{analytics_advisory_description}}
+      
+      **Advisory Services:**
+      {{#each analytics_services}}
+      - **{{service_name}}**: {{service_description}}
+        - Approach: {{service_approach}}
+        - Duration: {{service_duration}}
+        - Investment: ${{service_price}}
+      {{/each}}
+      
+      ### Executive Advisory Program
+      
+      **Program Description:**
+      {{executive_advisory_description}}
+      
+      **Program Benefits:**
+      {{#each advisory_benefits}}
+      - {{benefit_description}}
+      {{/each}}
+      
+      **Program Structure:**
+      - Monthly executive briefings
+      - Quarterly strategy reviews
+      - Annual roadmap planning
+      - On-demand advisory support
+      
+      **Investment:** ${{executive_advisory_price}} annually
+      **Commitment:** {{executive_advisory_commitment}}
+
+  - id: managed-services
+    title: Managed & Ongoing Services
+    instruction: |
+      Define ongoing managed services that ensure continued customer success.
+    template: |
+      ## Managed & Ongoing Services
+      
+      ### Customer Success Management
+      
+      **Service Description:**
+      {{customer_success_description}}
+      
+      **Service Tiers:**
+      
+      **Essential Success (All Customers)**
+      - Onboarding support and guidance
+      - Product update notifications
+      - Basic usage monitoring
+      - Self-service resource access
+      - Community forum support
+      
+      **Professional Success (${{professional_success_price}}/month)**
+      - Dedicated customer success manager
+      - Monthly usage and value reviews
+      - Proactive optimization recommendations
+      - Priority support and issue resolution
+      - Quarterly business reviews
+      
+      **Enterprise Success (${{enterprise_success_price}}/month)**
+      - Senior customer success manager
+      - Weekly check-ins and support
+      - Custom reporting and analytics
+      - Executive business reviews
+      - Strategic roadmap planning
+      
+      ### Data Quality Management
+      
+      **Service Description:**
+      {{data_quality_mgmt_description}}
+      
+      **Quality Assurance Services:**
+      {{#each quality_services}}
+      - **{{service_name}}**: {{service_description}}
+        - Frequency: {{service_frequency}}
+        - SLA: {{service_sla}}
+        - Reporting: {{service_reporting}}
+      {{/each}}
+      
+      **Quality Monitoring:**
+      - Real-time quality dashboards
+      - Automated quality alerts
+      - Monthly quality reports
+      - Root cause analysis
+      - Improvement recommendations
+      
+      **Investment:** ${{quality_mgmt_price}} monthly
+      
+      ### Platform Management
+      
+      **Service Description:**
+      {{platform_mgmt_description}}
+      
+      **Managed Platform Services:**
+      
+      **Infrastructure Management:**
+      - 24/7 monitoring and alerting
+      - Performance optimization
+      - Capacity planning and scaling
+      - Security patch management
+      - Backup and disaster recovery
+      
+      **Application Management:**
+      - Software updates and maintenance
+      - Configuration management
+      - Integration monitoring
+      - Performance tuning
+      - Issue resolution
+      
+      **Data Management:**
+      - Data pipeline monitoring
+      - ETL process management
+      - Data freshness assurance
+      - Quality control processes
+      - Archive and retention management
+      
+      **Investment:** Starting at ${{platform_mgmt_price}} monthly
+      
+      ### Business Intelligence Services
+      
+      **Service Description:**
+      {{bi_services_description}}
+      
+      **BI Service Options:**
+      {{#each bi_services}}
+      - **{{service_name}}**: {{service_description}}   
+        - Delivery: {{service_delivery}}
+        - Frequency: {{service_frequency}}
+        - Price: ${{service_price}}
+      {{/each}}
+
+  - id: training-services
+    title: Training & Enablement Services
+    instruction: |
+      Define training services that build customer capabilities and drive adoption.
+    template: |
+      ## Training & Enablement Services
+      
+      ### User Training Programs
+      
+      **Program Overview:**
+      {{user_training_overview}}
+      
+      **Training Tracks:**
+      
+      **Business User Track**
+      - Data navigation and exploration
+      - Query building and filtering
+      - Visualization and reporting
+      - Best practices for analysis
+      - Duration: {{business_user_duration}}
+      - Price: ${{business_user_price}} per person
+      
+      **Power User Track**
+      - Advanced query techniques
+      - Custom dashboard creation
+      - API integration basics
+      - Performance optimization
+      - Duration: {{power_user_duration}}
+      - Price: ${{power_user_price}} per person
+      
+      **Administrator Track**
+      - Platform administration
+      - User management and permissions
+      - System configuration
+      - Monitoring and troubleshooting
+      - Duration: {{admin_duration}}
+      - Price: ${{admin_price}} per person
+      
+      **Developer Track**
+      - API development and integration
+      - Custom application development
+      - Advanced technical features
+      - Best practices and patterns
+      - Duration: {{developer_duration}}
+      - Price: ${{developer_price}} per person
+      
+      ### Certification Programs
+      
+      **Certification Overview:**
+      {{certification_overview}}
+      
+      **Available Certifications:**
+      {{#each certifications}}
+      - **{{cert_name}}**: {{cert_description}}
+        - Prerequisites: {{cert_prerequisites}}
+        - Exam Format: {{cert_exam_format}}
+        - Validity: {{cert_validity}}
+        - Price: ${{cert_price}}
+      {{/each}}
+      
+      ### Custom Training Development
+      
+      **Service Description:**
+      {{custom_training_description}}
+      
+      **Development Process:**
+      1. Training needs assessment
+      2. Curriculum design and development
+      3. Material creation and review
+      4. Pilot delivery and feedback
+      5. Final delivery and documentation
+      
+      **Deliverables:**
+      - Custom training curriculum
+      - Training materials and resources
+      - Instructor guides and notes
+      - Assessment and certification tools
+      - Delivery support and coaching
+      
+      **Investment:** ${{custom_training_price}} per program
+      **Timeline:** {{custom_training_timeline}}
+      
+      ### Train-the-Trainer Programs
+      
+      **Program Description:**
+      {{train_trainer_description}}
+      
+      **Program Components:**
+      - Instructor methodology training
+      - Content mastery certification
+      - Delivery skills development
+      - Materials and resource provision
+      - Ongoing coaching and support
+      
+      **Investment:** ${{train_trainer_price}} per instructor
+      **Timeline:** {{train_trainer_timeline}}
+
+  - id: custom-development
+    title: Custom Development Services
+    instruction: |
+      Define custom development services for specialized customer requirements.
+    template: |
+      ## Custom Development Services
+      
+      ### Custom Analytics Development
+      
+      **Service Description:**
+      {{custom_analytics_description}}
+      
+      **Development Capabilities:**
+      {{#each analytics_capabilities}}
+      - **{{capability_name}}**: {{capability_description}}
+        - Technology: {{capability_technology}}
+        - Complexity: {{capability_complexity}}
+        - Typical Duration: {{capability_duration}}
+      {{/each}}
+      
+      **Development Process:**
+      
+      **Requirements Gathering ({{req_gathering_duration}})**
+      - Stakeholder interviews
+      - Business requirement documentation
+      - Technical specification development
+      - Project scope and timeline definition
+      
+      **Solution Design ({{solution_design_duration}})**
+      - Architecture design
+      - Data model development
+      - User experience design
+      - Technical implementation plan
+      
+      **Development & Testing ({{dev_testing_duration}})**
+      - Iterative development approach
+      - Continuous testing and quality assurance
+      - Performance optimization
+      - Security and compliance validation
+      
+      **Deployment & Training ({{deployment_duration}})**
+      - Production deployment
+      - User training and documentation
+      - Performance monitoring setup
+      - Knowledge transfer
+      
+      **Pricing Structure:**
+      - Discovery & Requirements: ${{discovery_price}}
+      - Development: ${{development_hourly_rate}}/hour
+      - Project Management: ${{pm_hourly_rate}}/hour
+      - Quality Assurance: ${{qa_hourly_rate}}/hour
+      
+      ### Integration Development
+      
+      **Service Description:**
+      {{integration_development_description}}
+      
+      **Integration Types:**
+      {{#each integration_types}}
+      - **{{integration_name}}**: {{integration_description}}
+        - Complexity: {{integration_complexity}}
+        - Timeline: {{integration_timeline}}
+        - Price Range: ${{integration_price_range}}
+      {{/each}}
+      
+      **Integration Process:**
+      1. System assessment and mapping
+      2. Integration architecture design
+      3. API development and testing
+      4. Security and compliance validation
+      5. Deployment and monitoring setup
+      
+      ### Data Pipeline Development
+      
+      **Service Description:**
+      {{pipeline_development_description}}
+      
+      **Pipeline Services:**
+      - Data ingestion pipeline development
+      - Real-time streaming pipeline creation
+      - Batch processing pipeline optimization
+      - Data transformation and enrichment
+      - Quality monitoring and alerting
+      
+      **Technology Stack:**
+      {{#each pipeline_technologies}}
+      - {{technology_name}}: {{technology_use_case}}
+      {{/each}}
+      
+      **Pricing:** ${{pipeline_price_range}} depending on complexity
+
+  - id: service-packages
+    title: Service Packages & Bundles
+    instruction: |
+      Create packaged service offerings that combine multiple services for customer convenience.
+    template: |
+      ## Service Packages & Bundles
+      
+      ### Starter Success Package
+      
+      **Package Description:**
+      {{starter_package_description}}
+      
+      **What's Included:**
+      {{#each starter_components}}
+      - {{component_name}} (Value: ${{component_value}})
+      {{/each}}
+      
+      **Perfect For:**
+      {{starter_ideal_customer}}
+      
+      **Package Price:** ${{starter_package_price}} ({{starter_savings}}% savings)
+      **Timeline:** {{starter_timeline}}
+      
+      ### Growth Accelerator Package
+      
+      **Package Description:**
+      {{growth_package_description}}
+      
+      **What's Included:**
+      {{#each growth_components}}
+      - {{component_name}} (Value: ${{component_value}})
+      {{/each}}
+      
+      **Perfect For:**
+      {{growth_ideal_customer}}
+      
+      **Package Price:** ${{growth_package_price}} ({{growth_savings}}% savings)
+      **Timeline:** {{growth_timeline}}
+      
+      ### Enterprise Excellence Package
+      
+      **Package Description:**
+      {{enterprise_package_description}}
+      
+      **What's Included:**
+      {{#each enterprise_components}}
+      - {{component_name}} (Value: ${{component_value}})
+      {{/each}}
+      
+      **Perfect For:**
+      {{enterprise_ideal_customer}}
+      
+      **Package Price:** ${{enterprise_package_price}} ({{enterprise_savings}}% savings)
+      **Timeline:** {{enterprise_timeline}}
+      
+      ### Annual Success Subscription
+      
+      **Subscription Description:**
+      {{annual_subscription_description}}
+      
+      **Subscription Benefits:**
+      {{#each subscription_benefits}}
+      - {{benefit_description}}
+      {{/each}}
+      
+      **Service Credits:** {{annual_service_credits}} credits annually
+      **Price:** ${{annual_subscription_price}} ({{annual_savings}}% discount)
+      **Commitment:** 12-month commitment
+
+  - id: service-delivery
+    title: Service Delivery & Operations
+    instruction: |
+      Define how services are delivered and managed operationally.
+    template: |
+      ## Service Delivery & Operations
+      
+      ### Delivery Methodology
+      
+      **Service Delivery Framework:**
+      {{delivery_framework_description}}
+      
+      **Quality Assurance:**
+      - Standardized delivery processes
+      - Quality checkpoints at each phase
+      - Customer feedback integration
+      - Continuous improvement programs
+      - Performance metrics tracking
+      
+      **Project Management:**
+      - Dedicated project managers for complex services
+      - Regular status updates and communications
+      - Risk identification and mitigation
+      - Scope and change management
+      - Timeline and milestone tracking
+      
+      ### Service Level Agreements
+      
+      **Response Time SLAs:**
+      | Service Tier | Initial Response | Resolution Target | Availability |
+      |--------------|------------------|-------------------|--------------|
+      | Essential | {{essential_response}} | {{essential_resolution}} | {{essential_availability}} |
+      | Professional | {{professional_response}} | {{professional_resolution}} | {{professional_availability}} |
+      | Enterprise | {{enterprise_response}} | {{enterprise_resolution}} | {{enterprise_availability}} |
+      
+      **Service Quality Guarantees:**
+      {{#each quality_guarantees}}
+      - **{{guarantee_name}}**: {{guarantee_description}}
+        - Measurement: {{guarantee_measurement}}
+        - Remedy: {{guarantee_remedy}}
+      {{/each}}
+      
+      ### Customer Success Metrics
+      
+      **Success Tracking:**
+      {{#each success_metrics}}
+      - **{{metric_name}}**: {{metric_description}}
+        - Target: {{metric_target}}
+        - Measurement: {{metric_measurement}}
+      {{/each}}
+      
+      **Feedback & Improvement:**
+      - Regular customer satisfaction surveys
+      - Service performance reviews
+      - Continuous improvement initiatives
+      - Best practice sharing
+      - Innovation in service delivery
+      
+      ### Support & Escalation
+      
+      **Support Channels:**
+      {{#each support_channels}}
+      - **{{channel_name}}**: {{channel_description}}
+        - Availability: {{channel_availability}}
+        - Response Time: {{channel_response_time}}
+      {{/each}}
+      
+      **Escalation Process:**
+      1. **Level 1**: Service delivery team
+      2. **Level 2**: Service manager
+      3. **Level 3**: Service director
+      4. **Level 4**: Executive escalation
+      
+      **Emergency Procedures:**
+      {{emergency_procedures_description}}
+
+service_principles:
+  - customer_outcome_focused
+  - scalable_delivery_model
+  - expert_knowledge_transfer
+  - continuous_value_creation
+  - measured_success_impact
+
+delivery_standards:
+  - quality_assured_processes
+  - transparent_communication
+  - timely_project_delivery
+  - measurable_outcomes
+  - continuous_improvement
