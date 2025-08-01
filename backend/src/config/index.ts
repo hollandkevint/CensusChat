@@ -1,10 +1,15 @@
 import { CorsOptions } from 'cors';
+import { validateEnv } from './validation';
+
+// Validate environment variables on startup
+validateEnv();
 
 interface Config {
   environment: string;
   port: number;
   isDevelopment: boolean;
   isProduction: boolean;
+  isTest: boolean;
   cors: CorsOptions;
   jwt: {
     secret: string;
@@ -38,36 +43,47 @@ interface Config {
   };
 }
 
+// Helper function to ensure required environment variables
+const requireEnv = (key: string): string => {
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+  return value;
+};
+
 export const config: Config = {
   environment: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3001', 10),
   isDevelopment: process.env.NODE_ENV === 'development',
   isProduction: process.env.NODE_ENV === 'production',
+  isTest: process.env.NODE_ENV === 'test',
   
   cors: {
     origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 86400, // 24 hours
   },
   
   jwt: {
-    secret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+    secret: requireEnv('JWT_SECRET'),
     expiresIn: process.env.JWT_EXPIRES_IN || '24h',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
   
   database: {
     postgres: {
-      host: process.env.POSTGRES_HOST || 'localhost',
+      host: requireEnv('POSTGRES_HOST'),
       port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
-      database: process.env.POSTGRES_DB || 'censuschat',
-      user: process.env.POSTGRES_USER || 'postgres',
-      password: process.env.POSTGRES_PASSWORD || 'postgres',
+      database: requireEnv('POSTGRES_DB'),
+      user: requireEnv('POSTGRES_USER'),
+      password: requireEnv('POSTGRES_PASSWORD'),
       ssl: process.env.POSTGRES_SSL === 'true',
     },
     redis: {
-      host: process.env.REDIS_HOST || 'localhost',
+      host: requireEnv('REDIS_HOST'),
       port: parseInt(process.env.REDIS_PORT || '6379', 10),
       password: process.env.REDIS_PASSWORD,
     },
@@ -84,3 +100,9 @@ export const config: Config = {
     },
   },
 };
+
+// Log configuration status (without sensitive values)
+console.log('✅ Configuration loaded successfully');
+console.log(`   Environment: ${config.environment}`);
+console.log(`   Port: ${config.port}`);
+console.log(`   CORS Origins: ${Array.isArray(config.cors.origin) ? config.cors.origin.join(', ') : config.cors.origin}`);

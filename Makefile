@@ -14,10 +14,12 @@ install: ## Install all dependencies
 
 .PHONY: dev
 dev: ## Start development environment with Docker Compose
+	@if [ ! -f .env ]; then echo "⚠️  .env file not found. Copy .env.example to .env first"; exit 1; fi
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 .PHONY: dev-build
 dev-build: ## Build and start development environment
+	@if [ ! -f .env ]; then echo "⚠️  .env file not found. Copy .env.example to .env first"; exit 1; fi
 	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 .PHONY: dev-backend
@@ -94,3 +96,17 @@ shell-postgres: ## Open PostgreSQL shell
 .PHONY: shell-redis
 shell-redis: ## Open Redis CLI
 	docker-compose exec redis redis-cli
+
+.PHONY: security-check
+security-check: ## Run security checks (npm audit)
+	cd backend && npm audit
+	cd frontend && npm audit
+
+.PHONY: setup-env
+setup-env: ## Copy .env.example to .env with security warnings
+	@if [ -f .env ]; then echo "⚠️  .env already exists. Remove it first if you want to recreate"; exit 1; fi
+	@cp .env.example .env
+	@echo "✅ Created .env file from .env.example"
+	@echo "🔐 IMPORTANT: Update all passwords and secrets in .env before running!"
+	@echo "🔑 Generate secure JWT secret: openssl rand -base64 64"
+	@echo "🔒 Generate secure passwords: openssl rand -base64 32"

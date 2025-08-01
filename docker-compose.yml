@@ -7,17 +7,17 @@ services:
     container_name: censuschat-postgres
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: censuschat
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - censuschat-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,8 +28,8 @@ services:
     container_name: censuschat-redis
     restart: always
     ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     networks:
@@ -48,18 +48,16 @@ services:
     container_name: censuschat-backend
     restart: always
     ports:
-      - "3001:3001"
+      - "${PORT:-3001}:${PORT:-3001}"
+    env_file:
+      - .env
     environment:
-      NODE_ENV: development
-      PORT: 3001
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${PORT:-3001}
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
-      POSTGRES_DB: censuschat
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      JWT_SECRET: your-development-secret-key
     depends_on:
       postgres:
         condition: service_healthy
@@ -83,8 +81,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/v1}
     depends_on:
       - backend
     volumes:
@@ -96,13 +94,14 @@ services:
     command: npm run dev
 
   # pgAdmin for database management (optional)
+  # To use: docker-compose --profile tools up
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: censuschat-pgadmin
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@censuschat.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@localhost}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     ports:
       - "5050:80"
     depends_on:
@@ -113,6 +112,7 @@ services:
       - tools
 
   # RedisInsight for Redis management (optional)
+  # To use: docker-compose --profile tools up
   redisinsight:
     image: redislabs/redisinsight:latest
     container_name: censuschat-redisinsight
