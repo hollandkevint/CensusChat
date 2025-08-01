@@ -1,0 +1,179 @@
+{
+  "baseUrls": {
+    "api": "https://api.census.gov",
+    "data": "https://api.census.gov/data",
+    "discovery": "https://api.census.gov/data.html"
+  },
+  "datasets": {
+    "acs5": {
+      "name": "American Community Survey 5-Year Estimates",
+      "pattern": "/data/{year}/acs/acs5",
+      "description": "ACS 5-Year detailed tables with comprehensive demographic data",
+      "geographicLevels": ["us", "state", "county", "tract", "block group", "place", "zcta"],
+      "vintages": ["2022", "2021", "2020", "2019", "2018"]
+    },
+    "acs1": {
+      "name": "American Community Survey 1-Year Estimates", 
+      "pattern": "/data/{year}/acs/acs1",
+      "description": "ACS 1-Year estimates for areas with 65,000+ population",
+      "geographicLevels": ["us", "state", "county", "place"],
+      "vintages": ["2022", "2021", "2020", "2019", "2018"]
+    }
+  },
+  "variableTypes": {
+    "estimate": {
+      "suffix": "E",
+      "description": "Estimated value based on sample surveyed"
+    },
+    "marginOfError": {
+      "suffix": "M", 
+      "description": "Margin of error for the estimate"
+    },
+    "percentageEstimate": {
+      "suffix": "PE",
+      "description": "Percentage estimate"
+    },
+    "percentageMarginOfError": {
+      "suffix": "PM",
+      "description": "Percentage margin of error"
+    }
+  },
+  "geographicLevels": {
+    "040": {
+      "name": "State",
+      "code": "state",
+      "example": "&for=state:*"
+    },
+    "050": {
+      "name": "County",
+      "code": "county", 
+      "example": "&for=county:*&in=state:06"
+    },
+    "140": {
+      "name": "Census Tract",
+      "code": "tract",
+      "example": "&for=tract:*&in=state:06%20county:075"
+    },
+    "150": {
+      "name": "Census Block Group",
+      "code": "block group",
+      "example": "&for=block%20group:*&in=state:06%20county:075%20tract:*"
+    },
+    "160": {
+      "name": "Place",
+      "code": "place",
+      "example": "&for=place:*&in=state:06"
+    },
+    "860": {
+      "name": "ZIP Code Tabulation Area",
+      "code": "zip code tabulation area",
+      "example": "&for=zip%20code%20tabulation%20area:*"
+    }
+  },
+  "commonVariables": {
+    "B01003_001E": {
+      "label": "Total Population",
+      "table": "B01003",
+      "universe": "Total population"
+    },
+    "B25001_001E": {
+      "label": "Total Housing Units", 
+      "table": "B25001",
+      "universe": "Housing units"
+    },
+    "B08303_001E": {
+      "label": "Total Travel Time to Work",
+      "table": "B08303", 
+      "universe": "Workers 16 years and over who did not work at home"
+    },
+    "B19013_001E": {
+      "label": "Median Household Income",
+      "table": "B19013",
+      "universe": "Households"
+    },
+    "B25077_001E": {
+      "label": "Median Value (Dollars)",
+      "table": "B25077",
+      "universe": "Owner-occupied housing units"
+    }
+  },
+  "queryPatterns": {
+    "basic": {
+      "structure": "{baseUrl}/data/{year}/{dataset}?get={variables}&for={geography}&in={parent_geography}",
+      "example": "https://api.census.gov/data/2022/acs/acs5?get=NAME,B01003_001E&for=state:*"
+    },
+    "withFilters": {
+      "structure": "{baseUrl}/data/{year}/{dataset}?get={variables}&{predicates}&for={geography}",
+      "example": "https://api.census.gov/data/2022/acs/acs5?get=NAME,B01003_001E&AGEGROUP=29&for=state:*"
+    },
+    "groupQuery": {
+      "structure": "{baseUrl}/data/{year}/{dataset}?get=group({table_id})&for={geography}",
+      "example": "https://api.census.gov/data/2022/acs/acs5?get=group(B01003)&for=state:*"
+    }
+  },
+  "responseFormat": {
+    "structure": "Two-dimensional JSON array",
+    "firstRow": "Column headers (variable names)",
+    "subsequentRows": "Data values",
+    "example": [
+      ["NAME", "B01003_001E", "state"],
+      ["Alabama", "5024279", "01"],
+      ["Alaska", "733391", "02"]
+    ]
+  },
+  "limits": {
+    "variablesPerQuery": 50,
+    "queriesPerDayWithoutKey": 500,
+    "queriesPerDayWithKey": "Unlimited"
+  },
+  "testQueries": {
+    "zip5_acs5": {
+      "description": "ACS 5-Year data for ZIP Code Tabulation Areas in California",
+      "url": "https://api.census.gov/data/2022/acs/acs5?get=NAME,B01003_001E,B01003_001M,B25001_001E,B25001_001M&for=zip%20code%20tabulation%20area:*&in=state:06",
+      "geographyLevel": "ZCTA (ZIP5)",
+      "variables": ["NAME", "B01003_001E", "B01003_001M", "B25001_001E", "B25001_001M"]
+    },
+    "blockgroup_acs5": {
+      "description": "ACS 5-Year data for Census Block Groups in San Francisco County",
+      "url": "https://api.census.gov/data/2022/acs/acs5?get=NAME,B01003_001E,B01003_001M,B25001_001E,B25001_001M&for=block%20group:*&in=state:06%20county:075",
+      "geographyLevel": "Census Block Group", 
+      "variables": ["NAME", "B01003_001E", "B01003_001M", "B25001_001E", "B25001_001M"]
+    }
+  },
+  "ucgidExamples": {
+    "individual": {
+      "structure": "&ucgid={fully_qualified_geo_id}",
+      "example": "&ucgid=0400000US06",
+      "description": "California state using ucgid predicate"
+    },
+    "multiple": {
+      "structure": "&ucgid={geo_id_1},{geo_id_2}",
+      "example": "&ucgid=0400000US06,0400000US41", 
+      "description": "California and Oregon using ucgid predicate"
+    },
+    "collection": {
+      "structure": "&ucgid=pseudo({parent_geo_id}${child_summary_level})",
+      "example": "&ucgid=pseudo(0400000US06$0500000)",
+      "description": "All counties within California"
+    }
+  },
+  "errorHandling": {
+    "common_errors": [
+      {
+        "error": "400 Bad Request",
+        "causes": ["Invalid variable names", "Invalid geography codes", "Malformed query"],
+        "solutions": ["Check variable spelling", "Verify geography codes", "Review query syntax"]
+      },
+      {
+        "error": "404 Not Found", 
+        "causes": ["Invalid dataset year", "Invalid dataset path"],
+        "solutions": ["Check available vintages", "Verify dataset name"]
+      },
+      {
+        "error": "Rate limit exceeded",
+        "causes": ["More than 500 queries per day without API key"],
+        "solutions": ["Register for API key", "Implement query caching"]
+      }
+    ]
+  }
+}
