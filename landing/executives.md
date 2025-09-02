@@ -56,4 +56,4 @@
 
 **About the Builder:** Kevin Holland has 10+ years healthcare data experience, working with 2M+ member Medicare Advantage plans and $2.8B health systems. 
 
-**[Read Kevin's Full Story →](../GITHUB_PAGE.md)**
+**[Read Kevin's Full Story →](https://hollandkevint.github.io/CensusChat/about/)**

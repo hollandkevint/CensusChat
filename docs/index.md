@@ -14,7 +14,7 @@
 [View Architecture & Code →](../README.md)
 
 **🚀 Building Your Own Product?**  
-[Follow Kevin's Journey →](GITHUB_PAGE.html)
+[Follow Kevin's Journey →](about/)
 
 **📊 Need Demographics Now?**  
 [Request Demo →](mailto:kevin@kevintholland.com?subject=CensusChat%20Demo%20Request)

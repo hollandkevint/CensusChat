@@ -8,13 +8,13 @@
 ### Choose Your Path:
 
 **🏥 Healthcare Executive?**  
-[See ROI Calculator & Case Studies →](GITHUB_PAGE.md#market-opportunity-i-pursuing)
+[See ROI Calculator & Case Studies →](https://hollandkevint.github.io/CensusChat/about/#market-opportunity-i-pursuing)
 
 **👩‍💻 Technical Team?**  
 [View Architecture & Code →](README.md)
 
 **🚀 Building Your Own Product?**  
-[Follow Kevin's Journey →](GITHUB_PAGE.md#my-solopreneur-strategy)
+[Follow Kevin's Journey →](https://hollandkevint.github.io/CensusChat/about/#my-solopreneur-strategy)
 
 **📊 Need Demographics Now?**  
 [Try CensusChat Demo →](https://censuschat.com/demo)
