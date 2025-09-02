@@ -1,3 +1,10 @@
+---
+layout: default
+title: "CensusChat - Healthcare Demographics in Seconds"
+description: "Turn 6-week reports into 6-second queries"
+permalink: /about/
+---
+
 # Kevin Holland: Healthcare Data Products & Solopreneur Journey
 
 <div align="center">
