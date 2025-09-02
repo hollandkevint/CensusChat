@@ -12,6 +12,8 @@
 
 *I turn 6-week demographic consulting into 6-second queries*
 
+**[👤 Meet the Builder: Kevin Holland →](GITHUB_PAGE.md)** • **[🚀 Try Free Demo](https://censuschat.com/demo)** • **[📧 Get Updates](mailto:kevin@kevintholland.com)**
+
 </div>
 
 ---
@@ -379,5 +381,23 @@ npm run typecheck # TypeScript validation
 *I turn your healthcare demographic analysis from weeks to seconds.*
 
 **[🚀 Try CensusChat Now](https://censuschat.com) • [📖 Read the Docs](docs/) • [💬 Join Discussion](https://github.com/hollandkevint/CensusChat/discussions)**
+
+---
+
+## 👤 **About the Builder**
+
+**I'm Kevin Holland** - I've spent 10+ years solving healthcare data problems and I'm tired of watching strategy teams wait 6 weeks for answers they could get in 6 seconds.
+
+**[📖 Read My Full Story →](GITHUB_PAGE.md)** | **[✉️ Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
+
+> *"I'm building this because healthcare decisions impact lives, and when demographic analysis takes 6 weeks, patients wait for new facilities, health systems delay expansion, and Medicare plans can't optimize for senior needs."*
+
+**Why I Built This:**
+- **10+ years** healthcare data and BI experience
+- **Worked with** 2M+ member Medicare Advantage plans  
+- **Frustrated by** $50K consulting delays killing strategic decisions
+- **Solution:** MCP + Claude + Census API = instant insights
+
+**[🚀 Follow My Building Journey →](GITHUB_PAGE.md)**
 
 </div>

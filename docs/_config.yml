@@ -1,0 +1,78 @@
+# GitHub Pages Configuration for CensusChat
+title: "CensusChat by Kevin Holland"
+description: "Transform healthcare demographic analysis from weeks to seconds"
+author: "Kevin Holland"
+email: "kevin@kevintholland.com"
+url: "https://hollandkevint.github.io"
+baseurl: "/CensusChat"
+
+# Theme
+theme: minima
+
+# Navigation
+header_pages:
+  - GITHUB_PAGE.md
+  - README.md
+  - docs/index.md
+
+# SEO and Social
+twitter:
+  username: kevintholland
+  card: summary_large_image
+
+linkedin:
+  username: kevintholland
+
+github:
+  username: hollandkevint
+  repository: CensusChat
+
+# Analytics (placeholder for future)
+google_analytics: # GA_TRACKING_ID
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-seo-tag
+
+# Markdown
+markdown: kramdown
+highlighter: rouge
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:name/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      author: "Kevin Holland"
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "docs"
+    values:
+      layout: "page"
+
+# Exclude from processing
+exclude:
+  - node_modules/
+  - backend/
+  - frontend/
+  - test-data/
+  - docker-compose*.yml
+  - Dockerfile*
+  - "*.log"
+  - .env*
+  - coverage/
