@@ -1,0 +1,96 @@
+{
+  "mappings": [
+    {
+      "id": "90123456-1234-5678-9abc-def012345678",
+      "name": "WireMock Health Check",
+      "request": {
+        "method": "GET",
+        "url": "/__admin/health"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "status": "healthy",
+          "service": "census-api-mock",
+          "version": "1.0.0",
+          "uptime": "{{now format='iso'}}",
+          "mappings_loaded": "{{request.headers.X-Total-Count}}",
+          "environment": "test"
+        },
+        "transformers": ["response-template"]
+      }
+    },
+    {
+      "id": "01234567-2345-6789-abcd-ef0123456789",
+      "name": "Census Mock Service Information",
+      "request": {
+        "method": "GET",
+        "url": "/info"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "service": "Census API Mock Service",
+          "description": "Mock implementation of US Census Bureau API for testing",
+          "version": "1.0.0",
+          "data_ops_engineer": "CensusChat Testing Infrastructure",
+          "endpoints": {
+            "root": "/data",
+            "variables": "/data/{year}/acs/acs5/variables", 
+            "geography": "/data/{year}/acs/acs5/geography",
+            "data_query": "/data/{year}/acs/acs5?get={variables}&for={geography}"
+          },
+          "test_scenarios": [
+            "rate-limit: Set X-Test-Scenario: rate-limit header",
+            "server-error: Set X-Test-Scenario: server-error header",
+            "timeout: Set X-Test-Scenario: timeout header",
+            "partial-data: Set X-Test-Scenario: partial-data header",
+            "maintenance: Set X-Test-Scenario: maintenance header"
+          ],
+          "supported_years": ["2018", "2019", "2020", "2021", "2022"],
+          "supported_variables": [
+            "B01001_001E - Total Population",
+            "B19013_001E - Median Household Income",
+            "B25001_001E - Housing Units",
+            "B08301_001E - Means of Transportation"
+          ],
+          "supported_geographies": [
+            "state - State level (FIPS codes: 06, 36, 48, 12, 17)",
+            "county - County level (FIPS codes: 037, 047, 201, 086, 031)"
+          ]
+        }
+      }
+    },
+    {
+      "id": "12345678-3456-789a-bcde-f01234567890",
+      "name": "Reset Test Scenarios",
+      "request": {
+        "method": "POST",
+        "url": "/reset"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "message": "Test scenarios reset successfully",
+          "timestamp": "{{now format='iso'}}",
+          "reset_operations": [
+            "Cleared rate limiting state",
+            "Reset error scenario flags", 
+            "Restored normal response times",
+            "Cleared maintenance mode"
+          ]
+        },
+        "transformers": ["response-template"]
+      }
+    }
+  ]
+}

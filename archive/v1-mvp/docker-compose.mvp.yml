@@ -1,0 +1,158 @@
+services:
+  # PostgreSQL Database for user data
+  postgres:
+    image: postgres:16-alpine
+    container_name: censuschat-postgres-mvp
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-censuschat_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mvp_password_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-censuschat}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - censuschat-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-censuschat_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: censuschat-redis-mvp
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - censuschat-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.mvp
+      target: production
+    container_name: censuschat-backend-mvp
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3001}:${PORT:-3001}"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3001}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-censuschat_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mvp_password_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-censuschat}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-mvp_jwt_secret_change_in_production_2024}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      CENSUS_API_KEY: ${CENSUS_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      DUCKDB_PATH: /app/data/census.duckdb
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - censuschat-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-3001}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.mvp
+      target: production
+    container_name: censuschat-frontend-mvp
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/v1}
+      HOSTNAME: "0.0.0.0"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - censuschat-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Data initialization service (runs once to set up demo data)
+  data-init:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.mvp
+      target: builder
+    container_name: censuschat-data-init
+    environment:
+      NODE_ENV: development
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-censuschat_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mvp_password_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-censuschat}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CENSUS_API_KEY: ${CENSUS_API_KEY}
+      DUCKDB_PATH: /app/data/census.duckdb
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - censuschat-network
+    command: npm run seed:demo
+    restart: "no"
+    profiles:
+      - init
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  censuschat-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

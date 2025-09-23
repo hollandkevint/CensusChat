@@ -1,0 +1,84 @@
+version: 1.0.0
+installed_at: '2025-08-09T02:45:02.006Z'
+install_type: expansion-pack
+expansion_pack_id: bmad-healthcare-data
+expansion_pack_name: bmad-healthcare-data
+ides_setup:
+  - cursor
+  - claude-code
+files:
+  - path: .bmad-healthcare-data/config.yaml
+    hash: 0884de64f4acb58b
+    modified: false
+  - path: .bmad-healthcare-data/README.md
+    hash: 0be0e22b4592afad
+    modified: false
+  - path: .bmad-healthcare-data/workflows/healthcare-data-product-greenfield.yaml
+    hash: da016bc6715e20a1
+    modified: false
+  - path: .bmad-healthcare-data/utils/workflow-management.md
+    hash: b148df3ebb1f9c61
+    modified: false
+  - path: .bmad-healthcare-data/utils/bmad-doc-template.md
+    hash: 4b2f7c4408835b9e
+    modified: false
+  - path: .bmad-healthcare-data/templates/healthcare-data-prd-tmpl.yaml
+    hash: 3dedff29687900f2
+    modified: false
+  - path: .bmad-healthcare-data/data/elicitation-methods.md
+    hash: 6c4d7716010e8d55
+    modified: false
+  - path: .bmad-healthcare-data/data/bmad-kb.md
+    hash: d3726042886fd507
+    modified: false
+  - path: .bmad-healthcare-data/tasks/kb-mode-interaction.md
+    hash: 9c73e5ff25ef4890
+    modified: false
+  - path: .bmad-healthcare-data/tasks/execute-checklist.md
+    hash: 79a063eeb1216e35
+    modified: false
+  - path: .bmad-healthcare-data/tasks/create-doc.md
+    hash: 395719b8a002f7f9
+    modified: false
+  - path: .bmad-healthcare-data/tasks/conduct-privacy-impact-assessment.md
+    hash: d6ee009a37b11132
+    modified: false
+  - path: .bmad-healthcare-data/tasks/advanced-elicitation.md
+    hash: 28e3b538dc6fe104
+    modified: false
+  - path: .bmad-healthcare-data/agent-teams/healthcare-data-team.yaml
+    hash: c1f409ad77ddcd61
+    modified: false
+  - path: .bmad-healthcare-data/agents/medical-ethics-advisor.md
+    hash: 1fe44adc3c7f0fd3
+    modified: false
+  - path: .bmad-healthcare-data/agents/healthcare-data-pm.md
+    hash: 5b3f0ed7a8348ce9
+    modified: false
+  - path: .bmad-healthcare-data/agents/healthcare-commercial-strategist.md
+    hash: 1088fc4096c2ab28
+    modified: false
+  - path: .bmad-healthcare-data/agents/health-policy-specialist.md
+    hash: 0619ef83524cd4b5
+    modified: false
+  - path: .bmad-healthcare-data/agents/health-data-scientist.md
+    hash: 35924d5e9c47c58a
+    modified: false
+  - path: .bmad-healthcare-data/agents/health-data-engineer.md
+    hash: 5b0f48b2ab64506a
+    modified: false
+  - path: .bmad-healthcare-data/agents/clinical-informatics-lead.md
+    hash: e5f6a7afb52e8ca6
+    modified: false
+  - path: .bmad-healthcare-data/agents/bmad-orchestrator.md
+    hash: 0efbf16ea8757be2
+    modified: false
+  - path: .bmad-healthcare-data/checklists/hipaa-compliance-checklist.md
+    hash: 3c1d4ceee8c167ae
+    modified: false
+  - path: .bmad-healthcare-data/checklists/data-ethics-checklist.md
+    hash: 65e477f3c8395eea
+    modified: false
+  - path: .bmad-healthcare-data/checklists/clinical-validation-checklist.md
+    hash: c6160fff5578f6b7
+    modified: false

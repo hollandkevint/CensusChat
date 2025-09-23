@@ -39,6 +39,17 @@ interface Config {
     census: {
       baseUrl: string;
       apiKey?: string;
+      useLiveApi: boolean;
+    };
+  };
+  cache: {
+    census: {
+      ttl: number;
+    };
+  };
+  rateLimits: {
+    census: {
+      requestsPerHour: number;
     };
   };
 }
@@ -97,6 +108,19 @@ export const config: Config = {
     census: {
       baseUrl: process.env.CENSUS_API_URL || 'https://api.census.gov',
       apiKey: process.env.CENSUS_API_KEY,
+      useLiveApi: process.env.USE_LIVE_CENSUS_API === 'true',
+    },
+  },
+
+  cache: {
+    census: {
+      ttl: parseInt(process.env.CENSUS_CACHE_TTL || '3600', 10),
+    },
+  },
+
+  rateLimits: {
+    census: {
+      requestsPerHour: parseInt(process.env.CENSUS_API_REQUESTS_PER_HOUR || '400', 10),
     },
   },
 };

@@ -1,0 +1,284 @@
+template:
+  id: healthcare-data-prd-template-v1
+  name: Healthcare Data Product Requirements Document
+  version: 1.0
+  output:
+    format: markdown
+    filename: docs/healthcare-data-prd.md
+    title: "{{product_name}} Healthcare Data Product Requirements"
+
+workflow:
+  mode: interactive
+  elicitation: healthcare-data-elicitation
+  custom_elicitation:
+    title: "Healthcare Data Product Elicitation"
+    sections:
+      - id: clinical-problem
+        options:
+          - "Clinical Workflow Analysis - Map current clinical processes and pain points"
+          - "Patient Journey Mapping - Understand patient experience and touchpoints"
+          - "Outcome Metrics Definition - Define measurable clinical improvements"
+          - "Stakeholder Interviews - Gather insights from providers, patients, payers"
+          - "Competitive Analysis - Review existing solutions and gaps"
+          - "Evidence Review - Analyze clinical literature and guidelines"
+          - "Proceed to next section"
+
+sections:
+  - id: executive-summary
+    title: Executive Summary
+    instruction: |
+      Provide a concise overview of the healthcare data product, including the clinical problem it solves, target users, and expected impact on patient outcomes and healthcare delivery.
+    template: |
+      ## Executive Summary
+      
+      ### Product Vision
+      {{product_vision}}
+      
+      ### Clinical Problem Statement
+      {{clinical_problem}}
+      
+      ### Target Users
+      - Primary: {{primary_users}}
+      - Secondary: {{secondary_users}}
+      - Beneficiaries: {{patient_populations}}
+      
+      ### Key Value Propositions
+      1. Clinical Impact: {{clinical_value}}
+      2. Operational Efficiency: {{efficiency_gains}}
+      3. Financial ROI: {{financial_impact}}
+      4. Patient Experience: {{patient_benefits}}
+
+  - id: clinical-background
+    title: Clinical Background & Need
+    instruction: |
+      Detail the clinical context, current standard of care, and specific gaps this product addresses. Include epidemiology, clinical guidelines, and evidence base.
+    elicit: true
+    custom_elicitation: clinical-problem
+    template: |
+      ## Clinical Background & Need
+      
+      ### Clinical Context
+      {{clinical_context}}
+      
+      ### Current Standard of Care
+      {{current_practice}}
+      
+      ### Clinical Gaps & Unmet Needs
+      {{unmet_needs}}
+      
+      ### Evidence Base
+      - Clinical Guidelines: {{relevant_guidelines}}
+      - Supporting Literature: {{key_studies}}
+      - Real-World Evidence: {{rwe_data}}
+      
+      ### Target Population
+      - Patient Demographics: {{demographics}}
+      - Prevalence/Incidence: {{epidemiology}}
+      - Risk Factors: {{risk_factors}}
+
+  - id: product-requirements
+    title: Product Requirements
+    instruction: |
+      Define functional and non-functional requirements specific to healthcare data products, including clinical decision support, interoperability, and regulatory requirements.
+    template: |
+      ## Product Requirements
+      
+      ### Functional Requirements
+      
+      #### Clinical Functionality
+      {{clinical_features}}
+      
+      #### Data Processing
+      - Data Inputs: {{data_sources}}
+      - Analytics/ML Models: {{analytics_capabilities}}
+      - Clinical Insights: {{insight_types}}
+      - Decision Support: {{cds_features}}
+      
+      #### User Interface
+      - Clinical Workflows: {{workflow_integration}}
+      - Visualization: {{data_visualization}}
+      - Alerts/Notifications: {{alert_mechanisms}}
+      - Mobile/Remote Access: {{access_requirements}}
+      
+      ### Non-Functional Requirements
+      
+      #### Performance
+      - Response Time: {{performance_metrics}}
+      - Scalability: {{scalability_needs}}
+      - Availability: {{uptime_requirements}}
+      
+      #### Interoperability
+      - EHR Integration: {{ehr_systems}}
+      - Standards: HL7 FHIR, {{other_standards}}
+      - Data Exchange: {{exchange_requirements}}
+
+  - id: regulatory-compliance
+    title: Regulatory & Compliance Requirements
+    instruction: |
+      Detail all regulatory requirements including HIPAA, FDA classifications, international regulations, and clinical validation needs.
+    template: |
+      ## Regulatory & Compliance Requirements
+      
+      ### Privacy & Security
+      - HIPAA Compliance: {{hipaa_requirements}}
+      - GDPR Requirements: {{gdpr_needs}}
+      - State Regulations: {{state_laws}}
+      
+      ### Medical Device Regulations
+      - FDA Classification: {{fda_class}}
+      - CE Marking: {{ce_requirements}}
+      - Clinical Validation: {{validation_requirements}}
+      
+      ### Quality Management
+      - QMS Requirements: {{qms_needs}}
+      - SOC 2 Compliance: {{soc2_requirements}}
+      - ISO Certifications: {{iso_standards}}
+      
+      ### Audit & Reporting
+      - Audit Trails: {{audit_requirements}}
+      - Compliance Reporting: {{reporting_needs}}
+
+  - id: clinical-validation
+    title: Clinical Validation Strategy
+    instruction: |
+      Outline the approach for demonstrating clinical validity, including study design, success metrics, and real-world evidence generation.
+    template: |
+      ## Clinical Validation Strategy
+      
+      ### Validation Approach
+      {{validation_methodology}}
+      
+      ### Study Design
+      - Study Type: {{study_type}}
+      - Sample Size: {{sample_requirements}}
+      - Duration: {{study_timeline}}
+      - Sites: {{clinical_sites}}
+      
+      ### Success Metrics
+      - Primary Endpoints: {{primary_outcomes}}
+      - Secondary Endpoints: {{secondary_outcomes}}
+      - Safety Measures: {{safety_metrics}}
+      
+      ### Real-World Evidence Plan
+      {{rwe_strategy}}
+
+  - id: data-ethics-privacy
+    title: Data Ethics & Privacy
+    instruction: |
+      Address ethical considerations, privacy protections, bias mitigation, and patient consent mechanisms.
+    template: |
+      ## Data Ethics & Privacy
+      
+      ### Ethical Framework
+      {{ethical_principles}}
+      
+      ### Privacy Protection
+      - Data Minimization: {{data_minimization_approach}}
+      - Consent Management: {{consent_framework}}
+      - Patient Rights: {{patient_rights_implementation}}
+      
+      ### Bias & Fairness
+      - Bias Assessment: {{bias_testing}}
+      - Mitigation Strategies: {{bias_mitigation}}
+      - Health Equity: {{equity_measures}}
+      
+      ### Transparency
+      - Explainability: {{explainability_features}}
+      - Patient Communication: {{patient_transparency}}
+
+  - id: commercialization
+    title: Commercialization Strategy
+    instruction: |
+      Define go-to-market strategy, business model, pricing, and partnership approach for healthcare markets.
+    template: |
+      ## Commercialization Strategy
+      
+      ### Business Model
+      {{business_model}}
+      
+      ### Target Market
+      - Primary Market: {{primary_market}}
+      - Market Size: {{market_sizing}}
+      - Growth Potential: {{growth_projections}}
+      
+      ### Pricing Strategy
+      - Pricing Model: {{pricing_approach}}
+      - Reimbursement: {{reimbursement_strategy}}
+      - Value Justification: {{roi_calculation}}
+      
+      ### Partnerships
+      - Healthcare Systems: {{provider_partnerships}}
+      - Payer Relationships: {{payer_strategy}}
+      - Technology Partners: {{tech_partnerships}}
+      
+      ### Go-to-Market
+      - Launch Strategy: {{launch_plan}}
+      - Pilot Programs: {{pilot_approach}}
+      - Scaling Plan: {{scaling_strategy}}
+
+  - id: implementation-support
+    title: Implementation & Support
+    instruction: |
+      Detail implementation requirements, training needs, and ongoing support for healthcare organizations.
+    template: |
+      ## Implementation & Support
+      
+      ### Implementation Plan
+      {{implementation_approach}}
+      
+      ### Training Requirements
+      - Clinical Training: {{clinical_training}}
+      - Technical Training: {{technical_training}}
+      - Ongoing Education: {{continuing_education}}
+      
+      ### Support Model
+      - Clinical Support: {{clinical_support}}
+      - Technical Support: {{technical_support}}
+      - Success Metrics: {{support_metrics}}
+      
+      ### Change Management
+      {{change_management_strategy}}
+
+  - id: success-metrics
+    title: Success Metrics & KPIs
+    instruction: |
+      Define measurable outcomes for clinical impact, operational efficiency, financial performance, and user satisfaction.
+    template: |
+      ## Success Metrics & KPIs
+      
+      ### Clinical Outcomes
+      {{clinical_metrics}}
+      
+      ### Operational Metrics
+      {{operational_kpis}}
+      
+      ### Financial Metrics
+      {{financial_metrics}}
+      
+      ### User Satisfaction
+      {{satisfaction_measures}}
+      
+      ### Quality Metrics
+      {{quality_indicators}}
+
+  - id: risks-mitigation
+    title: Risks & Mitigation
+    instruction: |
+      Identify key risks specific to healthcare data products and mitigation strategies.
+    template: |
+      ## Risks & Mitigation
+      
+      ### Clinical Risks
+      {{clinical_risks}}
+      
+      ### Regulatory Risks
+      {{regulatory_risks}}
+      
+      ### Technical Risks
+      {{technical_risks}}
+      
+      ### Market Risks
+      {{market_risks}}
+      
+      ### Mitigation Strategies
+      {{mitigation_plans}}

@@ -58,6 +58,9 @@ const envSchema = Joi.object({
   // Census API configuration
   CENSUS_API_URL: Joi.string().uri().default('https://api.census.gov'),
   CENSUS_API_KEY: Joi.string().allow(''),
+  USE_LIVE_CENSUS_API: Joi.boolean().default(false),
+  CENSUS_CACHE_TTL: Joi.number().default(3600),
+  CENSUS_API_REQUESTS_PER_HOUR: Joi.number().default(400),
 }).unknown();
 
 export const validateEnv = () => {

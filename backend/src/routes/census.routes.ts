@@ -2,23 +2,32 @@ import { Router, Request, Response } from 'express';
 import { censusApiService } from '../services/censusApiService';
 import { censusDataModel } from '../models/CensusData';
 import { censusDataLoader } from '../utils/censusDataLoader';
+import { getCacheStats, invalidateCache, cleanExpiredCache } from '../services/cacheService';
 
 const router = Router();
 
 /**
  * @route GET /api/v1/census/test-connection
- * @desc Test Census API connectivity
+ * @desc Test Census API connectivity and authentication
  * @access Public
  */
 router.get('/test-connection', async (req: Request, res: Response) => {
   try {
-    const rateLimit = censusApiService.getRateLimitInfo();
-    const datasets = await censusApiService.getAvailableDatasets();
-    
+    const serviceStatus = censusApiService.getServiceStatus();
+    const authResult = await censusApiService.testAuthentication();
+
+    let datasets = {};
+    try {
+      datasets = await censusApiService.getAvailableDatasets();
+    } catch (error) {
+      console.warn('Could not load datasets:', error instanceof Error ? error.message : 'Unknown error');
+    }
+
     res.json({
-      success: true,
-      message: 'Census API connection successful',
-      rateLimit,
+      success: authResult.authenticated || !serviceStatus.configuration.useLiveApi,
+      message: authResult.message,
+      serviceStatus,
+      authentication: authResult,
       availableDatasets: Object.keys(datasets),
       timestamp: new Date().toISOString()
     });
@@ -26,8 +35,9 @@ router.get('/test-connection', async (req: Request, res: Response) => {
     console.error('Census API test connection error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to connect to Census API',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      error: 'Failed to test Census API connection',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      serviceStatus: censusApiService.getServiceStatus()
     });
   }
 });
@@ -342,6 +352,83 @@ router.get('/counties/:state', async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch counties',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * @route GET /api/v1/census/cache/stats
+ * @desc Get cache statistics
+ * @access Public
+ */
+router.get('/cache/stats', async (req: Request, res: Response) => {
+  try {
+    const stats = await getCacheStats();
+
+    res.json({
+      success: true,
+      cacheStats: stats,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error getting cache stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get cache statistics',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * @route POST /api/v1/census/cache/invalidate
+ * @desc Invalidate cache entries
+ * @access Public
+ */
+router.post('/cache/invalidate', async (req: Request, res: Response) => {
+  try {
+    const { pattern } = req.body;
+
+    const deletedCount = await invalidateCache(pattern);
+
+    res.json({
+      success: true,
+      message: `Invalidated ${deletedCount} cache entries`,
+      deletedCount,
+      pattern: pattern || 'all',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error invalidating cache:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to invalidate cache',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * @route POST /api/v1/census/cache/clean
+ * @desc Clean expired cache entries
+ * @access Public
+ */
+router.post('/cache/clean', async (req: Request, res: Response) => {
+  try {
+    const cleanedCount = await cleanExpiredCache();
+
+    res.json({
+      success: true,
+      message: `Cleaned ${cleanedCount} expired cache entries`,
+      cleanedCount,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error cleaning cache:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to clean cache',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }

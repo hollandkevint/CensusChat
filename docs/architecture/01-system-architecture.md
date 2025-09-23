@@ -2,7 +2,7 @@
 
 ## Overview
 
-CensusChat implements a modern three-layer architecture designed for high performance, scalability, and reliability. This architecture supports natural language queries on 11M+ Census records with sub-2 second response times while maintaining enterprise-grade security and compliance.
+CensusChat implements a modern three-layer architecture designed for high performance, scalability, and reliability. This architecture supports natural language queries on 11M+ Census records with sub-2 second response times while maintaining enterprise-grade security and compliance. **As of September 2025, the DuckDB + MCP integration is fully operational**, providing complete "Natural Language → MCP Validation → DuckDB Query → Results" data flow.
 
 ## Three-Layer Architecture
 
@@ -97,25 +97,27 @@ graph TB
 
 ### Processing Layer
 
-#### Natural Language Processing Service
-- **Technology**: Python 3.11+ with custom MCP implementation
-- **Capabilities**: 
-  - Intent recognition for demographic queries
-  - Entity extraction (geographic areas, demographics, time periods)
-  - SQL generation with optimization hints
-  - Query validation and security constraints
-- **Performance**: <500ms processing time for 95% of queries
-- **Accuracy**: 95%+ query success rate with continuous learning
+#### Natural Language Processing Service - ✅ OPERATIONAL
+- **Technology**: Node.js with Anthropic Claude integration (MCP-compatible)
+- **Implementation**: `anthropicService.ts` with `analyzeQuery()` method
+- **Capabilities**:
+  - Intent recognition for demographic queries (`demographics`, `geography`, `comparison`)
+  - Entity extraction (locations, demographics, age groups, income ranges)
+  - Query analysis with confidence scoring
+  - Healthcare-specific query patterns (Medicare eligible, seniors, etc.)
+- **Performance**: <2 seconds with timeout enforcement via Promise.race()
+- **Fallback**: Graceful degradation with mock analysis when API unavailable
 
-#### Query Processing Service
-- **Technology**: Node.js with DuckDB integration
+#### Query Processing Service - ✅ OPERATIONAL
+- **Technology**: Node.js with DuckDB integration via `ConcurrentDuckDBManager`
+- **Implementation**: `/api/v1/queries` endpoint with complete MCP validation
 - **Functionality**:
-  - SQL query execution and optimization
-  - Result caching and materialized views
-  - Geographic boundary processing
-  - Statistical calculations and aggregations
-- **Performance**: <2 second response times for complex queries
-- **Scalability**: Horizontal scaling with query distribution
+  - MCP-validated SQL query execution against DuckDB
+  - Connection pooling (70% readers, 30% writers)
+  - Transaction management with ACID compliance
+  - Graceful fallback to mock data on DuckDB failure
+- **Performance**: <2 second response times enforced with timeout
+- **Current Status**: Production-ready with lazy initialization
 
 #### Authentication Service
 - **Technology**: Node.js with JWT and OAuth 2.0
@@ -200,35 +202,47 @@ graph TB
 
 ## Data Flow Architecture
 
-### Query Processing Flow
+### Query Processing Flow - ✅ IMPLEMENTED (September 2025)
+
+**Current Status**: The complete DuckDB + MCP integration is operational with the following data flow:
 
 ```mermaid
 sequenceDiagram
     participant User as User Interface
-    participant Gateway as API Gateway
-    participant NLP as NLP Service
+    participant Gateway as API Gateway (/api/v1/queries)
+    participant MCP as MCP Validation Service
     participant Query as Query Service
     participant Cache as Redis Cache
-    participant DB as DuckDB
+    participant DB as DuckDB (ConcurrentDuckDBManager)
     participant Analytics as Analytics Service
-    
+
     User->>Gateway: Natural Language Query
-    Gateway->>NLP: Parse Query Intent
-    NLP->>NLP: Extract Entities & Generate SQL
-    NLP->>Gateway: Validated SQL Query
-    Gateway->>Query: Execute Query Request
-    Query->>Cache: Check Cache
+    Gateway->>MCP: Analyze Query (anthropicService)
+    MCP->>MCP: Extract Entities & Validate Intent
+    MCP->>Gateway: Analysis + SQL Generation
+    Gateway->>Query: Execute SQL Against DuckDB
+    Query->>Cache: Check Cache (if enabled)
     alt Cache Hit
         Cache->>Query: Return Cached Results
-    else Cache Miss
-        Query->>DB: Execute SQL Query
+    else Cache Miss or No Cache
+        Query->>DB: Execute SQL Query (Connection Pooling)
         DB->>Query: Return Results
-        Query->>Cache: Store Results
+        Query->>Cache: Store Results (if enabled)
     end
-    Query->>Gateway: Query Results
+    alt DuckDB Success
+        Query->>Gateway: Query Results
+    else DuckDB Failure
+        Query->>Gateway: Fallback Mock Data
+    end
     Gateway->>Analytics: Log Query Metrics
-    Gateway->>User: Formatted Response
+    Gateway->>User: Formatted Response with Metadata
 ```
+
+**Key Implementation Details**:
+- **Endpoint**: `POST /api/v1/queries` with MCP validation and DuckDB execution
+- **Timeout**: 2-second limit enforced via Promise.race()
+- **Fallback**: Graceful degradation to mock data if DuckDB unavailable
+- **Connection Management**: Uses existing `ConcurrentDuckDBManager` with pooling
 
 ### Data Ingestion Pipeline
 

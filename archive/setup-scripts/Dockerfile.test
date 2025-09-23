@@ -1,0 +1,36 @@
+# Frontend Test Dockerfile
+FROM node:20-alpine AS test-base
+
+# Install system dependencies for testing
+RUN apk add --no-cache \
+    libc6-compat \
+    chromium \
+    chromium-chromedriver
+
+# Set Chrome environment variables for Playwright/Jest
+ENV CHROME_BIN="/usr/bin/chromium-browser"
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium-browser"
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy source code and test files
+COPY . .
+
+# Create directories for test artifacts
+RUN mkdir -p /app/coverage /app/test-reports /app/screenshots
+
+# Set proper permissions
+RUN chmod -R 755 /app/coverage /app/test-reports /app/screenshots
+
+# Expose Next.js test port
+EXPOSE 3000
+
+# Default test command
+CMD ["npm", "run", "test"]

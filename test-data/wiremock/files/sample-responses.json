@@ -1,0 +1,118 @@
+{
+  "sample_responses": {
+    "population_by_state": [
+      ["B01001_001E", "state"],
+      ["39538223", "06"],
+      ["19336776", "36"], 
+      ["29145505", "48"],
+      ["21538187", "12"],
+      ["12812508", "17"]
+    ],
+    "population_by_county": [
+      ["B01001_001E", "county", "state"],
+      ["10014009", "037", "06"],
+      ["2736074", "047", "36"],
+      ["4731145", "201", "48"],
+      ["2701767", "086", "12"],
+      ["5275541", "031", "17"]
+    ],
+    "median_income_by_state": [
+      ["B19013_001E", "state"],
+      ["84097", "06"],
+      ["72108", "36"],
+      ["64034", "48"],
+      ["59227", "12"],
+      ["68428", "17"]
+    ],
+    "housing_units_by_state": [
+      ["B25001_001E", "state"],
+      ["14421553", "06"],
+      ["8654607", "36"],
+      ["11283353", "48"],
+      ["9865315", "12"],
+      ["5467513", "17"]
+    ],
+    "multi_variable_sample": [
+      ["B01001_001E", "B19013_001E", "B25001_001E", "state"],
+      ["39538223", "84097", "14421553", "06"],
+      ["19336776", "72108", "8654607", "36"],
+      ["29145505", "64034", "11283353", "48"],
+      ["21538187", "59227", "9865315", "12"],
+      ["12812508", "68428", "5467513", "17"]
+    ]
+  },
+  "error_responses": {
+    "invalid_key": {
+      "error": "invalid_key",
+      "message": "Invalid API key. Please check your key and try again."
+    },
+    "rate_limit": {
+      "error": "rate_limit_exceeded", 
+      "message": "API rate limit exceeded. Please try again later.",
+      "details": {
+        "limit": 500,
+        "remaining": 0,
+        "reset_time": "2024-01-01 15:30:00"
+      }
+    },
+    "invalid_geography": {
+      "error": "invalid_geography",
+      "message": "Invalid geography specified. Geography code does not exist.",
+      "details": {
+        "geography": "state:999",
+        "valid_codes": "Please refer to FIPS codes documentation"
+      }
+    }
+  },
+  "variable_definitions": {
+    "B01001_001E": {
+      "label": "Estimate!!Total:",
+      "concept": "SEX BY AGE",
+      "predicateType": "int",
+      "group": "B01001",
+      "limit": 0,
+      "predicateOnly": true,
+      "description": "Total population count"
+    },
+    "B19013_001E": {
+      "label": "Estimate!!Median household income in the past 12 months",
+      "concept": "MEDIAN HOUSEHOLD INCOME IN THE PAST 12 MONTHS",
+      "predicateType": "int", 
+      "group": "B19013",
+      "limit": 0,
+      "description": "Median household income in inflation-adjusted dollars"
+    },
+    "B25001_001E": {
+      "label": "Estimate!!Total:",
+      "concept": "HOUSING UNITS",
+      "predicateType": "int",
+      "group": "B25001", 
+      "limit": 0,
+      "description": "Total number of housing units"
+    },
+    "B08301_001E": {
+      "label": "Estimate!!Total:",
+      "concept": "MEANS OF TRANSPORTATION TO WORK",
+      "predicateType": "int",
+      "group": "B08301",
+      "limit": 0, 
+      "description": "Total workers 16 years and over"
+    }
+  },
+  "geography_codes": {
+    "states": {
+      "06": "California",
+      "36": "New York",
+      "48": "Texas", 
+      "12": "Florida",
+      "17": "Illinois"
+    },
+    "counties": {
+      "06037": "Los Angeles County, California",
+      "36047": "Kings County, New York",
+      "48201": "Harris County, Texas",
+      "12086": "Miami-Dade County, Florida",
+      "17031": "Cook County, Illinois"
+    }
+  }
+}

@@ -1,0 +1,192 @@
+services:
+  # Test PostgreSQL Database
+  test-postgres:
+    image: postgres:16-alpine
+    container_name: censuschat-test-postgres
+    environment:
+      POSTGRES_USER: census_test
+      POSTGRES_PASSWORD: test_password_123
+      POSTGRES_DB: census_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - test_postgres_data:/var/lib/postgresql/data
+      - ./test-data/postgres-init:/docker-entrypoint-initdb.d
+    networks:
+      - censuschat-test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U census_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Test Redis Cache
+  test-redis:
+    image: redis:7-alpine
+    container_name: censuschat-test-redis
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly no --save ""
+    networks:
+      - censuschat-test-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # DuckDB Test Container with Snapshots
+  test-duckdb:
+    image: alpine:3.18
+    container_name: censuschat-test-duckdb
+    volumes:
+      - ./test-data/duckdb:/data
+      - ./test-data/census-fixtures:/fixtures
+    working_dir: /data
+    networks:
+      - censuschat-test-network
+    command: tail -f /dev/null  # Keep container running
+
+  # Mock Census API Service
+  census-api-mock:
+    image: wiremock/wiremock:3.5.2
+    platform: linux/amd64
+    container_name: censuschat-census-mock
+    ports:
+      - "8089:8080"
+    volumes:
+      - ./test-data/wiremock/mappings:/home/wiremock/mappings
+      - ./test-data/wiremock/files:/home/wiremock/__files
+    networks:
+      - censuschat-test-network
+    command: --global-response-templating --verbose
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/__admin/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Test Runner
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+    container_name: censuschat-backend-test
+    environment:
+      NODE_ENV: test
+      PORT: 3001
+      POSTGRES_HOST: test-postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: census_test
+      POSTGRES_PASSWORD: test_password_123
+      POSTGRES_DB: census_test
+      REDIS_HOST: test-redis
+      REDIS_PORT: 6379
+      CENSUS_API_KEY: test_api_key_mock
+      CENSUS_API_BASE_URL: http://census-api-mock:8080
+      ANTHROPIC_API_KEY: test_anthropic_key
+      JWT_SECRET: test_jwt_secret_for_testing_only
+      DUCKDB_PATH: /test-data/census_test.db
+    depends_on:
+      test-postgres:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+      census-api-mock:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/package*.json:/app/
+      - ./test-data/duckdb:/test-data
+      - test_coverage:/app/coverage
+    networks:
+      - censuschat-test-network
+    command: npm run test:docker
+
+  # Frontend Test Runner
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.test
+    container_name: censuschat-frontend-test
+    environment:
+      NODE_ENV: test
+      NEXT_PUBLIC_API_URL: http://backend-test:3001/api/v1
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/package*.json:/app/
+    networks:
+      - censuschat-test-network
+    command: npm run test:docker
+
+  # Integration Test Runner
+  integration-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+    container_name: censuschat-integration-test
+    environment:
+      NODE_ENV: test
+      PORT: 3001
+      POSTGRES_HOST: test-postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: census_test
+      POSTGRES_PASSWORD: test_password_123
+      POSTGRES_DB: census_test
+      REDIS_HOST: test-redis
+      REDIS_PORT: 6379
+      CENSUS_API_KEY: test_api_key_mock
+      CENSUS_API_BASE_URL: http://census-api-mock:8080
+      ANTHROPIC_API_KEY: test_anthropic_key
+      JWT_SECRET: test_jwt_secret_for_testing_only
+    depends_on:
+      test-postgres:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+      census-api-mock:
+        condition: service_healthy
+    volumes:
+      - ./backend/src:/app/src
+      - ./test-data/duckdb:/test-data
+    networks:
+      - censuschat-test-network
+    command: npm run test:integration
+
+  # Test Data Seeder
+  test-data-seeder:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+    container_name: censuschat-data-seeder
+    environment:
+      NODE_ENV: test
+      POSTGRES_HOST: test-postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: census_test
+      POSTGRES_PASSWORD: test_password_123
+      POSTGRES_DB: census_test
+      REDIS_HOST: test-redis
+      REDIS_PORT: 6379
+    depends_on:
+      test-postgres:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+    volumes:
+      - ./test-data/seed-scripts:/app/seed-scripts
+      - ./test-data/fixtures:/app/fixtures
+    networks:
+      - censuschat-test-network
+    command: npm run seed:test-data
+
+volumes:
+  test_postgres_data:
+  test_coverage:
+
+networks:
+  censuschat-test-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

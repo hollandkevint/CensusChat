@@ -1,0 +1,62 @@
+{
+  "mappings": [
+    {
+      "name": "WireMock Health Check",
+      "request": {
+        "method": "GET",
+        "url": "/__admin/health"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "status": "UP"
+        }
+      }
+    },
+    {
+      "name": "Census API Health Check",
+      "request": {
+        "method": "GET",
+        "url": "/data"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": {
+          "status": "mock_active",
+          "message": "Census API Mock Service is running",
+          "datasets": ["2020/acs/acs5", "2021/acs/acs5", "2022/acs/acs5"]
+        }
+      }
+    },
+    {
+      "name": "Basic Population Query",
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/data/[0-9]{4}/acs/acs5",
+        "queryParameters": {
+          "get": {
+            "contains": "B01001_001E"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "jsonBody": [
+          ["B01001_001E", "state"],
+          ["39538223", "06"],
+          ["19336776", "36"],
+          ["29145505", "48"]
+        ]
+      }
+    }
+  ]
+}

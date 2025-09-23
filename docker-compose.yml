@@ -1,135 +1,127 @@
 version: '3.8'
 
+# CensusChat Docker Environment
+# ============================
+# Complete development and demo setup with all required services
+#
+# Quick Start:
+#   1. Copy .env.example to .env and fill required values
+#   2. Run: ./demo-setup.sh (one command setup)
+#
+# Manual Usage:
+#   docker-compose up -d          # Start all services
+#   docker-compose logs -f        # View logs
+#   docker-compose down           # Stop services
+#
+# Services:
+#   - PostgreSQL (5432) - User data and sessions
+#   - Redis (6379)      - Caching and rate limiting
+#   - Backend (3001)    - API server with DuckDB
+#   - Frontend (3000)   - Next.js application
+
 services:
-  # PostgreSQL Database for user data
+  # PostgreSQL Database for user data and sessions
   postgres:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     container_name: censuschat-postgres
-    restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DB: censuschat
+      POSTGRES_USER: censuschat_user
+      POSTGRES_PASSWORD: dev_postgres_password_2024
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - censuschat-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U censuschat_user -d censuschat"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Redis Cache
+  # Redis for caching and rate limiting
   redis:
     image: redis:7-alpine
     container_name: censuschat-redis
-    restart: always
     ports:
-      - "${REDIS_PORT:-6379}:6379"
-    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
+      - "6379:6379"
     volumes:
       - redis_data:/data
-    networks:
-      - censuschat-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Backend API
+  # Backend API Service
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: deps  # Only build to deps stage for development
     container_name: censuschat-backend
-    restart: always
-    ports:
-      - "${PORT:-3001}:${PORT:-3001}"
-    env_file:
-      - .env
+    volumes:
+      - ./backend:/app
+      - /app/node_modules  # Don't overwrite node_modules
+      - ./data:/app/data   # Share data directory for DuckDB
     environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      PORT: ${PORT:-3001}
+      NODE_ENV: development
+      DEBUG: "*"
+      # Database connections use service names
       POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
       REDIS_HOST: redis
-      REDIS_PORT: 6379
+      # Copy other env vars
+      JWT_SECRET: ${JWT_SECRET}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      CENSUS_API_KEY: ${CENSUS_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      DUCKDB_PATH: /app/data/census.duckdb
+      CORS_ORIGIN: http://localhost:3000
+      PORT: 3001
+    ports:
+      - "3001:3001"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-      - ./data:/app/data
-    networks:
-      - censuschat-network
     command: npm run dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Frontend Application
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: deps  # Only build to deps stage for development
     container_name: censuschat-frontend
-    restart: always
-    ports:
-      - "3000:3000"
-    environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001/api/v1}
-    depends_on:
-      - backend
     volumes:
       - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
-    networks:
-      - censuschat-network
-    command: npm run dev
-
-  # pgAdmin for database management (optional)
-  # To use: docker-compose --profile tools up
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: censuschat-pgadmin
-    restart: always
+      - /app/node_modules  # Don't overwrite node_modules
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@localhost}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      INTERNAL_API_URL: http://backend:3001
     ports:
-      - "5050:80"
+      - "3000:3000"
     depends_on:
-      - postgres
-    networks:
-      - censuschat-network
-    profiles:
-      - tools
-
-  # RedisInsight for Redis management (optional)
-  # To use: docker-compose --profile tools up
-  redisinsight:
-    image: redislabs/redisinsight:latest
-    container_name: censuschat-redisinsight
-    restart: always
-    ports:
-      - "8001:8001"
-    depends_on:
-      - redis
-    networks:
-      - censuschat-network
-    profiles:
-      - tools
+      - backend
+    command: npm run dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  censuschat-network:
-    driver: bridge
+  default:
+    name: censuschat_network

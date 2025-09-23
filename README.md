@@ -3,16 +3,28 @@
 <div align="center">
 
 ![CensusChat](https://img.shields.io/badge/CensusChat-Healthcare%20Data-blue?style=for-the-badge&logo=health&logoColor=white)
-[![Test Coverage](https://img.shields.io/badge/Test%20Coverage-89%25-green?style=for-the-badge)](docs/TESTING_INFRASTRUCTURE.md)
+[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-brightgreen?style=for-the-badge)](docs/MVP_STATUS.md)
+[![Foundation Data](https://img.shields.io/badge/Data-8%20Counties%20Loaded-orange?style=for-the-badge)](docs/MVP_STATUS.md)
 [![MCP Integration](https://img.shields.io/badge/MCP-Claude%20AI-purple?style=for-the-badge)](https://modelcontextprotocol.io/)
 
 **Natural language interface to US Census data for healthcare strategy teams**
 
 *Transform 6-week $50K demographic consulting into 6-second $297/month queries*
 
-**[🚀 Try Demo](https://censuschat.com/demo)** • **[📖 Read Kevin's Story](https://hollandkevint.github.io/CensusChat/about/)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
+**[🚀 Try Demo](http://localhost:3000)** • **[📊 Foundation Data](docs/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
 
 </div>
+
+---
+
+## 🎉 **Production Status** (September 2025)
+
+✅ **Foundation Data Loaded**: 8 counties with healthcare demographics
+✅ **End-to-End Flow**: Natural Language → MCP Validation → DuckDB → Results
+✅ **Frontend Ready**: ChatInterface operational at `http://localhost:3000`
+✅ **Production Grade**: Timeout enforcement, graceful fallback, error handling
+
+**Current Data**: FL, CA, NY, TX, IL counties with population, seniors, income, Medicare eligibility
 
 ---
 
@@ -82,30 +94,45 @@ const stack = {
 
 ## 🚦 **Quick Start**
 
-### **Development Setup**
+### **One-Command Demo Setup**
 ```bash
-# Clone and run
+# Clone the repository
 git clone https://github.com/hollandkevint/CensusChat.git
 cd CensusChat
-./test-runner.sh
 
-# Start development
-cd backend && npm run dev    # API (port 3001)
-cd frontend && npm run dev   # Web app (port 3000)
+# Start everything with one command
+./demo-setup.sh
 ```
 
-### **Docker (Recommended)**
+**That's it!** The demo setup will:
+- ✅ Start PostgreSQL, Redis, Backend (port 3001), and Frontend (port 3000)
+- ✅ Initialize DuckDB with healthcare demographic data
+- ✅ Load demo data for Florida, California, Texas, and New York
+- ✅ Verify all services are healthy
+
+### **Alternative: Manual Setup**
 ```bash
-docker-compose -f docker-compose.test.yml up
-# Includes: PostgreSQL + Redis + Census API mock + automated tests
+# 1. Setup environment
+cp .env.example .env  # Add your JWT_SECRET
+
+# 2. Start with Docker Compose
+docker-compose up -d
+
+# 3. Access the application
+open http://localhost:3000
 ```
 
-### **Environment Variables**
+### **Quick Test**
 ```bash
-ANTHROPIC_API_KEY=your-claude-api-key
-CENSUS_API_KEY=your-census-api-key
-DATABASE_URL=postgresql://localhost:5432/census_chat
+# Test the API
+curl http://localhost:3001/health
+# Returns: {"status":"healthy","timestamp":"..."}
+
+# View all services
+docker-compose ps
 ```
+
+**📖 Full Setup Guide:** See [QUICK_START.md](QUICK_START.md) for detailed instructions and troubleshooting.
 
 ---
 

@@ -1,0 +1,12 @@
+name: bmad-healthcare-data
+version: 1.0.0
+short-title: Healthcare Data Products
+description: >-
+  This expansion pack extends BMad Method with comprehensive healthcare data
+  product capabilities. It combines data science, clinical informatics, data
+  product management, ethics, public policy, and commercial operations to enable
+  teams to build compliant, ethical, and commercially viable healthcare data
+  products. Includes specialized agents for navigating HIPAA, FDA regulations,
+  clinical validation, and healthcare market dynamics.
+author: BMad Healthcare Team
+slashPrefix: bmadHealthData

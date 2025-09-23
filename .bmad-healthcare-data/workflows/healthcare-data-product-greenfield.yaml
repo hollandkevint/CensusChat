@@ -1,0 +1,229 @@
+workflow:
+  id: healthcare-data-product-greenfield
+  name: Healthcare Data Product Development (Greenfield)
+  version: 1.0
+  description: >-
+    Comprehensive workflow for developing new healthcare data products from
+    concept to market, ensuring clinical validity, regulatory compliance,
+    and commercial viability.
+
+phases:
+  - id: discovery-research
+    name: Discovery & Clinical Research
+    description: >-
+      Understand clinical needs, market opportunity, and regulatory landscape
+    agents:
+      - healthcare-data-pm
+      - clinical-informatics-lead
+      - health-policy-specialist
+    tasks:
+      - healthcare-market-analysis
+      - clinical-workflow-analysis
+      - regulatory-landscape-assessment
+    outputs:
+      - Market opportunity assessment
+      - Clinical needs documentation
+      - Regulatory pathway determination
+    duration: 2-4 weeks
+
+  - id: product-definition
+    name: Product Definition & Requirements
+    description: >-
+      Define product requirements with clinical, technical, and regulatory inputs
+    agents:
+      - healthcare-data-pm
+      - clinical-informatics-lead
+      - medical-ethics-advisor
+    tasks:
+      - create-healthcare-data-prd
+      - conduct-ethics-review
+      - stakeholder-journey-mapping
+    templates:
+      - healthcare-data-prd-tmpl
+      - ethics-assessment-tmpl
+    outputs:
+      - Healthcare Data PRD
+      - Ethics assessment report
+      - Stakeholder requirements
+    duration: 3-4 weeks
+
+  - id: technical-architecture
+    name: Technical Architecture & Compliance Design
+    description: >-
+      Design secure, scalable, compliant technical architecture
+    agents:
+      - health-data-engineer
+      - health-data-scientist
+      - health-policy-specialist
+    tasks:
+      - design-health-data-architecture
+      - hipaa-security-architecture
+      - design-health-ml-pipeline
+    templates:
+      - health-data-architecture-tmpl
+      - ml-model-card-tmpl
+    checklists:
+      - hipaa-compliance-checklist
+      - data-security-checklist
+    outputs:
+      - Technical architecture document
+      - Security controls design
+      - ML pipeline architecture
+    duration: 3-5 weeks
+
+  - id: prototype-development
+    name: Prototype Development & Clinical Pilot
+    description: >-
+      Build MVP and conduct initial clinical validation
+    agents:
+      - health-data-engineer
+      - health-data-scientist
+      - clinical-informatics-lead
+    tasks:
+      - build-healthcare-mvp
+      - clinical-pilot-design
+      - privacy-impact-assessment
+    templates:
+      - clinical-pilot-protocol-tmpl
+      - privacy-impact-assessment-tmpl
+    outputs:
+      - Working prototype
+      - Pilot study protocol
+      - Privacy impact assessment
+    duration: 8-12 weeks
+
+  - id: clinical-validation
+    name: Clinical Validation & Regulatory Submission
+    description: >-
+      Conduct formal clinical validation and prepare regulatory submissions
+    agents:
+      - clinical-informatics-lead
+      - health-data-scientist
+      - health-policy-specialist
+    tasks:
+      - clinical-validation-protocol
+      - bias-assessment-protocol
+      - regulatory-submission-preparation
+    templates:
+      - clinical-study-protocol-tmpl
+      - regulatory-submission-tmpl
+    checklists:
+      - clinical-validation-checklist
+      - regulatory-milestone-checklist
+    outputs:
+      - Clinical validation results
+      - Regulatory submission package
+      - Bias assessment report
+    duration: 12-24 weeks
+
+  - id: commercial-preparation
+    name: Commercial Strategy & Market Preparation
+    description: >-
+      Develop go-to-market strategy and commercial partnerships
+    agents:
+      - healthcare-commercial-strategist
+      - healthcare-data-pm
+      - health-policy-specialist
+    tasks:
+      - healthcare-pricing-strategy
+      - payer-engagement-planning
+      - provider-partnership-design
+    templates:
+      - healthcare-business-case-tmpl
+      - partnership-agreement-tmpl
+    outputs:
+      - Commercial strategy document
+      - Pricing model
+      - Partnership agreements
+    duration: 6-8 weeks
+
+  - id: launch-implementation
+    name: Product Launch & Implementation
+    description: >-
+      Launch product with initial customers and scale
+    agents:
+      - healthcare-data-pm
+      - clinical-informatics-lead
+      - healthcare-commercial-strategist
+    tasks:
+      - healthcare-product-launch
+      - clinical-training-program
+      - customer-success-planning
+    checklists:
+      - healthcare-product-launch-checklist
+      - clinical-adoption-checklist
+    outputs:
+      - Launch plan execution
+      - Training materials
+      - Success metrics dashboard
+    duration: 4-6 weeks
+
+  - id: post-market-surveillance
+    name: Post-Market Surveillance & Optimization
+    description: >-
+      Monitor real-world performance and iterate
+    agents:
+      - clinical-informatics-lead
+      - health-data-scientist
+      - medical-ethics-advisor
+    tasks:
+      - real-world-evidence-collection
+      - performance-monitoring
+      - continuous-improvement-planning
+    outputs:
+      - RWE reports
+      - Performance metrics
+      - Product improvements
+    duration: Ongoing
+
+decision_points:
+  - id: clinical-need-validation
+    after_phase: discovery-research
+    criteria:
+      - Clear clinical need identified
+      - Sufficient market opportunity
+      - Feasible regulatory pathway
+    
+  - id: technical-feasibility
+    after_phase: technical-architecture
+    criteria:
+      - Technical approach validated
+      - Compliance requirements achievable
+      - Resource requirements acceptable
+    
+  - id: clinical-validation-gate
+    after_phase: clinical-validation
+    criteria:
+      - Clinical efficacy demonstrated
+      - Safety requirements met
+      - Regulatory approval obtained/pending
+
+collaboration_points:
+  - All agents participate in weekly sync meetings
+  - Clinical-technical alignment sessions bi-weekly
+  - Regulatory checkpoints at each phase transition
+  - Ethics review at key milestones
+  - Commercial input throughout development
+
+tools_required:
+  - Clinical data platforms (EHR, research databases)
+  - ML/AI development environments
+  - Regulatory tracking systems
+  - Project management tools
+  - Secure collaboration platforms
+
+success_metrics:
+  - Clinical validation success rate
+  - Regulatory approval timeline
+  - Time to first customer
+  - Clinical adoption rate
+  - Patient outcome improvements
+  - ROI achievement
+
+risk_factors:
+  - Regulatory delays or rejections
+  - Clinical validation failures
+  - Integration challenges with healthcare systems
+  - Reimbursement barriers
+  - Slow clinical adoption
+  - Competitive threats
