@@ -18,6 +18,9 @@ Welcome to the CensusChat documentation! This directory contains comprehensive d
 
 ### For Developers
 - [System Architecture](architecture/01-system-architecture.md) - Complete technical architecture with DuckDB + MCP integration
+- [Epic Documentation](epics/README.md) - Development epics and roadmap
+- [DuckDB Reference](references/duckdb/README.md) - Comprehensive DuckDB integration guide
+- [MCP Integration Guide](references/duckdb-mcp/comprehensive-guide.md) - Model Context Protocol implementation
 - [Foundation Data Loading](../backend/src/scripts/simpleDuckDBLoader.js) - Production data loading implementation
 - [Query Routes Integration](../backend/src/routes/query.routes.ts) - Natural language to DuckDB flow
 - [Contributing Guide](../CONTRIBUTING.md) - How to contribute to the project

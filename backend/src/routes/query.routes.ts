@@ -1,59 +1,115 @@
 import { Router } from 'express';
-import path from 'path';
 import { anthropicService } from '../services/anthropicService';
 import { queryRateLimit, censusApiUserRateLimit } from '../middleware/rateLimiting';
 import { FallbackService, CensusApiErrorType } from '../services/fallbackService';
+import { getDuckDBPool } from '../utils/duckdbPool';
+// import { HealthcareAnalyticsTools } from '../utils/mcpTools'; // Replaced by direct healthcare analytics module
+import { getHealthcareAnalyticsModule } from '../modules/healthcare_analytics';
+// import { getMCPServerService } from '../services/mcpServerService';
+// import { getMCPClientService } from '../services/mcpClientService';
 
 const router = Router();
 
-// DuckDB query helper with better error handling
+// Feature flag for DuckDB pool usage
+const USE_PRODUCTION_DUCKDB = process.env.USE_PRODUCTION_DUCKDB === 'true';
+
+// DuckDB query helper using connection pool
 const queryDuckDB = async (sql: string): Promise<any[]> => {
+  if (!USE_PRODUCTION_DUCKDB) {
+    console.log('🔧 Production DuckDB disabled via feature flag, will use fallback');
+    throw new Error('Production DuckDB disabled via feature flag');
+  }
+
   try {
-    console.log('📦 Importing DuckDB dynamically...');
-    const { Database } = await import('duckdb');
+    console.log('🏊 Using DuckDB connection pool for query...');
+    const pool = getDuckDBPool();
 
-    const dbPath = path.join(process.cwd(), 'data', 'census.duckdb');
-    console.log('🗄️ DuckDB path:', dbPath);
+    // Initialize pool if not already done
+    if (!pool.getStats().totalConnections) {
+      console.log('🚀 Initializing DuckDB pool...');
+      await pool.initialize();
+    }
 
-    return new Promise((resolve, reject) => {
-      try {
-        const db = new Database(dbPath);
-        console.log('🔗 DuckDB connection established');
-
-        db.all(sql, (err, rows) => {
-          console.log('📊 DuckDB query completed, closing connection...');
-
-          // Safely close the database
-          try {
-            db.close((closeErr) => {
-              if (closeErr) {
-                console.error('Warning: Failed to close DuckDB connection:', closeErr);
-              } else {
-                console.log('✅ DuckDB connection closed');
-              }
-            });
-          } catch (closeError) {
-            console.error('Error during DB close:', closeError);
-          }
-
-          if (err) {
-            console.error('❌ DuckDB query error:', err);
-            reject(new Error(`DuckDB query failed: ${err.message}`));
-          } else {
-            console.log('✅ DuckDB query successful, rows:', rows?.length || 0);
-            resolve(rows || []);
-          }
-        });
-      } catch (dbError) {
-        console.error('❌ Database creation failed:', dbError);
-        reject(new Error(`Database creation failed: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`));
-      }
-    });
-  } catch (importError) {
-    console.error('❌ DuckDB import failed:', importError);
-    throw new Error(`DuckDB import failed: ${importError instanceof Error ? importError.message : 'Unknown error'}`);
+    const result = await pool.query(sql);
+    console.log('✅ DuckDB pool query successful, rows:', result?.length || 0);
+    return result;
+  } catch (error) {
+    console.error('❌ DuckDB pool query error:', error);
+    throw new Error(`DuckDB pool query failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
+
+// Healthcare analytics helper function using FDB-MCP module
+async function tryHealthcareAnalytics(query: string, analysis: any): Promise<any> {
+  try {
+    console.log('🏥 Initializing healthcare analytics module...');
+
+    // Get the healthcare analytics module instance
+    const healthcareModule = getHealthcareAnalyticsModule({
+      enableCaching: true,
+      cacheTTLSeconds: 300,
+      maxConcurrentQueries: 5,
+      queryTimeoutSeconds: 10,
+      enableExternalDataSources: false // Start with internal data
+    });
+
+    // Extract geographic parameters from analysis
+    const locations = analysis?.analysis?.entities?.locations ||
+                     analysis?.entities?.geography ||
+                     ['Florida']; // Default fallback
+
+    // Build query request for the healthcare analytics module
+    const queryRequest = {
+      naturalLanguageQuery: query,
+      parameters: {
+        geography_type: 'state' as const, // Start with state level for broader coverage
+        geography_codes: locations,
+        // Add other parameters based on query content
+        ...(query.toLowerCase().includes('medicare') && { focus_area: 'medicare' }),
+        ...(query.toLowerCase().includes('health') && { focus_area: 'population_health' }),
+        ...(query.toLowerCase().includes('facility') && { focus_area: 'facility_adequacy' })
+      }
+    };
+
+    console.log('📊 Executing healthcare analytics query:', {
+      query: query.substring(0, 100) + '...',
+      geography: locations,
+      queryType: queryRequest.parameters.focus_area || 'general'
+    });
+
+    // Execute the query through the healthcare analytics module
+    const result = await healthcareModule.executeQuery(queryRequest);
+
+    if (result.success && result.data.length > 0) {
+      console.log(`✅ Healthcare analytics successful: ${result.metadata.recordCount} records`);
+
+      return {
+        success: true,
+        data: result.data,
+        metadata: {
+          recordCount: result.metadata.recordCount,
+          dataSource: result.metadata.federatedSources.join(', '),
+          executionTime: result.metadata.executionTime,
+          confidenceLevel: result.metadata.confidenceLevel,
+          queryPattern: result.metadata.queryPattern
+        }
+      };
+    } else {
+      console.log('⚠️ Healthcare analytics returned no data');
+      return {
+        success: false,
+        error: result.error || 'No data returned from healthcare analytics'
+      };
+    }
+
+  } catch (error) {
+    console.error('❌ Healthcare analytics execution failed:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown healthcare analytics error'
+    };
+  }
+}
 
 // POST /api/v1/queries
 router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
@@ -92,78 +148,123 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
         const analysis = await anthropicService.analyzeQuery(query);
         console.log('✅ MCP analysis complete:', analysis);
 
-        console.log('🗄️ Starting DuckDB query section...');
-        // Step 2: Try to query real data from DuckDB, fall back to mock data if needed
+        // Step 1.5: Check if this is a healthcare analytics request that should use MCP tools
+        const useHealthcareAnalytics = analysis.analysis.intent === 'demographics' &&
+          (query.toLowerCase().includes('medicare') ||
+           query.toLowerCase().includes('health') ||
+           query.toLowerCase().includes('facility') ||
+           query.toLowerCase().includes('eligibility'));
+
+        console.log('🗄️ Starting data query section...');
+        // Step 2: Try healthcare analytics first if applicable, then DuckDB, then mock data
         let data: any[] = [];
         let totalRecords = 0;
         let dataSource = '';
         let usedDuckDB = false;
+        let usedMCPAnalytics = false;
 
-        try {
-          console.log('🐦 Attempting DuckDB query...');
-          // TODO: Fix DuckDB dynamic import issue - temporarily using fallback
-          console.log('⚠️ DuckDB temporarily disabled due to import issues, using fallback data');
-          throw new Error('DuckDB temporarily disabled for debugging');
+        // Try MCP healthcare analytics first if applicable
+        if (useHealthcareAnalytics) {
+          try {
+            console.log('🏥 Attempting MCP healthcare analytics...');
 
-        } catch (duckDbError) {
-          console.log('📊 Using mock healthcare data as fallback');
-
-          // Fall back to comprehensive mock healthcare data
-          data = [
-            {
-              county: 'Miami-Dade',
-              state: 'Florida',
-              seniors: 486234,
-              income_over_50k: 278445,
-              ma_eligible: 264123,
-              total_population: 2716940,
-              median_income: 52800,
-              poverty_rate: 15.8
-            },
-            {
-              county: 'Broward',
-              state: 'Florida',
-              seniors: 312567,
-              income_over_50k: 189234,
-              ma_eligible: 176890,
-              total_population: 1944375,
-              median_income: 59734,
-              poverty_rate: 12.4
-            },
-            {
-              county: 'Palm Beach',
-              state: 'Florida',
-              seniors: 278901,
-              income_over_50k: 198567,
-              ma_eligible: 187234,
-              total_population: 1496770,
-              median_income: 64863,
-              poverty_rate: 11.2
-            },
-            {
-              county: 'Los Angeles',
-              state: 'California',
-              seniors: 1234567,
-              income_over_50k: 698234,
-              ma_eligible: 534123,
-              total_population: 10014009,
-              median_income: 70032,
-              poverty_rate: 17.1
-            },
-            {
-              county: 'Harris',
-              state: 'Texas',
-              seniors: 567890,
-              income_over_50k: 356789,
-              ma_eligible: 298456,
-              total_population: 4731145,
-              median_income: 61708,
-              poverty_rate: 14.7
+            const mcpResult = await tryHealthcareAnalytics(query, analysis);
+            if (mcpResult.success) {
+              data = mcpResult.data;
+              totalRecords = mcpResult.metadata.recordCount;
+              dataSource = mcpResult.metadata.dataSource;
+              usedMCPAnalytics = true;
+              console.log('✅ MCP healthcare analytics successful');
+            } else {
+              console.log('⚠️ MCP healthcare analytics failed, falling back to DuckDB');
             }
-          ];
-          totalRecords = data.length;
-          dataSource = 'Mock Healthcare Demographics (Foundation data simulation)';
-          usedDuckDB = false;
+          } catch (mcpError) {
+            console.warn('⚠️ MCP analytics error, falling back to DuckDB:', mcpError);
+          }
+        }
+
+        // If MCP analytics didn't work, try regular DuckDB query
+        if (!usedMCPAnalytics) {
+          try {
+            console.log('🐦 Attempting DuckDB query...');
+
+          // Use the pool-based DuckDB implementation
+          const dbResult = await queryDuckDB(`
+            SELECT
+              county,
+              state,
+              population_65_plus as seniors,
+              median_household_income as median_income,
+              population_total as total_population
+            FROM demographics
+            LIMIT 10
+          `);
+
+          data = dbResult;
+          totalRecords = dbResult.length;
+          dataSource = 'DuckDB Production Healthcare Demographics';
+          usedDuckDB = true;
+
+          } catch (duckDbError) {
+            console.log('📊 Using mock healthcare data as fallback');
+
+            // Fall back to comprehensive mock healthcare data
+            data = [
+              {
+                county: 'Miami-Dade',
+                state: 'Florida',
+                seniors: 486234,
+                income_over_50k: 278445,
+                ma_eligible: 264123,
+                total_population: 2716940,
+                median_income: 52800,
+                poverty_rate: 15.8
+              },
+              {
+                county: 'Broward',
+                state: 'Florida',
+                seniors: 312567,
+                income_over_50k: 189234,
+                ma_eligible: 176890,
+                total_population: 1944375,
+                median_income: 59734,
+                poverty_rate: 12.4
+              },
+              {
+                county: 'Palm Beach',
+                state: 'Florida',
+                seniors: 278901,
+                income_over_50k: 198567,
+                ma_eligible: 187234,
+                total_population: 1496770,
+                median_income: 64863,
+                poverty_rate: 11.2
+              },
+              {
+                county: 'Los Angeles',
+                state: 'California',
+                seniors: 1234567,
+                income_over_50k: 698234,
+                ma_eligible: 534123,
+                total_population: 10014009,
+                median_income: 70032,
+                poverty_rate: 17.1
+              },
+              {
+                county: 'Harris',
+                state: 'Texas',
+                seniors: 567890,
+                income_over_50k: 356789,
+                ma_eligible: 298456,
+                total_population: 4731145,
+                median_income: 61708,
+                poverty_rate: 14.7
+              }
+            ];
+            totalRecords = data.length;
+            dataSource = 'Mock Healthcare Demographics (Foundation data simulation)';
+            usedDuckDB = false;
+          }
         }
 
         const queryTime = (Date.now() - startTime) / 1000;
@@ -179,6 +280,7 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
             confidenceLevel: 0.95,
             marginOfError: 2.3,
             usedDuckDB,
+            usedMCPAnalytics,
             analysis
           }
         };

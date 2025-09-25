@@ -33,6 +33,14 @@ interface Config {
     duckdb: {
       path: string;
       memory: boolean;
+      useProductionPool: boolean;
+      pool: {
+        minConnections: number;
+        maxConnections: number;
+        connectionTimeout: number;
+        memoryLimit: string;
+        threads: number;
+      };
     };
   };
   api: {
@@ -101,6 +109,14 @@ export const config: Config = {
     duckdb: {
       path: process.env.DUCKDB_PATH || './data/census.duckdb',
       memory: process.env.DUCKDB_MEMORY === 'true',
+      useProductionPool: process.env.USE_PRODUCTION_DUCKDB === 'true',
+      pool: {
+        minConnections: parseInt(process.env.DUCKDB_MIN_CONNECTIONS || '2', 10),
+        maxConnections: parseInt(process.env.DUCKDB_MAX_CONNECTIONS || '10', 10),
+        connectionTimeout: parseInt(process.env.DUCKDB_CONNECTION_TIMEOUT || '30000', 10),
+        memoryLimit: process.env.DUCKDB_MEMORY_LIMIT || '4GB',
+        threads: parseInt(process.env.DUCKDB_THREADS || '4', 10),
+      },
     },
   },
   
@@ -130,3 +146,4 @@ console.log('✅ Configuration loaded successfully');
 console.log(`   Environment: ${config.environment}`);
 console.log(`   Port: ${config.port}`);
 console.log(`   CORS Origins: ${Array.isArray(config.cors.origin) ? config.cors.origin.join(', ') : config.cors.origin}`);
+console.log(`   DuckDB Production Pool: ${config.database.duckdb.useProductionPool ? 'ENABLED' : 'DISABLED (using fallback)'}`);

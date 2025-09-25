@@ -1,6 +1,9 @@
 import { Router, Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getMCPMonitoring } from '../utils/mcpMonitoring';
+import { getMCPServerService } from '../services/mcpServerService';
+import { getMCPClientService } from '../services/mcpClientService';
 
 const router = Router();
 
@@ -95,6 +98,66 @@ router.get('/export', (req: Request, res: Response) => {
       export_service: 'unavailable',
       error: error instanceof Error ? error.message : 'Unknown error'
     });
+  }
+});
+
+/**
+ * @route GET /health/mcp
+ * @desc MCP services health and monitoring endpoint
+ * @access Public
+ */
+router.get('/mcp', async (req: Request, res: Response) => {
+  try {
+    const monitoring = getMCPMonitoring();
+    const mcpServer = getMCPServerService();
+    const mcpClient = getMCPClientService();
+
+    const healthReport = monitoring.generateHealthReport();
+    const serverStatus = mcpServer.getStatus();
+    const clientStatus = mcpClient.getStatus();
+    const exportMetrics = monitoring.exportMetrics();
+
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      monitoring: {
+        healthReport,
+        aggregateMetrics: monitoring.getAggregateMetrics(),
+        healthStatus: monitoring.getHealthStatus(),
+        recentErrors: monitoring.getRecentErrors(5)
+      },
+      services: {
+        server: serverStatus,
+        client: clientStatus
+      },
+      metrics: {
+        prometheus: exportMetrics.prometheus,
+        json: exportMetrics.json
+      }
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * @route GET /health/mcp/metrics
+ * @desc Prometheus-format MCP metrics endpoint
+ * @access Public
+ */
+router.get('/mcp/metrics', (req: Request, res: Response) => {
+  try {
+    const monitoring = getMCPMonitoring();
+    const metrics = monitoring.exportMetrics();
+
+    res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+    res.send(metrics.prometheus);
+  } catch (error) {
+    res.status(503).send(`# ERROR: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 });
 
