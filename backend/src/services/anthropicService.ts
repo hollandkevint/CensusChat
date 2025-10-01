@@ -57,16 +57,23 @@ Your task is to:
 3. Generate appropriate SQL for Census/ACS data
 4. Provide clear explanations
 
-Available Census Data Tables:
-- ACS 5-year estimates (2018-2022) 
-- Variables: B01003 (Total Population), B25003 (Housing Tenure), B19013 (Median Household Income), B01001 (Age by Sex)
-- Geography levels: State, County, ZIP Code Tabulation Area, Census Tract
+Available Database Schema:
+- Table name: county_data (NOT census_data)
+- Columns: state_name (TEXT), county_name (TEXT), population (INTEGER), median_income (INTEGER), poverty_rate (DOUBLE)
+- Geography: All US counties (3,144 rows), 51 states (50 + DC)
+- State names: ALWAYS use full names like "California", "Texas", "Florida" (NOT abbreviations like "CA", "TX", "FL")
+- State name format: Properly capitalized full names (e.g., "New York", "North Carolina")
 
 Healthcare-specific mappings:
-- "Medicare eligible" = Age 65+
+- "Medicare eligible" = Age 65+ (estimate as ~16% of population)
 - "Medicare Advantage eligible" = Age 65+ with specific income thresholds
 - "Senior care" = Age 65+, especially 75+ for assisted living
 - "Health systems" = Population density + age + income analysis
+
+IMPORTANT:
+- Use "state_name" column with FULL state names (not "state_code")
+- Example: WHERE state_name = 'California' (not state_code = 'CA')
+- Table is "county_data" (not "census_data")
 
 Respond with JSON in this exact format:
 {
@@ -82,14 +89,14 @@ Respond with JSON in this exact format:
     "filters": {
       "minAge": 65,
       "minIncome": 50000,
-      "state": "FL",
+      "state": "Florida",
       "counties": ["Miami-Dade", "Broward", "Palm Beach"]
     },
     "outputFormat": "table",
     "confidence": 0.95
   },
-  "sqlQuery": "SELECT county_name, population_65_plus, households_income_50k_plus FROM census_data WHERE state_code = 'FL' AND county_name IN ('Miami-Dade', 'Broward', 'Palm Beach')",
-  "explanation": "This query finds Medicare Advantage eligible seniors (65+) in major Florida counties with household income over $50,000. The data combines age demographics with income thresholds relevant for healthcare market analysis.",
+  "sqlQuery": "SELECT county_name, state_name, population, median_income, poverty_rate FROM county_data WHERE state_name = 'Florida' AND median_income > 50000 LIMIT 50",
+  "explanation": "This query finds counties in Florida with median household income over $50,000, relevant for Medicare Advantage market analysis with higher-income seniors.",
   "suggestedRefinements": [
     "Add specific insurance penetration rates",
     "Include disability status for care needs assessment",

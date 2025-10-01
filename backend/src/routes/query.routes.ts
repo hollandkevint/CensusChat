@@ -3,17 +3,18 @@ import { anthropicService } from '../services/anthropicService';
 import { queryRateLimit, censusApiUserRateLimit } from '../middleware/rateLimiting';
 import { FallbackService, CensusApiErrorType } from '../services/fallbackService';
 import { getDuckDBPool } from '../utils/duckdbPool';
-// import { HealthcareAnalyticsTools } from '../utils/mcpTools'; // Replaced by direct healthcare analytics module
+import { mapStateAbbreviationsInQuery } from '../utils/stateMapper';
+import { getCensusChat_MCPClient } from '../mcp/mcpClient';
 import { getHealthcareAnalyticsModule } from '../modules/healthcare_analytics';
-// import { getMCPServerService } from '../services/mcpServerService';
-// import { getMCPClientService } from '../services/mcpClientService';
+import { getAuditLogger } from '../utils/auditLogger';
 
 const router = Router();
 
 // Feature flag for DuckDB pool usage
 const USE_PRODUCTION_DUCKDB = process.env.USE_PRODUCTION_DUCKDB === 'true';
 
-// DuckDB query helper using connection pool
+// DuckDB query helper using connection pool (DEPRECATED - use MCP client instead)
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const queryDuckDB = async (sql: string): Promise<any[]> => {
   if (!USE_PRODUCTION_DUCKDB) {
     console.log('🔧 Production DuckDB disabled via feature flag, will use fallback');
@@ -133,10 +134,10 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
     }
     console.log('✅ Input validation passed');
 
-    console.log('⏱️ Setting up 2-second timeout...');
-    // Set timeout for 2 second requirement
+    console.log('⏱️ Setting up 5-second timeout...');
+    // Set timeout for 5 seconds to allow MCP validation to complete
     const timeout = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Query processing timeout')), 2000);
+      setTimeout(() => reject(new Error('Query processing timeout')), 5000);
     });
     console.log('✅ Timeout configured');
 
@@ -144,8 +145,13 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
     const processQuery = async () => {
       try {
         console.log('🤖 Starting MCP validation service...');
+
+        // Step 0: Map state abbreviations to full names (CA → California)
+        const preprocessedQuery = mapStateAbbreviationsInQuery(query);
+        console.log(`📝 Preprocessed query: "${preprocessedQuery}"`);
+
         // Step 1: Use MCP service to analyze and validate the query
-        const analysis = await anthropicService.analyzeQuery(query);
+        const analysis = await anthropicService.analyzeQuery(preprocessedQuery);
         console.log('✅ MCP analysis complete:', analysis);
 
         // Step 1.5: Check if this is a healthcare analytics request that should use MCP tools
@@ -183,27 +189,91 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
           }
         }
 
-        // If MCP analytics didn't work, try regular DuckDB query
+        // If MCP analytics didn't work, try regular DuckDB query with MCP validation
         if (!usedMCPAnalytics) {
           try {
-            console.log('🐦 Attempting DuckDB query...');
+            console.log('🐦 Attempting DuckDB query with MCP validation...');
 
-          // Use the pool-based DuckDB implementation
-          const dbResult = await queryDuckDB(`
-            SELECT
-              county,
-              state,
-              population_65_plus as seniors,
-              median_household_income as median_income,
-              population_total as total_population
-            FROM demographics
-            LIMIT 10
-          `);
+            // Use the MCP-generated SQL query (with fallback to default)
+            let sqlQuery = analysis.sqlQuery;
 
-          data = dbResult;
-          totalRecords = dbResult.length;
-          dataSource = 'DuckDB Production Healthcare Demographics';
-          usedDuckDB = true;
+            // Validate SQL has the correct table name
+            if (sqlQuery && !sqlQuery.includes('county_data')) {
+              console.warn('⚠️  Anthropic SQL uses wrong table, fixing...');
+              sqlQuery = sqlQuery.replace(/census_data/g, 'county_data');
+              sqlQuery = sqlQuery.replace(/state_code/g, 'state_name');
+            }
+
+            // If no SQL or it looks invalid, use intelligent fallback
+            if (!sqlQuery || sqlQuery.includes('census_data')) {
+              console.log('🔄 Using intelligent fallback query based on analysis');
+              const stateName = analysis?.analysis?.filters?.state;
+
+              if (stateName) {
+                sqlQuery = `
+                  SELECT
+                    county_name,
+                    state_name,
+                    population,
+                    median_income,
+                    poverty_rate
+                  FROM county_data
+                  WHERE state_name = '${stateName}'
+                  LIMIT 100
+                `;
+              } else {
+                sqlQuery = `
+                  SELECT
+                    county_name,
+                    state_name,
+                    population,
+                    median_income,
+                    poverty_rate
+                  FROM county_data
+                  LIMIT 50
+                `;
+              }
+            }
+
+            // NEW: Use MCP client to validate and execute SQL
+            console.log('🔒 Validating SQL with MCP security layer...');
+            const mcpClient = getCensusChat_MCPClient();
+            await mcpClient.connect();
+
+            const mcpResult = await mcpClient.executeQuery(sqlQuery);
+
+            if (!mcpResult.success) {
+              // Log validation failure
+              const auditLogger = getAuditLogger();
+              auditLogger.logValidationFailure(
+                query,
+                sqlQuery,
+                mcpResult.validationErrors || [{ message: mcpResult.error }]
+              );
+
+              console.error('❌ MCP validation failed:', mcpResult.validationErrors || mcpResult.error);
+              throw new Error(`MCP validation failed: ${mcpResult.error || 'Unknown error'}`);
+            }
+
+            data = mcpResult.result.data;
+            totalRecords = mcpResult.result.metadata.rowCount;
+            dataSource = 'DuckDB Production (MCP Validated)';
+            usedDuckDB = true;
+
+            // Log successful execution
+            const auditLogger = getAuditLogger();
+            const queryTime = (Date.now() - startTime) / 1000;
+            auditLogger.logSuccess(
+              query,
+              sqlQuery,
+              mcpResult.result.metadata.sanitizedSQL,
+              totalRecords,
+              queryTime
+            );
+
+            console.log('✅ MCP validation passed, query executed successfully');
+            console.log(`   Rows returned: ${totalRecords}`);
+            console.log(`   Sanitized SQL: ${mcpResult.result.metadata.sanitizedSQL?.substring(0, 100)}...`);
 
           } catch (duckDbError) {
             console.log('📊 Using mock healthcare data as fallback');
