@@ -13,7 +13,15 @@
     "seed:demo": "ts-node src/scripts/seedDemoData.ts",
     "test:export": "ts-node src/scripts/testExport.ts",
     "load-acs-data": "ts-node scripts/load-acs-data.ts",
-    "duckdb": "duckdb data/census.duckdb"
+    "load-blockgroups": "ts-node scripts/load-acs-blockgroup.ts",
+    "load-blockgroups-expanded": "ts-node scripts/load-acs-blockgroup-expanded.ts",
+    "load-tracts": "ts-node scripts/load-acs-tract.ts",
+    "load-states": "ts-node scripts/load-acs-state.ts",
+    "create-geo-hierarchy": "ts-node scripts/create-geo-hierarchy.ts",
+    "load-all-geography": "npm run load-states && npm run load-tracts && npm run load-blockgroups-expanded && npm run create-geo-hierarchy",
+    "test-blockgroup": "ts-node scripts/test-blockgroup-load.ts",
+    "duckdb": "duckdb data/census.duckdb",
+    "eval": "ts-node src/evals/query-eval.ts"
   },
   "keywords": [
     "census",
