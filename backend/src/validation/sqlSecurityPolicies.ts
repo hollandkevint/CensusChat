@@ -24,13 +24,29 @@ export const CENSUS_SCHEMA = {
     ],
     primaryKey: ['state_name', 'county_name'],
     description: 'County-level demographics from US Census Bureau'
+  },
+  block_group_data: {
+    columns: [
+      'geoid', 'state_fips', 'county_fips', 'tract_fips', 'block_group',
+      'state_name', 'county_name', 'population', 'median_age',
+      'male_population', 'female_population', 'under_5', 'age_5_17',
+      'age_18_64', 'age_65_plus', 'age_75_plus', 'white_alone',
+      'black_alone', 'asian_alone', 'hispanic_latino',
+      'median_household_income', 'per_capita_income', 'poverty_rate',
+      'unemployment_rate', 'uninsured_rate', 'high_school_or_higher_pct',
+      'bachelors_or_higher_pct', 'total_housing_units', 'median_home_value',
+      'median_rent', 'renter_occupied_pct', 'disability_rate',
+      'limited_english_pct', 'no_vehicle_pct', 'public_transit_pct'
+    ],
+    primaryKey: ['geoid'],
+    description: 'Block group-level demographics from ACS 5-Year (239,741 neighborhoods)'
   }
 } as const;
 
 // Security policy for production Census data
 export const censusChatSecurityPolicy: SecurityPolicy = {
-  // Only allow querying the county_data table
-  allowedTables: ['county_data'],
+  // Allow both county and block group tables
+  allowedTables: ['county_data', 'block_group_data'],
 
   // Explicit column allowlist per table
   allowedColumns: {
@@ -40,6 +56,18 @@ export const censusChatSecurityPolicy: SecurityPolicy = {
       'population',
       'median_income',
       'poverty_rate'
+    ],
+    block_group_data: [
+      'geoid', 'state_fips', 'county_fips', 'tract_fips', 'block_group',
+      'state_name', 'county_name', 'population', 'median_age',
+      'male_population', 'female_population', 'under_5', 'age_5_17',
+      'age_18_64', 'age_65_plus', 'age_75_plus', 'white_alone',
+      'black_alone', 'asian_alone', 'hispanic_latino',
+      'median_household_income', 'per_capita_income', 'poverty_rate',
+      'unemployment_rate', 'uninsured_rate', 'high_school_or_higher_pct',
+      'bachelors_or_higher_pct', 'total_housing_units', 'median_home_value',
+      'median_rent', 'renter_occupied_pct', 'disability_rate',
+      'limited_english_pct', 'no_vehicle_pct', 'public_transit_pct'
     ]
   },
 

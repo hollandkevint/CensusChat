@@ -1,0 +1,198 @@
+{
+  "version": "1.0.0",
+  "description": "Golden dataset for CensusChat query evaluation",
+  "lastUpdated": "2025-10-02",
+  "testCases": [
+    {
+      "id": "ACC-001",
+      "category": "accuracy",
+      "query": "sum the population of florida",
+      "expectedSql": "SELECT SUM(population) as total_population FROM county_data WHERE state_name = 'Florida'",
+      "expectedRowCount": 1,
+      "expectedDataContains": [
+        { "field": "total_population", "value": 21634529 }
+      ],
+      "description": "Verify accurate population aggregation for Florida",
+      "priority": "critical"
+    },
+    {
+      "id": "ACC-002",
+      "category": "accuracy",
+      "query": "show me all counties in Texas",
+      "expectedRowCount": 254,
+      "description": "Verify correct count of Texas counties",
+      "priority": "critical"
+    },
+    {
+      "id": "GEO-001",
+      "category": "geography",
+      "query": "counties in California",
+      "expectedRowCount": 58,
+      "expectedDataContains": [
+        { "field": "state_name", "value": "California" }
+      ],
+      "description": "Test basic geographic filtering by state",
+      "priority": "high"
+    },
+    {
+      "id": "GEO-002",
+      "category": "geography",
+      "query": "show me New York City data",
+      "expectedDataContains": [
+        { "field": "county_name", "value": "New York" },
+        { "field": "state_name", "value": "New York" }
+      ],
+      "description": "Test city name to county resolution",
+      "priority": "high"
+    },
+    {
+      "id": "GEO-003",
+      "category": "geography",
+      "query": "Miami Dade county population",
+      "expectedDataContains": [
+        { "field": "county_name", "value": "Miami-Dade" },
+        { "field": "state_name", "value": "Florida" }
+      ],
+      "description": "Test county name variations and parsing",
+      "priority": "medium"
+    },
+    {
+      "id": "FIL-001",
+      "category": "filters",
+      "query": "counties with median income over 75000",
+      "expectedRowCount": { "min": 500, "max": 700 },
+      "description": "Test numeric filter on median income",
+      "priority": "high"
+    },
+    {
+      "id": "FIL-002",
+      "category": "filters",
+      "query": "counties with population over 1 million",
+      "expectedRowCount": { "min": 40, "max": 50 },
+      "expectedDataContains": [
+        { "field": "county_name", "value": "Los Angeles" }
+      ],
+      "description": "Test population threshold filtering",
+      "priority": "high"
+    },
+    {
+      "id": "FIL-003",
+      "category": "filters",
+      "query": "wealthy counties in New York state",
+      "expectedDataContains": [
+        { "field": "state_name", "value": "New York" }
+      ],
+      "description": "Test qualitative filter (wealthy = high income)",
+      "priority": "medium"
+    },
+    {
+      "id": "AGG-001",
+      "category": "aggregation",
+      "query": "total population of California",
+      "expectedRowCount": 1,
+      "expectedDataContains": [
+        { "field": "total_population", "value": 39000000 }
+      ],
+      "description": "Test population summation",
+      "priority": "critical"
+    },
+    {
+      "id": "AGG-002",
+      "category": "aggregation",
+      "query": "average median income in Florida",
+      "expectedRowCount": 1,
+      "description": "Test average calculation across counties",
+      "priority": "high"
+    },
+    {
+      "id": "AGG-003",
+      "category": "aggregation",
+      "query": "top 10 most populous counties",
+      "expectedRowCount": 10,
+      "expectedDataContains": [
+        { "field": "county_name", "value": "Los Angeles" }
+      ],
+      "description": "Test ORDER BY and LIMIT",
+      "priority": "high"
+    },
+    {
+      "id": "AGG-004",
+      "category": "aggregation",
+      "query": "count of counties in each state",
+      "expectedRowCount": { "min": 50, "max": 52 },
+      "description": "Test GROUP BY state",
+      "priority": "medium"
+    },
+    {
+      "id": "EDGE-001",
+      "category": "edge_case",
+      "query": "show me data for Wyomingg",
+      "description": "Test typo handling (Wyomingg should resolve to Wyoming)",
+      "priority": "low"
+    },
+    {
+      "id": "EDGE-002",
+      "category": "edge_case",
+      "query": "counties with income",
+      "description": "Test ambiguous query (all counties have income)",
+      "priority": "low"
+    },
+    {
+      "id": "EDGE-003",
+      "category": "edge_case",
+      "query": "population",
+      "description": "Test minimal query (should return population data)",
+      "priority": "low"
+    },
+    {
+      "id": "HEA-001",
+      "category": "aggregation",
+      "query": "Medicare eligible seniors in Florida",
+      "expectedDataContains": [
+        { "field": "state_name", "value": "Florida" }
+      ],
+      "description": "Test healthcare-specific query (seniors 65+)",
+      "priority": "high"
+    },
+    {
+      "id": "HEA-002",
+      "category": "aggregation",
+      "query": "counties with high senior population in California",
+      "expectedDataContains": [
+        { "field": "state_name", "value": "California" }
+      ],
+      "description": "Test senior demographic filtering",
+      "priority": "medium"
+    },
+    {
+      "id": "MULTI-001",
+      "category": "filters",
+      "query": "Florida counties with median income over $60,000",
+      "expectedDataContains": [
+        { "field": "state_name", "value": "Florida" }
+      ],
+      "description": "Test multiple filters (state + income)",
+      "priority": "high"
+    },
+    {
+      "id": "MULTI-002",
+      "category": "aggregation",
+      "query": "compare population between Texas and California",
+      "expectedRowCount": { "min": 2, "max": 2 },
+      "expectedDataContains": [
+        { "field": "state_name", "value": "Texas" },
+        { "field": "state_name", "value": "California" }
+      ],
+      "description": "Test multi-state comparison",
+      "priority": "medium"
+    },
+    {
+      "id": "PERF-001",
+      "category": "accuracy",
+      "query": "show me all county data",
+      "expectedRowCount": { "min": 3140, "max": 3150 },
+      "description": "Test performance with all data retrieval",
+      "priority": "low"
+    }
+  ]
+}

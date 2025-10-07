@@ -134,10 +134,10 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
     }
     console.log('✅ Input validation passed');
 
-    console.log('⏱️ Setting up 5-second timeout...');
-    // Set timeout for 5 seconds to allow MCP validation to complete
+    console.log('⏱️ Setting up 30-second timeout...');
+    // Set timeout for 30 seconds to allow MCP validation and Anthropic API to complete
     const timeout = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Query processing timeout')), 5000);
+      setTimeout(() => reject(new Error('Query processing timeout')), 30000);
     });
     console.log('✅ Timeout configured');
 
@@ -362,7 +362,12 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
     // Race between query processing and timeout
     const result = await Promise.race([processQuery(), timeout]);
 
-    res.json(result);
+    // Convert BigInts to strings for JSON serialization
+    const serializedResult = JSON.parse(JSON.stringify(result, (key, value) =>
+      typeof value === 'bigint' ? value.toString() : value
+    ));
+
+    res.json(serializedResult);
 
   } catch (error) {
     const queryTime = (Date.now() - startTime) / 1000;

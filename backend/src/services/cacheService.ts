@@ -7,12 +7,18 @@ const redis = new Redis({
   host: config.database.redis.host,
   port: config.database.redis.port,
   password: config.database.redis.password,
-  retryDelayOnFailover: 100,
   maxRetriesPerRequest: 3,
   lazyConnect: true,
   connectTimeout: 2000,
   commandTimeout: 5000,
-  keyPrefix: 'census_cache:'
+  keyPrefix: 'census_cache:',
+  enableOfflineQueue: false,
+  retryStrategy: (times) => {
+    if (times > 3) {
+      return null; // Stop retrying after 3 attempts
+    }
+    return Math.min(times * 100, 2000);
+  }
 });
 
 // Track Redis availability for caching
@@ -29,6 +35,12 @@ redis.on('error', (error) => {
 });
 
 redis.on('close', () => {
+  cacheAvailable = false;
+});
+
+// Attempt connection but don't block startup
+redis.connect().catch((error) => {
+  console.warn('⚠️  Redis initial connection failed:', error.message);
   cacheAvailable = false;
 });
 

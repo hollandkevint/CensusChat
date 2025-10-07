@@ -1,16 +1,19 @@
 import { Workbook, stream } from 'exceljs';
 import * as fs from 'fs';
 import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { 
-  ExportRequest, 
-  ExportResponse, 
-  ExportProgress, 
-  QueryResultForExport, 
+import * as crypto from 'crypto';
+import {
+  ExportRequest,
+  ExportResponse,
+  ExportProgress,
+  QueryResultForExport,
   ExportError,
-  VariableDefinition 
+  VariableDefinition
 } from '../models/export.models';
 import { ExcelFormattingUtils } from '../utils/excelFormatting';
+
+// Use Node's crypto for UUID instead of uuid package to avoid ES Module issues
+const uuidv4 = () => crypto.randomUUID();
 
 export class ExcelExportService {
   private static readonly TEMP_DIR = path.join(process.cwd(), 'temp', 'exports');

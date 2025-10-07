@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { queryApi, QueryApiError } from '../lib/api/queryApi';
 import { ChatMessage } from '../types/query.types';
 import { ExportButton } from './ExportButton';
+import { DataRefreshButton } from './DataRefreshButton';
 
 interface ChatInterfaceProps {
   onQuery?: (query: string) => Promise<any>;
@@ -172,13 +173,16 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden h-96 flex flex-col">
       {/* Header */}
       <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 border-b flex-shrink-0">
-        <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-          <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-          <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-          <span className="ml-4 text-sm text-gray-600 dark:text-gray-300">
-            CensusChat - Healthcare Demographics
-          </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+            <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+            <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+            <span className="ml-4 text-sm text-gray-600 dark:text-gray-300">
+              CensusChat - Healthcare Demographics
+            </span>
+          </div>
+          <DataRefreshButton size="small" />
         </div>
       </div>
 
@@ -223,6 +227,28 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
                 <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                   Query time: {message.metadata.queryTime?.toFixed(2)}s •
                   Data source: {message.metadata.dataSource}
+                  {message.metadata.dataFreshness && (
+                    <div className="mt-1">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        message.metadata.dataFreshness.overallStatus === 'fresh'
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          : message.metadata.dataFreshness.overallStatus === 'stale'
+                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                      }`}>
+                        {message.metadata.dataFreshness.overallStatus === 'fresh' && '🟢'}
+                        {message.metadata.dataFreshness.overallStatus === 'stale' && '🟡'}
+                        {message.metadata.dataFreshness.overallStatus === 'mixed' && '🟠'}
+                        {message.metadata.dataFreshness.overallStatus === 'error' && '🔴'}
+                        Data {message.metadata.dataFreshness.overallStatus}
+                      </span>
+                      {message.metadata.dataFreshness.lastGlobalRefresh && (
+                        <span className="ml-2">
+                          Last updated: {new Date(message.metadata.dataFreshness.lastGlobalRefresh).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 

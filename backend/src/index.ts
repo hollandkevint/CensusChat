@@ -1,9 +1,12 @@
+// Load environment variables FIRST before any other imports
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
-import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { config } from './config';
 import { errorHandler } from './middleware/errorHandler';
@@ -12,9 +15,6 @@ import { setupRoutes } from './routes';
 import { getDuckDBPool, closeDuckDBPool } from './utils/duckdbPool';
 import { getMCPServerService, closeMCPServerService } from './services/mcpServerService';
 import { getMCPClientService, closeMCPClientService } from './services/mcpClientService';
-
-// Load environment variables
-dotenv.config();
 
 // Create Express app
 const app = express();

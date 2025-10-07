@@ -19,9 +19,22 @@ export interface QueryResponse {
     confidenceLevel: number;
     marginOfError: number;
     analysis?: QueryAnalysis;
+    dataFreshness?: DataFreshness;
   };
   error?: string;
   suggestions?: string[];
+}
+
+// Data freshness types
+export interface DataFreshness {
+  overallStatus: 'fresh' | 'stale' | 'mixed' | 'error';
+  lastGlobalRefresh?: Date;
+  relevantDatasets: Array<{
+    name: string;
+    age: string;
+    status: 'fresh' | 'stale' | 'refreshing' | 'error';
+  }>;
+  recommendations: string[];
 }
 
 // Query analysis types (matching backend)
@@ -62,5 +75,6 @@ export interface ChatMessage {
     totalRecords?: number;
     dataSource?: string;
     analysis?: QueryAnalysis;
+    dataFreshness?: DataFreshness;
   };
 }

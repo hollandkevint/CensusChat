@@ -373,5 +373,3 @@ export class FallbackService {
     }
   }
 }
-
-export { FallbackService };

@@ -57,23 +57,41 @@ Your task is to:
 3. Generate appropriate SQL for Census/ACS data
 4. Provide clear explanations
 
-Available Database Schema:
-- Table name: county_data (NOT census_data)
-- Columns: state_name (TEXT), county_name (TEXT), population (INTEGER), median_income (INTEGER), poverty_rate (DOUBLE)
-- Geography: All US counties (3,144 rows), 51 states (50 + DC)
-- State names: ALWAYS use full names like "California", "Texas", "Florida" (NOT abbreviations like "CA", "TX", "FL")
-- State name format: Properly capitalized full names (e.g., "New York", "North Carolina")
+Available Database Tables:
+
+1. county_data - County-level demographics (3,144 counties)
+   - Columns: state_name (TEXT), county_name (TEXT), population (INTEGER), median_income (INTEGER), poverty_rate (DOUBLE)
+   - Use for: State/county level analysis, broad geographic queries
+
+2. block_group_data - Neighborhood-level demographics (239,741 block groups) ⭐ NEW
+   - Geographic: geoid (VARCHAR 12-digit), state_fips (VARCHAR), county_fips (VARCHAR), state_name (TEXT), county_name (TEXT)
+   - Demographics: population (BIGINT), median_age (DOUBLE), male_population (INT), female_population (INT)
+   - Age groups: under_5, age_5_17, age_18_64, age_65_plus, age_75_plus (all INTEGER)
+   - Race/ethnicity: white_alone, black_alone, asian_alone, hispanic_latino (all INTEGER)
+   - Economic: median_household_income (INT), per_capita_income (INT), poverty_rate (DOUBLE), unemployment_rate (DOUBLE), uninsured_rate (DOUBLE)
+   - Education: high_school_or_higher_pct (DOUBLE), bachelors_or_higher_pct (DOUBLE)
+   - Housing: total_housing_units (INT), median_home_value (INT), median_rent (INT), renter_occupied_pct (DOUBLE)
+   - Health: disability_rate (DOUBLE), limited_english_pct (DOUBLE)
+   - Transportation: no_vehicle_pct (DOUBLE), public_transit_pct (DOUBLE)
+   - Use for: Neighborhood analysis, precise demographic targeting, detailed healthcare queries
+
+Geography Rules:
+- State names: ALWAYS use full names like "California", "Texas", "Florida" (NOT abbreviations)
+- State format: Properly capitalized (e.g., "New York", "North Carolina")
+- Block group queries: Use when user asks about "neighborhoods", "block groups", "local areas", or needs detailed demographics
+- County queries: Use for broader state/county analysis
 
 Healthcare-specific mappings:
-- "Medicare eligible" = Age 65+ (estimate as ~16% of population)
-- "Medicare Advantage eligible" = Age 65+ with specific income thresholds
-- "Senior care" = Age 65+, especially 75+ for assisted living
-- "Health systems" = Population density + age + income analysis
+- "Medicare eligible" = age_65_plus column (actual counts, NOT estimates!)
+- "Medicare Advantage eligible" = age_65_plus with income analysis
+- "Senior care" = age_65_plus and age_75_plus for assisted living
+- "Pediatric care" = under_5 and age_5_17 columns
+- "Health systems" = Use age_65_plus, uninsured_rate, disability_rate, population
+- "Vulnerable populations" = High poverty_rate + uninsured_rate + disability_rate
 
-IMPORTANT:
-- Use "state_name" column with FULL state names (not "state_code")
-- Example: WHERE state_name = 'California' (not state_code = 'CA')
-- Table is "county_data" (not "census_data")
+Query Selection Logic:
+- Use block_group_data when: User wants detailed/neighborhood data, mentions "block groups", asks for specific demographics like age breakdowns, race/ethnicity, or health metrics
+- Use county_data when: User asks for state/county overview, broad comparisons, or simpler aggregates
 
 Respond with JSON in this exact format:
 {

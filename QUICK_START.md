@@ -16,20 +16,103 @@
 
 ## Prerequisites
 
-- Docker and Docker Compose
-- Node.js 20+ (for local development)
+- **Docker Desktop**: [Download here](https://www.docker.com/get-started)
+- **Terminal/Command Line**:
+  - Mac: Terminal (pre-installed)
+  - Windows: Git Bash or WSL
+  - Linux: Any terminal
+- **Optional**: Node.js 20+ (for local development)
 
 ## One-Command Setup
+
+### Step 1: Open Terminal
+
+- **Mac**: Press `Cmd + Space`, type "Terminal", press Enter
+- **Windows**: Open Git Bash or WSL terminal
+- **Linux**: Press `Ctrl + Alt + T`
+
+### Step 2: Navigate to CensusChat Directory
+
+```bash
+# Replace with your actual path
+cd /path/to/CensusChat
+
+# Example for Mac/Linux:
+cd ~/Documents/GitHub/CensusChat
+
+# Example for Windows (Git Bash):
+cd /c/Users/YourName/Documents/GitHub/CensusChat
+```
+
+**Tip**: You can drag the folder into Terminal to auto-fill the path
+
+### Step 3: Run the Setup Script
 
 ```bash
 ./demo-setup.sh
 ```
 
-This script will:
-- ✅ Start PostgreSQL, Redis, Backend, and Frontend
-- ✅ Initialize DuckDB database with foundation demographics
-- ✅ Load 8 counties of healthcare data (FL, CA, NY, TX, IL)
-- ✅ Verify all services are healthy and data is accessible
+**If you get "Permission denied"**, make the script executable first:
+
+```bash
+chmod +x demo-setup.sh
+./demo-setup.sh
+```
+
+### What the Script Does:
+
+The script automatically:
+- ✅ Checks Docker is installed and running
+- ✅ Creates `.env` configuration file with secure defaults
+- ✅ Starts PostgreSQL, Redis, Backend, and Frontend services
+- ✅ Waits for all services to be healthy
+- ✅ Loads demo data (8 counties) into DuckDB
+- ✅ Verifies everything is working
+- ✅ Shows you where to access the app
+
+**Duration**: 2-3 minutes
+
+---
+
+## 🏃 Local Development Setup (Recommended)
+
+**If Docker setup has issues**, use local development mode:
+
+### One Command:
+```bash
+./local-dev.sh
+```
+
+This will:
+- ✅ Stop full Docker Compose setup
+- ✅ Start only PostgreSQL and Redis in Docker
+- ✅ Check that dependencies are installed
+- ✅ Free up ports 3000 and 3001
+- ✅ Show you what to run next
+
+### Then run in separate terminals:
+
+**Terminal 1 - Backend:**
+```bash
+cd backend
+npm run dev
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd frontend
+npm run dev
+```
+
+**Access:** http://localhost:3000
+
+**Why Local Development?**
+- ✅ No TypeScript compilation issues in Docker
+- ✅ Production data (3,144 counties) already loaded
+- ✅ Faster iteration and debugging
+- ✅ Uses databases from Docker, code runs locally
+
+---
 
 ## Manual Setup
 
@@ -103,6 +186,30 @@ docker-compose exec backend npm test
 
 ## Troubleshooting
 
+### Script Issues
+
+**Problem: "Permission denied" when running `./demo-setup.sh`**
+```bash
+# Solution: Make the script executable
+chmod +x demo-setup.sh
+./demo-setup.sh
+```
+
+**Problem: "No such file or directory"**
+```bash
+# Solution: You're not in the right directory
+# Check where you are:
+pwd
+
+# Navigate to CensusChat directory:
+cd /path/to/CensusChat
+```
+
+**Problem: "Docker is not running"**
+- Open Docker Desktop application
+- Wait for it to fully start (whale icon in menu bar/system tray)
+- Run the script again
+
 ### Services Won't Start
 ```bash
 # Check Docker is running
@@ -110,6 +217,10 @@ docker info
 
 # Ensure ports are available
 lsof -i :3000 -i :3001 -i :5432 -i :6379
+
+# Kill processes using the ports (if needed)
+lsof -ti :3000 | xargs kill -9
+lsof -ti :3001 | xargs kill -9
 ```
 
 ### Backend Issues
