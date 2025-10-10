@@ -1,20 +1,10 @@
 # CensusChat: Healthcare Demographics Made Simple
 
-<div align="center">
-
-![CensusChat](https://img.shields.io/badge/CensusChat-Healthcare%20Data-blue?style=for-the-badge&logo=health&logoColor=white)
-[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-brightgreen?style=for-the-badge)](docs/MVP_STATUS.md)
-[![Foundation Data](https://img.shields.io/badge/Data-8%20Counties%20Loaded-orange?style=for-the-badge)](docs/MVP_STATUS.md)
-[![MCP Integration](https://img.shields.io/badge/MCP-Claude%20AI-purple?style=for-the-badge)](https://modelcontextprotocol.io/)
-[![Security](https://img.shields.io/badge/Security-API%20Keys%20Protected-red?style=for-the-badge)](SECURITY.md)
-
 **Natural language interface to US Census data for healthcare strategy teams**
 
 *Transform 6-week $50K demographic consulting into 6-second $297/month queries*
 
 **[🚀 Try Demo](http://localhost:3000)** • **[📊 Foundation Data](docs/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
-
-</div>
 
 ---
 
@@ -25,13 +15,13 @@
 [![SQL Validation](https://img.shields.io/badge/SQL%20Security-Production-red?style=flat-square)](backend/src/validation/)
 [![Test Coverage](https://img.shields.io/badge/Coverage-82%2B%25-brightgreen?style=flat-square)](backend/src/__tests__/)
 
-✅ **TRUE MCP IMPLEMENTATION**: Production SQL validation layer with security policies operational
-✅ **SQL Injection Protection**: Table/column allowlists, row limits, dangerous pattern blocking
-✅ **Audit Compliance**: All queries logged to `/backend/logs/sql-audit.log` for HIPAA/GDPR
-✅ **Real Data Validated**: 58 CA counties tested, 47 counties >1M population verified
-✅ **End-to-End Flow**: Natural Language → Anthropic → MCP Validator → DuckDB → Results
-✅ **Frontend Operational**: ChatInterface fully functional at `http://localhost:3002`
-✅ **Production Grade**: JSON-RPC 2.0 protocol, @modelcontextprotocol/sdk, comprehensive logging
+- ✅ **TRUE MCP IMPLEMENTATION**: Production SQL validation layer with security policies operational
+- ✅ **SQL Injection Protection**: Table/column allowlists, row limits, dangerous pattern blocking
+- ✅ **Audit Compliance**: All queries logged to `/backend/logs/sql-audit.log` for HIPAA/GDPR
+- ✅ **Real Data Validated**: 58 CA counties tested, 47 counties >1M population verified
+- ✅ **End-to-End Flow**: Natural Language → Anthropic → MCP Validator → DuckDB → Results
+- ✅ **Frontend Operational**: ChatInterface fully functional at `http://localhost:3002`
+- ✅ **Production Grade**: JSON-RPC 2.0 protocol, @modelcontextprotocol/sdk, comprehensive logging
 
 **Current Data**: 3,144 US counties with real Census Bureau demographics
 **Performance**: Sub-5 second response times with MCP validation, 1,000 row limit enforced
