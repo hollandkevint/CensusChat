@@ -12,7 +12,7 @@ const path = require('path');
 
 // Configuration
 const CONFIG = {
-  CENSUS_API_KEY: process.env.CENSUS_API_KEY || 'fe8519c5a976d01b73cad34f36f59f2449103e60',
+  CENSUS_API_KEY: process.env.CENSUS_API_KEY, // Required: Set in .env file
   CENSUS_API_BASE: 'https://api.census.gov/data',
   DUCKDB_PATH: path.join(__dirname, '..', 'data', 'census.duckdb'),
   DATA_DIR: path.join(__dirname, '..', 'data'),

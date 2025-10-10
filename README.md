@@ -6,6 +6,7 @@
 [![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-brightgreen?style=for-the-badge)](docs/MVP_STATUS.md)
 [![Foundation Data](https://img.shields.io/badge/Data-8%20Counties%20Loaded-orange?style=for-the-badge)](docs/MVP_STATUS.md)
 [![MCP Integration](https://img.shields.io/badge/MCP-Claude%20AI-purple?style=for-the-badge)](https://modelcontextprotocol.io/)
+[![Security](https://img.shields.io/badge/Security-API%20Keys%20Protected-red?style=for-the-badge)](SECURITY.md)
 
 **Natural language interface to US Census data for healthcare strategy teams**
 
@@ -125,11 +126,28 @@ const stack = {
 
 ## 🚦 **Quick Start**
 
-### **One-Command Demo Setup**
+### **Step 1: Get API Keys** (Required)
+
+CensusChat requires two API keys. See **[API_KEY_SETUP.md](API_KEY_SETUP.md)** for detailed instructions.
+
+**Quick Setup:**
+1. **Anthropic API**: Get key at [console.anthropic.com](https://console.anthropic.com/settings/keys)
+2. **Census API**: Request key at [api.census.gov/data/key_signup.html](https://api.census.gov/data/key_signup.html)
+3. Add both keys to `backend/.env`:
+   ```bash
+   ANTHROPIC_API_KEY=sk-ant-api03-YOUR-KEY-HERE
+   CENSUS_API_KEY=your-census-key-here
+   ```
+
+### **Step 2: One-Command Demo Setup**
 ```bash
 # Clone the repository
 git clone https://github.com/hollandkevint/CensusChat.git
 cd CensusChat
+
+# Configure API keys (see API_KEY_SETUP.md)
+cp .env.example .env
+# Edit .env and add your API keys
 
 # Start everything with one command
 ./demo-setup.sh
@@ -164,8 +182,10 @@ docker-compose ps
 ```
 
 **📖 Setup Guides:**
+- [API_KEY_SETUP.md](API_KEY_SETUP.md) - **Required: Get your API keys first**
 - [QUICK_START.md](QUICK_START.md) - Local development setup
 - [Railway Deployment Guide](docs/guides/RAILWAY_DEPLOYMENT.md) - Deploy to production in 15 minutes
+- [SECURITY.md](SECURITY.md) - Security best practices and API key rotation
 
 ---
 
@@ -188,6 +208,8 @@ docker-compose ps
 - SOC 2 compliance planning and audit trails
 - No PHI storage - only aggregated demographic data
 - API rate limiting and abuse prevention
+- **API Key Protection**: Never commit credentials ([Setup Guide](API_KEY_SETUP.md))
+- **Quarterly Key Rotation**: Automated security policies ([Security Policy](SECURITY.md))
 
 ---
 
@@ -241,6 +263,11 @@ docker-compose ps
 - All features must serve healthcare users
 - Maintain sub-2s query response times
 - Follow HIPAA-ready security practices
+- **Security First**:
+  - Never commit API keys or secrets ([API Key Setup](API_KEY_SETUP.md))
+  - Review [SECURITY.md](SECURITY.md) before contributing
+  - Use `.env` files for all credentials (already in `.gitignore`)
+  - Run `npm run secret-scan` before committing
 
 ---
 

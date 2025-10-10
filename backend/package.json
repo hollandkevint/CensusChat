@@ -21,7 +21,9 @@
     "load-all-geography": "npm run load-states && npm run load-tracts && npm run load-blockgroups-expanded && npm run create-geo-hierarchy",
     "test-blockgroup": "ts-node scripts/test-blockgroup-load.ts",
     "duckdb": "duckdb data/census.duckdb",
-    "eval": "ts-node src/evals/query-eval.ts"
+    "eval": "ts-node src/evals/query-eval.ts",
+    "secret-scan": "git diff --cached --name-only -z | xargs -0 grep -l -E '(sk-ant-api03-[a-zA-Z0-9_-]{95}|[a-f0-9]{40})' 2>/dev/null && echo '\n❌ ERROR: Potential API key detected! Remove before committing.\n' && exit 1 || exit 0",
+    "prepare": "husky"
   },
   "keywords": [
     "census",
@@ -36,7 +38,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.63.0",
+    "@anthropic-ai/sdk": "^0.64.0",
     "@modelcontextprotocol/sdk": "^1.0.4",
     "@types/stream-buffers": "^3.0.7",
     "@types/uuid": "^11.0.0",
@@ -73,6 +75,7 @@
     "@typescript-eslint/eslint-plugin": "^8.38.0",
     "@typescript-eslint/parser": "^8.38.0",
     "eslint": "^9.32.0",
+    "husky": "^9.1.7",
     "jest": "^30.0.5",
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4",

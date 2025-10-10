@@ -365,8 +365,8 @@ describe('API Integration', () => {
 #### Environment Variables
 ```bash
 # Production environment
-ANTHROPIC_API_KEY=sk-ant-api03-...
-CENSUS_API_KEY=your-census-api-key
+ANTHROPIC_API_KEY=sk-ant-api03-YOUR-KEY-HERE
+CENSUS_API_KEY=your-census-api-key-here
 REDIS_URL=redis://localhost:6379
 DATABASE_URL=postgresql://user:pass@host:port/db
 MCP_ENDPOINT=https://mcp.service.url
