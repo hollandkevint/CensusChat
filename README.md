@@ -8,7 +8,7 @@
 
 ---
 
-## 🎉 **Production Status** (October 1, 2025)
+## 🎉 **Production Status** (October 9, 2025)
 
 [![True MCP Complete](https://img.shields.io/badge/True%20MCP-Operational-success?style=flat-square)](docs/MCP_IMPLEMENTATION_SUMMARY.md)
 [![DuckDB Integration](https://img.shields.io/badge/DuckDB-1.3.2-blue?style=flat-square)](docs/references/duckdb/)
@@ -83,10 +83,6 @@ Ask questions in plain English - no SQL knowledge required
 - Business Analysts at health systems and Medicare Advantage plans
 - Strategy Teams planning market expansion and facility placement
 - Healthcare Researchers conducting population health studies
-
-**Proven Results:**
-> *"Used to take our analytics team 2 weeks to pull Medicare Advantage market data. Now I get it in seconds and can focus on strategy instead of waiting."*  
-> **— Sarah L., VP Strategy, Regional Health System**
 
 ---
 
@@ -243,7 +239,7 @@ docker-compose ps
 ## 🚀 **Get Involved**
 
 ### **For Healthcare Teams**
-**[📧 Request Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access&body=Organization:%0ARole:%0ACurrent%20demographic%20analysis%20challenges:)** - Join 25 healthcare organizations in pilot program
+**[📧 Request Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access&body=Organization:%0ARole:%0ACurrent%20demographic%20analysis%20challenges:)** - Join 5 healthcare organizations in pilot program
 
 ### **For Developers**
 **[💬 Technical Discussion](https://github.com/hollandkevint/CensusChat/discussions)** - Architecture, MCP integration, and healthcare data patterns
@@ -261,13 +257,7 @@ docker-compose ps
 
 ---
 
-<div align="center">
-
 **⭐ Star this repository if CensusChat helps your healthcare data work**
-
----
-
-**[🚀 Try CensusChat](https://censuschat.com)** • **[📖 Documentation](docs/)** • **[💬 Community](https://github.com/hollandkevint/CensusChat/discussions)**
 
 *Transforming healthcare demographic analysis from weeks to seconds*
 
@@ -275,8 +265,8 @@ docker-compose ps
 
 ### 👤 **About Kevin Holland**
 
-10+ years healthcare data experience • Built for 2M+ member Medicare Advantage plans • Frustrated by $50K consulting delays
+10+ years healthcare data experience • Frustrated by $50K consulting delays
 
-**[📖 Read Kevin's Full Story](https://hollandkevint.github.io/CensusChat/about/)** | **[📧 Get Updates](mailto:kevin@kevintholland.com?subject=CensusChat%20Updates)**
+**[📖 Read Kevin's Full Story](https://www.kevintholland.com)** | **[📧 Get Updates](mailto:kevin@kevintholland.com?subject=CensusChat%20Updates)**
 
 </div>
