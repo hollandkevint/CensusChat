@@ -135,34 +135,38 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
     if (!data || data.length === 0) return null;
 
     const columns = Object.keys(data[0]);
+    const displayRows = Math.min(10, data.length); // Show up to 10 rows
 
     return (
-      <div className="bg-white dark:bg-gray-800 rounded border overflow-hidden mt-3">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 dark:bg-gray-600">
-            <tr>
-              {columns.map(col => (
-                <th key={col} className="px-3 py-2 text-left text-gray-700 dark:text-gray-200 capitalize">
-                  {col.replace(/_/g, ' ')}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="text-gray-900 dark:text-gray-100">
-            {data.slice(0, 5).map((row, idx) => (
-              <tr key={idx} className={idx % 2 === 1 ? 'bg-gray-50 dark:bg-gray-700' : ''}>
+      <div className="bg-white dark:bg-gray-800 rounded border overflow-hidden mt-4">
+        <div className="overflow-x-auto max-h-96 overflow-y-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 dark:bg-gray-600 sticky top-0 z-10">
+              <tr>
                 {columns.map(col => (
-                  <td key={col} className="px-3 py-2">
-                    {typeof row[col] === 'number' ? row[col].toLocaleString() : row[col]}
-                  </td>
+                  <th key={col} className="px-4 py-3 text-left text-gray-700 dark:text-gray-200 font-semibold capitalize whitespace-nowrap">
+                    {col.replace(/_/g, ' ')}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-        {data.length > 5 && (
-          <div className="px-3 py-2 text-xs text-gray-500 bg-gray-50 dark:bg-gray-600">
-            Showing first 5 of {data.length} records
+            </thead>
+            <tbody className="text-gray-900 dark:text-gray-100">
+              {data.slice(0, displayRows).map((row, idx) => (
+                <tr key={idx} className={`border-t dark:border-gray-700 ${idx % 2 === 1 ? 'bg-gray-50 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'}`}>
+                  {columns.map(col => (
+                    <td key={col} className="px-4 py-3 whitespace-nowrap">
+                      {typeof row[col] === 'number' ? row[col].toLocaleString() : row[col] || '-'}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {data.length > displayRows && (
+          <div className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-600 border-t dark:border-gray-700 flex items-center justify-between">
+            <span>Showing first {displayRows} of {data.length.toLocaleString()} records</span>
+            <span className="text-xs text-gray-500">Scroll table to see more →</span>
           </div>
         )}
       </div>
@@ -170,7 +174,7 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden h-96 flex flex-col">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 250px)', minHeight: '600px' }}>
       {/* Header */}
       <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 border-b flex-shrink-0">
         <div className="flex items-center justify-between">
@@ -187,7 +191,7 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -199,12 +203,12 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
               </div>
             )}
             
-            <div className={`rounded-lg p-3 max-w-md ${
+            <div className={`rounded-lg p-4 ${
               message.type === 'user'
-                ? 'bg-blue-100 dark:bg-blue-900/30 text-gray-900 dark:text-white'
-                : message.error
+                ? 'max-w-2xl bg-blue-100 dark:bg-blue-900/30 text-gray-900 dark:text-white'
+                : 'w-full max-w-full ' + (message.error
                   ? 'bg-red-100 dark:bg-red-900/30 text-gray-900 dark:text-white border border-red-300 dark:border-red-700'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white')
             }`}>
               <p className={message.isLoading ? 'animate-pulse' : ''}>
                 {message.content}

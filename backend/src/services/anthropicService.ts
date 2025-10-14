@@ -63,17 +63,23 @@ Available Database Tables:
    - Columns: state_name (TEXT), county_name (TEXT), population (INTEGER), median_income (INTEGER), poverty_rate (DOUBLE)
    - Use for: State/county level analysis, broad geographic queries
 
-2. block_group_data - Neighborhood-level demographics (239,741 block groups) ⭐ NEW
+2. block_group_data_expanded - Neighborhood-level demographics (239,741 block groups) ⭐ EXPANDED DATASET
    - Geographic: geoid (VARCHAR 12-digit), state_fips (VARCHAR), county_fips (VARCHAR), state_name (TEXT), county_name (TEXT)
    - Demographics: population (BIGINT), median_age (DOUBLE), male_population (INT), female_population (INT)
    - Age groups: under_5, age_5_17, age_18_64, age_65_plus, age_75_plus (all INTEGER)
    - Race/ethnicity: white_alone, black_alone, asian_alone, hispanic_latino (all INTEGER)
    - Economic: median_household_income (INT), per_capita_income (INT), poverty_rate (DOUBLE), unemployment_rate (DOUBLE), uninsured_rate (DOUBLE)
-   - Education: high_school_or_higher_pct (DOUBLE), bachelors_or_higher_pct (DOUBLE)
-   - Housing: total_housing_units (INT), median_home_value (INT), median_rent (INT), renter_occupied_pct (DOUBLE)
-   - Health: disability_rate (DOUBLE), limited_english_pct (DOUBLE)
-   - Transportation: no_vehicle_pct (DOUBLE), public_transit_pct (DOUBLE)
-   - Use for: Neighborhood analysis, precise demographic targeting, detailed healthcare queries
+   - Income bands: income_less_10k, income_10_to_25k, income_25_to_50k, income_50_to_75k, income_75_to_100k, income_100_to_150k, income_150_to_200k, income_200k_plus
+   - Economic support: public_assistance_income, snap_benefits, retirement_income, self_employment_earnings
+   - Education: some_high_school_pct, high_school_grad_pct, some_college_pct, bachelors_plus_pct (all DOUBLE)
+   - Housing: total_housing_units (INT), vacant_units (INT), median_home_value (INT), median_year_built (INT), renter_occupied_pct (DOUBLE), rent_burden_50pct (INT), crowded_housing (INT), single_family_homes (INT), mobile_homes (INT)
+   - Technology: with_computer_pct, with_broadband_pct, no_internet_pct (all DOUBLE)
+   - Transportation: commute_under_10_min, commute_10_to_19_min, commute_20_to_29_min, commute_30_to_44_min, commute_45_plus_min, work_from_home, public_transit_pct, no_vehicle_transit_pct
+   - Occupation: management_occupations_pct, healthcare_occupations_pct, retail_sales_pct
+   - Healthcare: uninsured_rate (DOUBLE), uninsured_under_19, uninsured_19_to_64, uninsured_65_plus, disability_rate, ambulatory_difficulty_pct, independent_living_difficulty_pct
+   - Language: limited_english_pct, spanish_limited_english_pct, asian_limited_english_pct
+   - Family: children_with_2_parents_pct, children_single_parent_pct, single_person_households_pct, seniors_living_alone_pct, grandparents_responsible_pct
+   - Use for: Neighborhood analysis, precise demographic targeting, detailed healthcare queries, marketing analytics
 
 Geography Rules:
 - State names: ALWAYS use full names like "California", "Texas", "Florida" (NOT abbreviations)
@@ -90,7 +96,7 @@ Healthcare-specific mappings:
 - "Vulnerable populations" = High poverty_rate + uninsured_rate + disability_rate
 
 Query Selection Logic:
-- Use block_group_data when: User wants detailed/neighborhood data, mentions "block groups", asks for specific demographics like age breakdowns, race/ethnicity, or health metrics
+- Use block_group_data_expanded when: User wants detailed/neighborhood data, mentions "block groups", asks for specific demographics like age breakdowns, race/ethnicity, health metrics, income bands, or technology/transportation patterns
 - Use county_data when: User asks for state/county overview, broad comparisons, or simpler aggregates
 
 Respond with JSON in this exact format:
@@ -127,18 +133,37 @@ Respond with JSON in this exact format:
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2048,
         temperature: 0.1,
-        system: systemPrompt,
+        system: [
+          {
+            type: 'text',
+            text: systemPrompt
+          }
+        ],
         messages: [{
           role: 'user',
-          content: `Analyze this healthcare demographic query and generate the structured response: "${userQuery}"`
+          content: `Analyze this healthcare demographic query and generate the structured response: "${userQuery}"\n\nIMPORTANT: Respond ONLY with valid JSON. Do not include any markdown formatting, explanatory text, or code blocks. Just the raw JSON object.`
         }]
       });
 
       const content = response.content[0];
       if (content.type === 'text') {
         try {
-          return JSON.parse(content.text);
+          // Clean the response text before parsing
+          // Remove any markdown code block markers and clean control characters
+          let cleanText = content.text.trim();
+
+          // Remove markdown code blocks if present
+          cleanText = cleanText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+
+          // Try to extract JSON from the response if it contains additional text
+          const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            cleanText = jsonMatch[0];
+          }
+
+          return JSON.parse(cleanText);
         } catch (parseError) {
+          console.error('Failed to parse Anthropic response:', content.text);
           throw new Error(`Failed to parse Anthropic response: ${parseError}`);
         }
       } else {

@@ -2,9 +2,9 @@ import ChatInterface from '@/components/ChatInterface';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <header className="mb-8 text-center">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-6 px-4">
+      <div className="max-w-7xl mx-auto">
+        <header className="mb-6 text-center">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
             CensusChat
           </h1>
@@ -22,7 +22,7 @@ export default function Home() {
 
         <footer className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>Built with US Census Bureau API • Powered by Anthropic Claude</p>
-          <p className="mt-2">© 2024 CensusChat • Healthcare Analytics Made Simple</p>
+          <p className="mt-2">© 2025 CensusChat • Healthcare Analytics Made Simple</p>
         </footer>
       </div>
     </div>

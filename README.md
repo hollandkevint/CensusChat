@@ -23,7 +23,9 @@
 - ✅ **Frontend Operational**: ChatInterface fully functional at `http://localhost:3002`
 - ✅ **Production Grade**: JSON-RPC 2.0 protocol, @modelcontextprotocol/sdk, comprehensive logging
 
-**Current Data**: 3,144 US counties with real Census Bureau demographics
+**Current Data**:
+- **County Level**: 3,144 US counties with demographics
+- **Block Group Level**: 239,741 block groups with 84 variables (age, income, education, housing, healthcare, technology)
 **Performance**: Sub-5 second response times with MCP validation, 1,000 row limit enforced
 **Security**: Only SELECT queries, no SQL injection, complete audit trail
 
@@ -125,25 +127,41 @@ CensusChat requires two API keys. See **[API_KEY_SETUP.md](API_KEY_SETUP.md)** f
    CENSUS_API_KEY=your-census-key-here
    ```
 
-### **Step 2: One-Command Demo Setup**
+### **Step 2: Load Census Data** (Required - First Time Only)
+
+Before starting the application, you need to load real Census data into DuckDB. This is a one-time setup:
+
 ```bash
-# Clone the repository
-git clone https://github.com/hollandkevint/CensusChat.git
-cd CensusChat
+# From the root directory
+cd backend
 
-# Configure API keys (see API_KEY_SETUP.md)
-cp .env.example .env
-# Edit .env and add your API keys
+# Run the database setup script (takes 2-3 hours)
+./scripts/setup-database.sh
+```
 
-# Start everything with one command
+**What this does:**
+- ✅ Loads 239,741 block groups with 84 demographic variables
+- ✅ Fetches real data from Census Bureau API for all 50 states + DC
+- ✅ Creates `block_group_data_expanded` table with comprehensive demographics
+- ✅ Includes age, income, education, housing, healthcare, and technology data
+
+**Progress tracking:**
+```bash
+# Monitor progress in another terminal
+tail -f backend/data/blockgroup-expanded-progress.json
+```
+
+### **Step 3: Start the Application**
+```bash
+# From the root directory
 ./demo-setup.sh
 ```
 
 **That's it!** The demo setup will:
 - ✅ Start PostgreSQL, Redis, Backend (port 3001), and Frontend (port 3000)
-- ✅ Initialize DuckDB with healthcare demographic data
-- ✅ Load demo data for Florida, California, Texas, and New York
+- ✅ Connect to your loaded DuckDB database
 - ✅ Verify all services are healthy
+- ✅ Open http://localhost:3000 in your browser
 
 ### **Alternative: Manual Setup**
 ```bash
