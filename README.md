@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/hollandkevint-censuschat-badge.png)](https://mseep.ai/app/hollandkevint-censuschat)
+
 # CensusChat: Healthcare Demographics Made Simple
 
 **Natural language interface to US Census data for healthcare strategy teams**
