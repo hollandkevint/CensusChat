@@ -6,6 +6,9 @@ import { ChatMessage } from '../types/query.types';
 import { ExportButton } from './ExportButton';
 import { DataRefreshButton } from './DataRefreshButton';
 import { DataVisualization } from './visualization';
+import QueryHistory from './QueryHistory';
+import { useQueryHistory } from '../hooks/useQueryHistory';
+import { History } from 'lucide-react';
 
 interface ChatInterfaceProps {
   onQuery?: (query: string) => Promise<any>;
@@ -23,7 +26,11 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [viewMode, setViewMode] = useState<Record<string, 'chart' | 'table'>>({});
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Query history
+  const { saveQuery, totalQueries } = useQueryHistory();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -87,6 +94,14 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
           suggestions: result.suggestions
         }];
       });
+
+      // Save to query history
+      if (result.data && result.data.length > 0) {
+        saveQuery(input.trim(), result.data, {
+          queryTime: result.metadata?.queryTime,
+          dataSource: result.metadata?.dataSource,
+        });
+      }
     } catch (error) {
       console.error('Query error:', error);
 
@@ -131,6 +146,12 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
   const handleExportError = (error: any) => {
     console.error('Export failed:', error);
     // Could show an error toast notification here
+  };
+
+  const handleSelectFromHistory = (query: string) => {
+    setInput(query);
+    // Optionally auto-submit the query
+    // We'll just populate the input and let the user press Enter
   };
 
   const renderDataTable = (data: any[]) => {
@@ -188,9 +209,31 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
               CensusChat - Healthcare Demographics
             </span>
           </div>
-          <DataRefreshButton size="small" />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsHistoryOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+              title="Query History"
+            >
+              <History className="w-4 h-4" />
+              <span className="hidden sm:inline">History</span>
+              {totalQueries > 0 && (
+                <span className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs px-1.5 py-0.5 rounded-full">
+                  {totalQueries}
+                </span>
+              )}
+            </button>
+            <DataRefreshButton size="small" />
+          </div>
         </div>
       </div>
+
+      {/* Query History Panel */}
+      <QueryHistory
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onSelectQuery={handleSelectFromHistory}
+      />
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
