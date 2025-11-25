@@ -5,6 +5,7 @@ import { queryApi, QueryApiError } from '../lib/api/queryApi';
 import { ChatMessage } from '../types/query.types';
 import { ExportButton } from './ExportButton';
 import { DataRefreshButton } from './DataRefreshButton';
+import { DataVisualization } from './visualization';
 
 interface ChatInterfaceProps {
   onQuery?: (query: string) => Promise<any>;
@@ -21,6 +22,7 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
   ]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [viewMode, setViewMode] = useState<Record<string, 'chart' | 'table'>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -256,28 +258,74 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
                 </div>
               )}
 
-              {message.data && renderDataTable(message.data)}
+              {/* Data Visualization and Table Toggle */}
+              {message.data && message.data.length > 0 && !message.isLoading && (
+                <div className="mt-4 space-y-4">
+                  {/* View Toggle */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">View:</span>
+                      <div className="flex gap-1 bg-gray-200 dark:bg-gray-600 rounded-lg p-1">
+                        <button
+                          onClick={() => setViewMode(prev => ({ ...prev, [message.id]: 'chart' }))}
+                          className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                            (viewMode[message.id] || 'chart') === 'chart'
+                              ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                          }`}
+                        >
+                          Chart
+                        </button>
+                        <button
+                          onClick={() => setViewMode(prev => ({ ...prev, [message.id]: 'table' }))}
+                          className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                            viewMode[message.id] === 'table'
+                              ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                          }`}
+                        >
+                          Table
+                        </button>
+                      </div>
+                    </div>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {message.data.length.toLocaleString()} records
+                    </span>
+                  </div>
 
-              {message.data && !message.isLoading && (
-                <div className="mt-4">
-                  <ExportButton
-                    queryResult={{
-                      success: true,
-                      data: message.data,
-                      metadata: {
-                        queryTime: message.metadata?.queryTime || 0,
-                        totalRecords: message.data.length,
-                        dataSource: message.metadata?.dataSource || 'US Census Bureau',
-                        confidenceLevel: 0.95,
-                        marginOfError: 2.3,
-                        executedAt: message.timestamp.toISOString()
-                      }
-                    }}
-                    queryText={messages.find(m => m.type === 'user' && m.timestamp < message.timestamp)?.content}
-                    onExportComplete={handleExportSuccess}
-                    onExportError={handleExportError}
-                    size="small"
-                  />
+                  {/* Chart View */}
+                  {(viewMode[message.id] || 'chart') === 'chart' && message.data.length <= 100 && (
+                    <DataVisualization
+                      data={message.data}
+                      queryIntent={message.metadata?.analysis?.intent}
+                      showControls={true}
+                    />
+                  )}
+
+                  {/* Table View or fallback for large datasets */}
+                  {(viewMode[message.id] === 'table' || message.data.length > 100) && renderDataTable(message.data)}
+
+                  {/* Export Button */}
+                  <div className="flex justify-end">
+                    <ExportButton
+                      queryResult={{
+                        success: true,
+                        data: message.data,
+                        metadata: {
+                          queryTime: message.metadata?.queryTime || 0,
+                          totalRecords: message.data.length,
+                          dataSource: message.metadata?.dataSource || 'US Census Bureau',
+                          confidenceLevel: 0.95,
+                          marginOfError: 2.3,
+                          executedAt: message.timestamp.toISOString()
+                        }
+                      }}
+                      queryText={messages.find(m => m.type === 'user' && m.timestamp < message.timestamp)?.content}
+                      onExportComplete={handleExportSuccess}
+                      onExportError={handleExportError}
+                      size="small"
+                    />
+                  </div>
                 </div>
               )}
             </div>
