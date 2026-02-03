@@ -17,6 +17,7 @@ import { join } from 'path';
 import { getDuckDBPool } from '../utils/duckdbPool';
 import { getSQLValidator } from '../validation/sqlValidator';
 import { CENSUS_SCHEMA } from '../validation/sqlSecurityPolicies';
+import { registerDocumentTools } from './documentTools';
 
 /**
  * UI resource configuration for MCP Apps
@@ -516,6 +517,9 @@ export function createMcpServer(sessionId: string): McpServer {
 
   // Register UI resources for MCP Apps
   registerUIResources(server);
+
+  // Register document generation tools (Excel, CSV, PDF)
+  registerDocumentTools(server);
 
   return server;
 }

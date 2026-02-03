@@ -8,6 +8,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { QueryResponseSchema, QueryResponse } from "./schemas";
 import { regionAnalyzerConfig, RegionAnalysisResultSchema } from "./agents";
 import { getMcpConfig, CENSUS_TOOLS } from "./mcpConfig";
+import { getSessionManager } from "./sessionManager";
 
 const anthropic = new Anthropic();
 
@@ -282,15 +283,19 @@ When answering queries about census data, respond with JSON in this exact format
 }
 
 /**
- * AgentService class for stateful usage
+ * AgentService class for stateful usage with session management
+ * Sessions enable follow-up queries like "Now filter to income > $75K" that reference prior context
  */
 export class AgentService {
   private model: string;
   private systemPrompt?: string;
+  private userId: string;
+  private sessionManager = getSessionManager();
 
-  constructor(options?: { model?: string; systemPrompt?: string }) {
+  constructor(options?: { model?: string; systemPrompt?: string; userId?: string }) {
     this.model = options?.model || "claude-sonnet-4-20250514";
     this.systemPrompt = options?.systemPrompt;
+    this.userId = options?.userId || `anonymous-${Date.now()}`;
   }
 
   async query(
@@ -298,16 +303,40 @@ export class AgentService {
   ): Promise<AgentQueryResult<QueryResponse | ComparisonResponse>> {
     // Detect comparison queries and route appropriately
     if (isComparisonQuery(prompt)) {
-      return queryComparison(prompt, {
+      const result = await queryComparison(prompt, {
         model: this.model,
-      }) as Promise<AgentQueryResult<QueryResponse | ComparisonResponse>>;
+      });
+
+      // Store session for conversational context
+      if (result.success) {
+        this.sessionManager.storeSession(
+          this.userId,
+          `session-${Date.now()}`,
+          prompt,
+          result.data
+        );
+      }
+
+      return result as AgentQueryResult<QueryResponse | ComparisonResponse>;
     }
 
     // Standard query
-    return queryCensus(prompt, {
+    const result = await queryCensus(prompt, {
       model: this.model,
       systemPrompt: this.systemPrompt,
     });
+
+    // Store session for conversational context
+    if (result.success) {
+      this.sessionManager.storeSession(
+        this.userId,
+        `session-${Date.now()}`,
+        prompt,
+        result.data
+      );
+    }
+
+    return result;
   }
 
   async queryWithSchema<T extends z.ZodType>(
@@ -318,5 +347,19 @@ export class AgentService {
       model: this.model,
       systemPrompt: this.systemPrompt,
     });
+  }
+
+  /**
+   * Get session ID for current user
+   */
+  getSessionId(): string | undefined {
+    return this.sessionManager.getSessionIdForUser(this.userId);
+  }
+
+  /**
+   * Clear session (for logout or session reset)
+   */
+  clearSession(): void {
+    this.sessionManager.clearUserSessions(this.userId);
   }
 }

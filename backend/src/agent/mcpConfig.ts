@@ -35,4 +35,7 @@ export const CENSUS_TOOLS = [
   "mcp__censuschat__execute_query",
   "mcp__censuschat__get_information_schema",
   "mcp__censuschat__validate_sql_query",
+  "mcp__censuschat__generate_excel_report",
+  "mcp__censuschat__generate_csv_report",
+  "mcp__censuschat__generate_pdf_report",
 ] as const;
