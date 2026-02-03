@@ -11,6 +11,22 @@ import { getSQLValidator } from '../validation/sqlValidator';
 import { CENSUS_SCHEMA } from '../validation/sqlSecurityPolicies';
 
 /**
+ * JSON stringify replacer that handles BigInt values
+ * Converts BigInt to number if safe, otherwise to string
+ */
+function jsonReplacer(_key: string, value: unknown): unknown {
+  if (typeof value === 'bigint') {
+    // Convert to number if it's safe (within Number.MAX_SAFE_INTEGER)
+    if (value <= BigInt(Number.MAX_SAFE_INTEGER) && value >= BigInt(Number.MIN_SAFE_INTEGER)) {
+      return Number(value);
+    }
+    // Otherwise convert to string to preserve precision
+    return value.toString();
+  }
+  return value;
+}
+
+/**
  * Handle get_information_schema tool call
  * Returns database schema and security policy information
  */
@@ -148,7 +164,7 @@ async function handleExecuteQuery(query: string): Promise<{
                 columns: validationResult.columns,
               },
             },
-            null,
+            jsonReplacer,
             2
           ),
         },

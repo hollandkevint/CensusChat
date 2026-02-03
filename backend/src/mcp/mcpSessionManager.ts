@@ -85,12 +85,17 @@ export class McpSessionManager {
       return false;
     }
 
+    // Remove from map FIRST to prevent re-entry from transport.onclose
+    this.sessions.delete(sessionId);
+
+    // Clear the onclose handler to prevent recursive calls
+    session.transport.onclose = undefined;
+
     // Close the server connection
     session.server.close().catch((err) => {
       console.error(`[MCP] Error closing server for session ${sessionId}:`, err);
     });
 
-    this.sessions.delete(sessionId);
     console.log(`[MCP] Session deleted: ${sessionId} (remaining: ${this.sessions.size})`);
     return true;
   }

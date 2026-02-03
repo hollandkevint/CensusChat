@@ -94,12 +94,44 @@ export class MCPHttpClient {
       throw new Error(`Tool call failed: ${response.status} - ${errorText}`);
     }
 
-    const result = await response.json() as { error?: { message?: string }; result?: unknown };
+    const result = await this.parseResponse(response);
     if (result.error) {
       throw new Error(result.error.message || JSON.stringify(result.error));
     }
 
     return result.result;
+  }
+
+  /**
+   * Parse response - handles both JSON and SSE formats
+   * MCP SDK returns SSE format: "event: message\ndata: {...}\n\n"
+   */
+  private async parseResponse(response: Response): Promise<{ error?: { message?: string }; result?: unknown }> {
+    const contentType = response.headers.get('content-type') || '';
+    const text = await response.text();
+
+    // Handle SSE format
+    if (contentType.includes('text/event-stream')) {
+      return this.parseSSE(text);
+    }
+
+    // Handle JSON format
+    return JSON.parse(text);
+  }
+
+  /**
+   * Parse SSE format response
+   * Format: "event: message\ndata: {...JSON...}\n\n"
+   */
+  private parseSSE(text: string): { error?: { message?: string }; result?: unknown } {
+    const lines = text.split('\n');
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const jsonStr = line.substring(6); // Remove "data: " prefix
+        return JSON.parse(jsonStr);
+      }
+    }
+    throw new Error('No data field in SSE response');
   }
 
   /**
@@ -205,8 +237,8 @@ export class MCPHttpClient {
     try {
       const parsed = JSON.parse(textContent.text);
 
-      // Check if result indicates error
-      if (parsed.error) {
+      // Check if result indicates error (string error field)
+      if (parsed.error && typeof parsed.error === 'string') {
         return {
           success: false,
           error: parsed.error,
@@ -214,12 +246,21 @@ export class MCPHttpClient {
         };
       }
 
-      // Check validation result format
+      // Check validation result format (valid: false)
       if (parsed.valid === false) {
         return {
           success: false,
           error: 'SQL validation failed',
           validationErrors: parsed.errors,
+        };
+      }
+
+      // Check execute_query error format (success: false with message)
+      if (parsed.success === false) {
+        return {
+          success: false,
+          error: parsed.message || 'Operation failed',
+          validationErrors: parsed.validationErrors,
         };
       }
 
