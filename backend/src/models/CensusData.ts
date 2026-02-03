@@ -1,4 +1,4 @@
-import Database from 'duckdb';
+import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import { config } from '../config';
 import path from 'path';
 
@@ -47,26 +47,36 @@ export interface CensusGeography {
 }
 
 export class CensusDataModel {
-  private db: Database.Database;
+  private instance: DuckDBInstance | null = null;
+  private connection: DuckDBConnection | null = null;
   private dbPath: string;
+  private isInitialized: boolean = false;
 
   constructor() {
     this.dbPath = config.database.duckdb.memory ? ':memory:' : config.database.duckdb.path;
-    this.initializeDatabase();
   }
 
-  private initializeDatabase(): void {
+  private async ensureInitialized(): Promise<void> {
+    if (this.isInitialized && this.connection) return;
+
     // Ensure data directory exists if using file-based storage
     if (!config.database.duckdb.memory) {
       const dataDir = path.dirname(config.database.duckdb.path);
       require('fs').mkdirSync(dataDir, { recursive: true });
     }
 
-    this.db = new Database.Database(this.dbPath);
-    this.createTables();
+    this.instance = await DuckDBInstance.fromCache(this.dbPath, {
+      memory_limit: '4GB',
+      threads: '4',
+    });
+    this.connection = await this.instance.connect();
+    await this.createTables();
+    this.isInitialized = true;
   }
 
-  private createTables(): void {
+  private async createTables(): Promise<void> {
+    if (!this.connection) throw new Error('Database not initialized');
+
     const schemas = [
       // Census data cache table
       `CREATE TABLE IF NOT EXISTS census_data (
@@ -139,20 +149,22 @@ export class CensusDataModel {
       )`
     ];
 
-    schemas.forEach(schema => {
-      this.db.run(schema, (err) => {
-        if (err) {
-          console.error('Error creating table:', err);
-          throw err;
-        }
-      });
-    });
+    for (const schema of schemas) {
+      try {
+        await this.connection.run(schema);
+      } catch (err) {
+        console.error('Error creating table:', err);
+        throw err;
+      }
+    }
 
     // Create indexes for better query performance
-    this.createIndexes();
+    await this.createIndexes();
   }
 
-  private createIndexes(): void {
+  private async createIndexes(): Promise<void> {
+    if (!this.connection) throw new Error('Database not initialized');
+
     const indexes = [
       // Census data indexes
       'CREATE INDEX IF NOT EXISTS idx_census_data_geography ON census_data(geography_level, geography_code)',
@@ -175,84 +187,73 @@ export class CensusDataModel {
       'CREATE INDEX IF NOT EXISTS idx_census_variables_type ON census_variables(variable_type)'
     ];
 
-    indexes.forEach(indexSql => {
-      this.db.run(indexSql, (err) => {
-        if (err && !err.message.includes('already exists')) {
+    for (const indexSql of indexes) {
+      try {
+        await this.connection.run(indexSql);
+      } catch (err) {
+        const error = err as Error;
+        if (!error.message.includes('already exists')) {
           console.error('Error creating index:', err);
         }
-      });
-    });
+      }
+    }
   }
 
   /**
    * Insert census data records in batch
    */
   async insertCensusData(records: CensusDataRecord[]): Promise<void> {
-    return new Promise((resolve, reject) => {
+    await this.ensureInitialized();
+    if (!this.connection) throw new Error('Database not initialized');
+
+    for (const record of records) {
       const sql = `
         INSERT INTO census_data (
           geography_level, geography_code, geography_name, state_code, county_code,
           tract_code, block_group_code, zip_code, variable_name, variable_value,
           margin_of_error, dataset, year
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (
+          '${record.geography_level}',
+          '${record.geography_code}',
+          '${record.geography_name.replace(/'/g, "''")}',
+          ${record.state_code ? `'${record.state_code}'` : 'NULL'},
+          ${record.county_code ? `'${record.county_code}'` : 'NULL'},
+          ${record.tract_code ? `'${record.tract_code}'` : 'NULL'},
+          ${record.block_group_code ? `'${record.block_group_code}'` : 'NULL'},
+          ${record.zip_code ? `'${record.zip_code}'` : 'NULL'},
+          '${record.variable_name}',
+          ${record.variable_value !== null ? record.variable_value : 'NULL'},
+          ${record.margin_of_error !== null && record.margin_of_error !== undefined ? record.margin_of_error : 'NULL'},
+          '${record.dataset}',
+          '${record.year}'
+        )
       `;
-
-      const stmt = this.db.prepare(sql);
-      
-      records.forEach(record => {
-        stmt.run([
-          record.geography_level,
-          record.geography_code,
-          record.geography_name,
-          record.state_code,
-          record.county_code,
-          record.tract_code,
-          record.block_group_code,
-          record.zip_code,
-          record.variable_name,
-          record.variable_value,
-          record.margin_of_error,
-          record.dataset,
-          record.year
-        ]);
-      });
-
-      stmt.finalize((err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+      await this.connection.run(sql);
+    }
   }
 
   /**
    * Insert census variables metadata
    */
   async insertCensusVariables(variables: CensusVariable[]): Promise<void> {
-    return new Promise((resolve, reject) => {
+    await this.ensureInitialized();
+    if (!this.connection) throw new Error('Database not initialized');
+
+    for (const variable of variables) {
       const sql = `
         INSERT OR REPLACE INTO census_variables (
           variable_name, label, concept, table_id, universe, variable_type
-        ) VALUES (?, ?, ?, ?, ?, ?)
+        ) VALUES (
+          '${variable.variable_name}',
+          '${variable.label.replace(/'/g, "''")}',
+          ${variable.concept ? `'${variable.concept.replace(/'/g, "''")}'` : 'NULL'},
+          '${variable.table_id}',
+          ${variable.universe ? `'${variable.universe.replace(/'/g, "''")}'` : 'NULL'},
+          '${variable.variable_type}'
+        )
       `;
-
-      const stmt = this.db.prepare(sql);
-      
-      variables.forEach(variable => {
-        stmt.run([
-          variable.variable_name,
-          variable.label,
-          variable.concept,
-          variable.table_id,
-          variable.universe,
-          variable.variable_type
-        ]);
-      });
-
-      stmt.finalize((err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+      await this.connection.run(sql);
+    }
   }
 
   /**
@@ -266,123 +267,121 @@ export class CensusDataModel {
     year?: string;
     limit?: number;
   }): Promise<CensusDataRecord[]> {
-    return new Promise((resolve, reject) => {
-      let sql = 'SELECT * FROM census_data WHERE 1=1';
-      const params: any[] = [];
+    await this.ensureInitialized();
+    if (!this.connection) throw new Error('Database not initialized');
 
-      if (filters.geographyLevel?.length) {
-        sql += ` AND geography_level IN (${filters.geographyLevel.map(() => '?').join(',')})`;
-        params.push(...filters.geographyLevel);
-      }
+    let sql = 'SELECT * FROM census_data WHERE 1=1';
 
-      if (filters.stateCodes?.length) {
-        sql += ` AND state_code IN (${filters.stateCodes.map(() => '?').join(',')})`;
-        params.push(...filters.stateCodes);
-      }
+    if (filters.geographyLevel?.length) {
+      sql += ` AND geography_level IN ('${filters.geographyLevel.join("','")}')`;
+    }
 
-      if (filters.variables?.length) {
-        sql += ` AND variable_name IN (${filters.variables.map(() => '?').join(',')})`;
-        params.push(...filters.variables);
-      }
+    if (filters.stateCodes?.length) {
+      sql += ` AND state_code IN ('${filters.stateCodes.join("','")}')`;
+    }
 
-      if (filters.dataset) {
-        sql += ' AND dataset = ?';
-        params.push(filters.dataset);
-      }
+    if (filters.variables?.length) {
+      sql += ` AND variable_name IN ('${filters.variables.join("','")}')`;
+    }
 
-      if (filters.year) {
-        sql += ' AND year = ?';
-        params.push(filters.year);
-      }
+    if (filters.dataset) {
+      sql += ` AND dataset = '${filters.dataset}'`;
+    }
 
-      sql += ' ORDER BY geography_level, geography_code, variable_name';
+    if (filters.year) {
+      sql += ` AND year = '${filters.year}'`;
+    }
 
-      if (filters.limit) {
-        sql += ' LIMIT ?';
-        params.push(filters.limit);
-      }
+    sql += ' ORDER BY geography_level, geography_code, variable_name';
 
-      this.db.all(sql, params, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows as CensusDataRecord[]);
-      });
-    });
+    if (filters.limit) {
+      sql += ` LIMIT ${filters.limit}`;
+    }
+
+    const reader = await this.connection.runAndReadAll(sql);
+    return reader.getRowObjects() as CensusDataRecord[];
   }
 
   /**
    * Get available geographic levels and their counts
    */
   async getGeographyLevelStats(): Promise<Array<{level: string, count: number}>> {
-    return new Promise((resolve, reject) => {
-      const sql = `
-        SELECT geography_level as level, COUNT(*) as count 
-        FROM census_data 
-        GROUP BY geography_level 
-        ORDER BY count DESC
-      `;
+    await this.ensureInitialized();
+    if (!this.connection) throw new Error('Database not initialized');
 
-      this.db.all(sql, [], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows as Array<{level: string, count: number}>);
-      });
-    });
+    const sql = `
+      SELECT geography_level as level, COUNT(*) as count
+      FROM census_data
+      GROUP BY geography_level
+      ORDER BY count DESC
+    `;
+
+    const reader = await this.connection.runAndReadAll(sql);
+    return reader.getRowObjects() as Array<{level: string, count: number}>;
   }
 
   /**
    * Cache API response
    */
   async cacheApiResponse(queryHash: string, queryUrl: string, responseData: any, expiresInHours: number = 24): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + expiresInHours);
+    await this.ensureInitialized();
+    if (!this.connection) throw new Error('Database not initialized');
 
-      const sql = `
-        INSERT OR REPLACE INTO census_api_cache (query_hash, query_url, response_data, row_count, expires_at)
-        VALUES (?, ?, ?, ?, ?)
-      `;
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + expiresInHours);
 
-      this.db.run(sql, [
-        queryHash,
-        queryUrl,
-        JSON.stringify(responseData),
-        responseData.data ? responseData.data.length : 0,
-        expiresAt.toISOString()
-      ], (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
+    const sql = `
+      INSERT OR REPLACE INTO census_api_cache (query_hash, query_url, response_data, row_count, expires_at)
+      VALUES (
+        '${queryHash}',
+        '${queryUrl.replace(/'/g, "''")}',
+        '${JSON.stringify(responseData).replace(/'/g, "''")}',
+        ${responseData.data ? responseData.data.length : 0},
+        '${expiresAt.toISOString()}'
+      )
+    `;
+
+    await this.connection.run(sql);
   }
 
   /**
    * Get cached API response
    */
   async getCachedApiResponse(queryHash: string): Promise<any | null> {
-    return new Promise((resolve, reject) => {
-      const sql = `
-        SELECT response_data FROM census_api_cache 
-        WHERE query_hash = ? AND expires_at > CURRENT_TIMESTAMP
-      `;
+    await this.ensureInitialized();
+    if (!this.connection) throw new Error('Database not initialized');
 
-      this.db.get(sql, [queryHash], (err, row: any) => {
-        if (err) reject(err);
-        else if (row) {
-          try {
-            resolve(JSON.parse(row.response_data));
-          } catch (parseErr) {
-            resolve(null);
-          }
-        }
-        else resolve(null);
-      });
-    });
+    const sql = `
+      SELECT response_data FROM census_api_cache
+      WHERE query_hash = '${queryHash}' AND expires_at > CURRENT_TIMESTAMP
+    `;
+
+    const reader = await this.connection.runAndReadAll(sql);
+    const rows = reader.getRowObjects();
+
+    if (rows.length > 0) {
+      try {
+        return JSON.parse((rows[0] as any).response_data);
+      } catch {
+        return null;
+      }
+    }
+    return null;
   }
 
   /**
    * Close database connection
    */
   close(): void {
-    this.db.close();
+    if (this.connection) {
+      this.connection.disconnectSync();
+      this.connection = null;
+    }
+    if (this.instance) {
+      this.instance.closeSync();
+      this.instance = null;
+    }
+    this.isInitialized = false;
   }
 }
 

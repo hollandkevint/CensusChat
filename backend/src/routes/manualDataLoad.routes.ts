@@ -10,7 +10,7 @@ const router = Router();
  */
 router.post('/foundation-data', async (req, res) => {
   try {
-    console.log('🚀 Starting manual foundation data loading...');
+    console.log('Starting manual foundation data loading...');
 
     // Initialize DuckDB manager
     console.log('1. Initializing DuckDB manager...');
@@ -20,7 +20,7 @@ router.post('/foundation-data', async (req, res) => {
     );
 
     await duckDbManager.initialize();
-    console.log('✅ DuckDB manager initialized');
+    console.log('DuckDB manager initialized');
 
     // Load sample demographic data manually
     console.log('2. Loading foundation demographic data...');
@@ -87,8 +87,8 @@ router.post('/foundation-data', async (req, res) => {
       )
     `;
 
-    await duckDbManager.executeQuery(createTableSQL);
-    console.log('✅ Foundation demographics table created');
+    await duckDbManager.query(createTableSQL);
+    console.log('Foundation demographics table created');
 
     // Insert foundation data
     let insertedRecords = 0;
@@ -97,19 +97,25 @@ router.post('/foundation-data', async (req, res) => {
         INSERT OR REPLACE INTO foundation_demographics
         (state, state_name, county, county_name, total_population, seniors_65_plus,
          median_income, ma_eligible_estimate, poverty_rate, urban_percentage)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (
+          '${record.state}',
+          '${record.state_name}',
+          '${record.county}',
+          '${record.county_name}',
+          ${record.total_population},
+          ${record.seniors_65_plus},
+          ${record.median_income},
+          ${record.ma_eligible_estimate},
+          ${record.poverty_rate},
+          ${record.urban_percentage}
+        )
       `;
 
-      await duckDbManager.executeQuery(insertSQL, [
-        record.state, record.state_name, record.county, record.county_name,
-        record.total_population, record.seniors_65_plus, record.median_income,
-        record.ma_eligible_estimate, record.poverty_rate, record.urban_percentage
-      ]);
-
+      await duckDbManager.query(insertSQL);
       insertedRecords++;
     }
 
-    console.log(`✅ Inserted ${insertedRecords} foundation records`);
+    console.log(`Inserted ${insertedRecords} foundation records`);
 
     // Verify data was loaded
     const verifySQL = `
@@ -121,11 +127,11 @@ router.post('/foundation-data', async (req, res) => {
       FROM foundation_demographics
     `;
 
-    const verificationResults = await duckDbManager.executeQuery(verifySQL);
-    console.log('✅ Data verification completed');
+    const verificationResults = await duckDbManager.query(verifySQL);
+    console.log('Data verification completed');
 
     await duckDbManager.close();
-    console.log('✅ DuckDB connection closed');
+    console.log('DuckDB connection closed');
 
     res.json({
       success: true,
@@ -144,7 +150,7 @@ router.post('/foundation-data', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Manual data loading failed:', error);
+    console.error('Manual data loading failed:', error);
 
     res.status(500).json({
       success: false,
@@ -160,7 +166,7 @@ router.post('/foundation-data', async (req, res) => {
  */
 router.get('/foundation-data', async (req, res) => {
   try {
-    console.log('📊 Querying foundation data...');
+    console.log('Querying foundation data...');
 
     const duckDbManager = new ConcurrentDuckDBManager(
       configurationManager.getConfiguration(),
@@ -178,7 +184,7 @@ router.get('/foundation-data', async (req, res) => {
       LIMIT 20
     `;
 
-    const results = await duckDbManager.executeQuery(querySQL);
+    const results = await duckDbManager.query(querySQL);
     await duckDbManager.close();
 
     res.json({
@@ -193,7 +199,7 @@ router.get('/foundation-data', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Foundation data query failed:', error);
+    console.error('Foundation data query failed:', error);
 
     res.status(500).json({
       success: false,

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { Database } from 'duckdb';
+import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import path from 'path';
 
 export interface DuckDBPoolConfig {
@@ -19,12 +19,13 @@ export interface PoolStats {
 }
 
 export class DuckDBPool extends EventEmitter {
-  private connections: Database[] = [];
-  private activeConnections: Set<Database> = new Set();
+  private instance: DuckDBInstance | null = null;
+  private connections: DuckDBConnection[] = [];
+  private activeConnections: Set<DuckDBConnection> = new Set();
   private readonly config: DuckDBPoolConfig;
   private readonly dbPath: string;
   private waitingQueue: Array<{
-    resolve: (db: Database) => void;
+    resolve: (conn: DuckDBConnection) => void;
     reject: (error: Error) => void;
     timestamp: number;
   }> = [];
@@ -46,7 +47,7 @@ export class DuckDBPool extends EventEmitter {
 
     this.dbPath = config.dbPath || path.join(process.cwd(), 'data', 'census.duckdb');
 
-    console.log('🏊 DuckDB Pool initialized with config:', {
+    console.log('DuckDB Pool initialized with config:', {
       ...this.config,
       dbPath: this.dbPath
     });
@@ -54,95 +55,78 @@ export class DuckDBPool extends EventEmitter {
 
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      console.log('⚠️ DuckDB Pool already initialized');
+      console.log('DuckDB Pool already initialized');
       return;
     }
 
-    console.log('🚀 Initializing DuckDB connection pool...');
+    console.log('Initializing DuckDB connection pool...');
 
     try {
+      // Create instance with configuration using fromCache for singleton management
+      this.instance = await DuckDBInstance.fromCache(this.dbPath, {
+        memory_limit: this.config.memoryLimit || '4GB',
+        threads: String(this.config.threads || 4),
+      });
+
       // Create minimum connections
       for (let i = 0; i < this.config.minConnections; i++) {
-        const db = await this.createConnection();
-        this.connections.push(db);
-        console.log(`📦 Created connection ${i + 1}/${this.config.minConnections}`);
+        const conn = await this.createConnection();
+        this.connections.push(conn);
+        console.log(`Created connection ${i + 1}/${this.config.minConnections}`);
       }
 
       this.isInitialized = true;
       this.emit('initialized');
-      console.log('✅ DuckDB Pool initialization complete');
+      console.log('DuckDB Pool initialization complete');
     } catch (error) {
-      console.error('❌ DuckDB Pool initialization failed:', error);
+      console.error('DuckDB Pool initialization failed:', error);
       this.emit('error', error);
       throw error;
     }
   }
 
-  private async createConnection(): Promise<Database> {
-    return new Promise((resolve, reject) => {
-      const connectionTimer = setTimeout(() => {
-        reject(new Error('Database connection timeout'));
-      }, this.config.connectionTimeout);
+  private async createConnection(): Promise<DuckDBConnection> {
+    if (!this.instance) {
+      throw new Error('DuckDB instance not initialized');
+    }
+
+    const connectionPromise = (async () => {
+      const conn = await this.instance!.connect();
+
+      // Configure healthcare-specific DuckDB settings
+      await conn.run(`SET enable_progress_bar = true`);
+      await conn.run(`SET default_null_order = 'NULLS LAST'`);
+
+      // Install and load extensions for data federation
+      try {
+        await conn.run('INSTALL httpfs');
+        await conn.run('LOAD httpfs');
+      } catch (e) {
+        // Extension may already be installed, continue
+      }
 
       try {
-        const db = new Database(this.dbPath);
-
-        // Configure healthcare-specific DuckDB settings
-        const healthcareSettings = [
-          `SET memory_limit = '${this.config.memoryLimit}'`,
-          `SET threads = ${this.config.threads}`,
-          `SET enable_progress_bar = true`,
-          `SET default_null_order = 'NULLS LAST'`
-        ];
-
-        // Install and load MCP extensions for healthcare data federation
-        const mcpExtensions = [
-          'INSTALL httpfs',
-          'LOAD httpfs',
-          'INSTALL spatial',
-          'LOAD spatial',
-          'INSTALL duckdb_mcp FROM community',
-          'LOAD duckdb_mcp'
-        ];
-
-        // Configure MCP security settings for healthcare
-        const mcpSecuritySettings = [
-          "SET allowed_mcp_commands = '/usr/bin/python3:/usr/bin/node'",
-          "SET allowed_mcp_urls = 'https://api.census.gov:https://api.medicare.gov:file://'"
-        ];
-
-        const allSettings = [...healthcareSettings, ...mcpExtensions, ...mcpSecuritySettings];
-        let settingIndex = 0;
-
-        const executeNextSetting = () => {
-          if (settingIndex >= allSettings.length) {
-            clearTimeout(connectionTimer);
-            console.log('🏥 Healthcare settings, MCP extensions, and security configured');
-            resolve(db);
-            return;
-          }
-
-          const setting = allSettings[settingIndex];
-          settingIndex++;
-
-          db.run(setting, (err) => {
-            if (err && !err.message.includes('already installed')) {
-              console.warn(`⚠️ Warning configuring setting "${setting}":`, err.message);
-            }
-            executeNextSetting();
-          });
-        };
-
-        executeNextSetting();
-
-      } catch (error) {
-        clearTimeout(connectionTimer);
-        reject(error);
+        await conn.run('INSTALL spatial');
+        await conn.run('LOAD spatial');
+      } catch (e) {
+        // Extension may already be installed, continue
       }
+
+      console.log('Healthcare settings and extensions configured');
+      return conn;
+    })();
+
+    // Apply timeout wrapper
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Database connection timeout'));
+      }, this.config.connectionTimeout);
     });
+
+    return Promise.race([connectionPromise, timeoutPromise]);
   }
 
-  async acquire(): Promise<Database> {
+  async acquire(): Promise<DuckDBConnection> {
     if (this.isClosing) {
       throw new Error('Pool is closing, cannot acquire new connections');
     }
@@ -168,7 +152,7 @@ export class DuckDBPool extends EventEmitter {
         this.emit('acquire', newConnection);
         return newConnection;
       } catch (error) {
-        console.error('❌ Failed to create new connection:', error);
+        console.error('Failed to create new connection:', error);
         throw error;
       }
     }
@@ -185,9 +169,9 @@ export class DuckDBPool extends EventEmitter {
       }, this.config.connectionTimeout);
 
       this.waitingQueue.push({
-        resolve: (db: Database) => {
+        resolve: (conn: DuckDBConnection) => {
           clearTimeout(requestTimeout);
-          resolve(db);
+          resolve(conn);
         },
         reject: (error: Error) => {
           clearTimeout(requestTimeout);
@@ -198,9 +182,9 @@ export class DuckDBPool extends EventEmitter {
     });
   }
 
-  release(connection: Database): void {
+  release(connection: DuckDBConnection): void {
     if (!this.activeConnections.has(connection)) {
-      console.warn('⚠️ Attempting to release a connection that is not active');
+      console.warn('Attempting to release a connection that is not active');
       return;
     }
 
@@ -227,39 +211,32 @@ export class DuckDBPool extends EventEmitter {
   async query(sql: string): Promise<any[]> {
     const connection = await this.acquire();
 
-    return new Promise((resolve, reject) => {
-      try {
-        connection.all(sql, (err, rows) => {
-          this.release(connection);
-
-          if (err) {
-            console.error('❌ DuckDB query error:', err);
-            reject(new Error(`DuckDB query failed: ${err.message}`));
-          } else {
-            console.log('✅ DuckDB query successful, rows:', rows?.length || 0);
-            resolve(rows || []);
-          }
-        });
-      } catch (error) {
-        this.release(connection);
-        reject(error);
-      }
-    });
+    try {
+      const reader = await connection.runAndReadAll(sql);
+      const rows = reader.getRowObjects();
+      console.log('DuckDB query successful, rows:', rows?.length || 0);
+      return rows;
+    } catch (error) {
+      console.error('DuckDB query error:', error);
+      const err = error as Error;
+      throw new Error(`DuckDB query failed: ${err.message}`);
+    } finally {
+      this.release(connection);
+    }
   }
 
-  private closeConnection(connection: Database): void {
+  private closeConnection(connection: DuckDBConnection): void {
     const index = this.connections.indexOf(connection);
     if (index !== -1) {
       this.connections.splice(index, 1);
     }
 
-    connection.close((err) => {
-      if (err) {
-        console.error('❌ Error closing DuckDB connection:', err);
-      } else {
-        console.log('✅ DuckDB connection closed');
-      }
-    });
+    try {
+      connection.disconnectSync();
+      console.log('DuckDB connection closed');
+    } catch (err) {
+      console.error('Error closing DuckDB connection:', err);
+    }
   }
 
   async close(): Promise<void> {
@@ -267,7 +244,7 @@ export class DuckDBPool extends EventEmitter {
       return;
     }
 
-    console.log('🔄 Closing DuckDB connection pool...');
+    console.log('Closing DuckDB connection pool...');
     this.isClosing = true;
 
     // Reject all waiting requests
@@ -279,26 +256,32 @@ export class DuckDBPool extends EventEmitter {
     }
 
     // Close all connections
-    const closePromises = this.connections.map(connection => {
-      return new Promise<void>((resolve) => {
-        connection.close((err) => {
-          if (err) {
-            console.error('❌ Error closing connection:', err);
-          }
-          resolve();
-        });
-      });
-    });
-
-    await Promise.all(closePromises);
+    for (const connection of this.connections) {
+      try {
+        connection.disconnectSync();
+      } catch (err) {
+        console.error('Error closing connection:', err);
+      }
+    }
 
     this.connections = [];
     this.activeConnections.clear();
+
+    // Close the instance
+    if (this.instance) {
+      try {
+        this.instance.closeSync();
+      } catch (err) {
+        console.error('Error closing DuckDB instance:', err);
+      }
+      this.instance = null;
+    }
+
     this.isInitialized = false;
     this.isClosing = false;
 
     this.emit('closed');
-    console.log('✅ DuckDB connection pool closed');
+    console.log('DuckDB connection pool closed');
   }
 
   getStats(): PoolStats {
@@ -316,28 +299,7 @@ export class DuckDBPool extends EventEmitter {
       const result = await this.query('SELECT 1 as test');
       return result.length === 1 && result[0].test === 1;
     } catch (error) {
-      console.error('❌ DuckDB pool health check failed:', error);
-      return false;
-    }
-  }
-
-  // Validate MCP functions are available
-  async validateMCPExtension(): Promise<boolean> {
-    try {
-      // Check if MCP extension is loaded by testing a basic MCP function
-      const result = await this.query("SELECT current_setting('loaded_extensions') as extensions");
-      const extensions = result[0]?.extensions || '';
-      const mcpLoaded = extensions.includes('duckdb_mcp');
-
-      if (mcpLoaded) {
-        console.log('✅ MCP extension validation successful');
-      } else {
-        console.warn('⚠️ MCP extension not detected in loaded extensions');
-      }
-
-      return mcpLoaded;
-    } catch (error) {
-      console.error('❌ MCP extension validation failed:', error);
+      console.error('DuckDB pool health check failed:', error);
       return false;
     }
   }

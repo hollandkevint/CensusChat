@@ -10,7 +10,7 @@
  * and provides a simple way to populate DuckDB with test data.
  */
 
-import { Database } from 'duckdb';
+import { DuckDBInstance } from '@duckdb/node-api';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -83,24 +83,28 @@ const foundationData = [
 ];
 
 async function loadFoundationData(): Promise<void> {
-  console.log('🚀 Starting basic DuckDB foundation data loading...');
+  console.log('Starting basic DuckDB foundation data loading...');
 
   // Create data directory if it doesn't exist
   const dataDir = path.join(process.cwd(), 'data');
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
-    console.log('📁 Created data directory');
+    console.log('Created data directory');
   }
 
   const dbPath = path.join(dataDir, 'census.duckdb');
-  console.log(`🗄️  Database path: ${dbPath}`);
+  console.log(`Database path: ${dbPath}`);
 
-  return new Promise((resolve, reject) => {
-    // Create DuckDB connection
-    const db = new Database(dbPath);
+  // Create DuckDB instance using fromCache for singleton management
+  const instance = await DuckDBInstance.fromCache(dbPath, {
+    memory_limit: '4GB',
+    threads: '4',
+  });
 
-    console.log('🔗 Connected to DuckDB');
+  const conn = await instance.connect();
+  console.log('Connected to DuckDB');
 
+  try {
     // Create foundation demographics table
     const createTableSQL = `
       CREATE TABLE IF NOT EXISTS foundation_demographics (
@@ -119,112 +123,69 @@ async function loadFoundationData(): Promise<void> {
       )
     `;
 
-    db.exec(createTableSQL, (err) => {
-      if (err) {
-        console.error('❌ Failed to create table:', err);
-        reject(err);
-        return;
-      }
+    await conn.run(createTableSQL);
+    console.log('Foundation demographics table created/verified');
 
-      console.log('✅ Foundation demographics table created/verified');
+    // Insert data records
+    let insertedRecords = 0;
 
-      // Prepare insert statement
+    for (const record of foundationData) {
       const insertSQL = `
         INSERT OR REPLACE INTO foundation_demographics
         (state, state_name, county, county_name, total_population, seniors_65_plus,
          median_income, ma_eligible_estimate, poverty_rate, urban_percentage)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES ('${record.state}', '${record.state_name}', '${record.county}', '${record.county_name}',
+                ${record.total_population}, ${record.seniors_65_plus}, ${record.median_income},
+                ${record.ma_eligible_estimate}, ${record.poverty_rate}, ${record.urban_percentage})
       `;
 
-      const stmt = db.prepare(insertSQL);
-      let insertedRecords = 0;
+      await conn.run(insertSQL);
+      insertedRecords++;
+      console.log(`Inserted record ${insertedRecords}: ${record.county_name}, ${record.state_name}`);
+    }
 
-      // Insert data records
-      const insertPromises = foundationData.map((record, index) => {
-        return new Promise<void>((resolveInsert, rejectInsert) => {
-          stmt.run([
-            record.state, record.state_name, record.county, record.county_name,
-            record.total_population, record.seniors_65_plus, record.median_income,
-            record.ma_eligible_estimate, record.poverty_rate, record.urban_percentage
-          ], (err) => {
-            if (err) {
-              console.error(`❌ Failed to insert record ${index + 1}:`, err);
-              rejectInsert(err);
-            } else {
-              insertedRecords++;
-              console.log(`✅ Inserted record ${index + 1}: ${record.county_name}, ${record.state_name}`);
-              resolveInsert();
-            }
-          });
-        });
-      });
+    // Verify data was loaded
+    const countReader = await conn.runAndReadAll('SELECT COUNT(*) as count FROM foundation_demographics');
+    const countRows = countReader.getRowObjects();
+    const totalRecords = (countRows[0] as any)?.count || 0;
 
-      // Wait for all inserts to complete
-      Promise.all(insertPromises)
-        .then(() => {
-          stmt.finalize();
+    console.log(`\nFoundation data loading completed successfully!`);
+    console.log(`Records inserted: ${insertedRecords}`);
+    console.log(`Total records in database: ${totalRecords}`);
+    console.log(`Database location: ${dbPath}`);
 
-          // Verify data was loaded
-          db.all('SELECT COUNT(*) as count FROM foundation_demographics', (err, rows) => {
-            if (err) {
-              console.error('❌ Failed to verify data:', err);
-              reject(err);
-              return;
-            }
+    // Sample the data to verify
+    const sampleReader = await conn.runAndReadAll(`
+      SELECT state_name, county_name, total_population, seniors_65_plus
+      FROM foundation_demographics
+      ORDER BY total_population DESC
+      LIMIT 5
+    `);
+    const sampleRows = sampleReader.getRowObjects();
 
-            const totalRecords = rows[0]?.count || 0;
-            console.log(`\n🎉 Foundation data loading completed successfully!`);
-            console.log(`📊 Records inserted: ${insertedRecords}`);
-            console.log(`📈 Total records in database: ${totalRecords}`);
-            console.log(`🗄️  Database location: ${dbPath}`);
-
-            // Sample the data to verify
-            db.all(`
-              SELECT state_name, county_name, total_population, seniors_65_plus
-              FROM foundation_demographics
-              ORDER BY total_population DESC
-              LIMIT 5
-            `, (err, sampleRows) => {
-              if (err) {
-                console.error('❌ Failed to sample data:', err);
-              } else {
-                console.log('\n📋 Sample data:');
-                sampleRows.forEach((row: any, i: number) => {
-                  console.log(`  ${i + 1}. ${row.county_name}, ${row.state_name} - Pop: ${row.total_population.toLocaleString()}, Seniors: ${row.seniors_65_plus.toLocaleString()}`);
-                });
-              }
-
-              db.close((err) => {
-                if (err) {
-                  console.error('❌ Failed to close database:', err);
-                  reject(err);
-                } else {
-                  console.log('\n✅ Database connection closed');
-                  console.log('🚀 Ready for production testing!');
-                  resolve();
-                }
-              });
-            });
-          });
-        })
-        .catch((error) => {
-          stmt.finalize();
-          db.close();
-          reject(error);
-        });
+    console.log('\nSample data:');
+    sampleRows.forEach((row: any, i: number) => {
+      console.log(`  ${i + 1}. ${row.county_name}, ${row.state_name} - Pop: ${row.total_population.toLocaleString()}, Seniors: ${row.seniors_65_plus.toLocaleString()}`);
     });
-  });
+
+  } finally {
+    // Clean up
+    conn.disconnectSync();
+    instance.closeSync();
+    console.log('\nDatabase connection closed');
+    console.log('Ready for production testing!');
+  }
 }
 
 // Run the data loading if this script is executed directly
 if (require.main === module) {
   loadFoundationData()
     .then(() => {
-      console.log('\n✅ Data loading script completed successfully');
+      console.log('\nData loading script completed successfully');
       process.exit(0);
     })
     .catch((error) => {
-      console.error('\n❌ Data loading script failed:', error);
+      console.error('\nData loading script failed:', error);
       process.exit(1);
     });
 }
