@@ -84,7 +84,7 @@ Plans:
 - [x] 04-01-PLAN.md - Zod structured outputs foundation (Wave 1) - COMPLETE
 - [x] 04-02-PLAN.md - MCP config and comparison query support (Wave 2) - COMPLETE
 - [x] 04-03-PLAN.md - Session manager and document MCP tools (Wave 2) - COMPLETE
-- [ ] 04-04-PLAN.md - Agent SDK installation and wrapper service (Wave 1) - GAP CLOSURE
+- [x] 04-04-PLAN.md - Agent SDK installation and wrapper service (Wave 1) - GAP CLOSURE COMPLETE
 - [ ] 04-05-PLAN.md - Session context injection and parallel queries (Wave 2) - GAP CLOSURE
 
 ## Progress
@@ -98,8 +98,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. DuckDB 1.4 Upgrade | 3/3 | Complete | 2026-02-02 |
 | 2. MCP Transport Migration | 2/2 | Complete | 2026-02-02 |
 | 3. Interactive UI Layer | 3/3 | Complete | 2026-02-03 |
-| 4. Agent SDK Integration | 3/5 | Gap Closure | - |
+| 4. Agent SDK Integration | 4/5 | Gap Closure | - |
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-03 - Gap closure plans added (04-04, 04-05)*
+*Last updated: 2026-02-03 - 04-04 complete (Agent SDK installed)*
