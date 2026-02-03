@@ -29,12 +29,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Data refresh workflow uses MERGE statement instead of delete/insert pattern
   4. Query performance metrics appear in logs via profiler integration
   5. Row counts match between original and migrated encrypted database
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 01-01: Package upgrade and DuckDBPool rewrite
-- [ ] 01-02: Encryption migration and MERGE implementation
-- [ ] 01-03: Profiler integration and performance validation
+- [ ] 01-01-PLAN.md - Package upgrade and DuckDBPool rewrite (Wave 1)
+- [ ] 01-02-PLAN.md - Encryption migration and MERGE implementation (Wave 2)
+- [ ] 01-03-PLAN.md - Profiler integration and performance validation (Wave 2)
 
 ### Phase 2: MCP Transport Migration
 **Goal**: MCP server communicates over HTTP (Streamable HTTP transport) enabling external client connections
@@ -93,7 +93,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. DuckDB 1.4 Upgrade | 0/3 | Not started | - |
+| 1. DuckDB 1.4 Upgrade | 0/3 | Planned | - |
 | 2. MCP Transport Migration | 0/2 | Not started | - |
 | 3. Interactive UI Layer | 0/3 | Not started | - |
 | 4. Agent SDK Integration | 0/3 | Not started | - |
