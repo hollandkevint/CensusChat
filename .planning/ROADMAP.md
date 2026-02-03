@@ -54,19 +54,19 @@ Plans:
 ### Phase 3: Interactive UI Layer
 **Goal**: Query results render as interactive components (sortable tables, charts, drill-down navigation) inside chat
 **Depends on**: Phase 2
-**Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07, UI-08, UI-09, UI-10
+**Requirements**: MCP-05, UI-01, UI-02, UI-03, UI-04, UI-05, UI-06, UI-07, UI-08, UI-09, UI-10
 **Success Criteria** (what must be TRUE):
   1. Data tables sort by any column when user clicks column header
   2. User can filter table rows without re-running the query
   3. Bar and line charts render for demographic comparison queries
   4. Clicking a county in results shows block groups within that county (drill-down)
   5. Export controls in chat allow selecting format (CSV/Excel) and columns
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 03-01: Build pipeline and data table component
-- [ ] 03-02: Chart components and drill-down navigation
-- [ ] 03-03: App Bridge integration and export controls
+- [ ] 03-01-PLAN.md - MCP Apps infrastructure, build pipeline, and App Bridge (Wave 1)
+- [ ] 03-02-PLAN.md - Data table MCP App with sorting, filtering, and drill-down (Wave 2)
+- [ ] 03-03-PLAN.md - Chart MCP Apps (bar/line) and export controls (Wave 2)
 
 ### Phase 4: Agent SDK Integration
 **Goal**: Claude responses use structured outputs with schema validation and support multi-query orchestration
@@ -95,9 +95,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. DuckDB 1.4 Upgrade | 3/3 | Complete | 2026-02-02 |
 | 2. MCP Transport Migration | 2/2 | Complete | 2026-02-02 |
-| 3. Interactive UI Layer | 0/3 | Not started | - |
+| 3. Interactive UI Layer | 0/3 | Ready to execute | - |
 | 4. Agent SDK Integration | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-02 - Phase 2 complete*
+*Last updated: 2026-02-03 - Phase 3 planned*
