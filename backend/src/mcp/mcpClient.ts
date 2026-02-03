@@ -1,10 +1,8 @@
 /**
- * MCP Client for CensusChat Backend
- * Connects to MCP server and provides tool call interface
+ * MCP HTTP Client for CensusChat Backend
+ * Uses HTTP transport to communicate with MCP server endpoints
+ * Replaces in-process calls with HTTP fetch to /mcp endpoint
  */
-
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
 export interface MCPToolCallResult {
   success: boolean;
@@ -13,237 +11,274 @@ export interface MCPToolCallResult {
   validationErrors?: any[];
 }
 
-export class CensusChat_MCPClient {
-  private client: Client;
-  private transport: StdioClientTransport | null = null;
-  private isConnected: boolean = false;
+export class MCPHttpClient {
+  private sessionId: string | null = null;
+  private baseUrl: string;
+  private requestId: number = 0;
 
-  constructor() {
-    this.client = new Client(
-      {
-        name: 'censuschat-backend-client',
-        version: '1.0.0'
-      },
-      {
-        capabilities: {}
-      }
-    );
-
-    console.log('🔧 CensusChat MCP Client initialized');
+  constructor(baseUrl?: string) {
+    this.baseUrl = baseUrl || process.env.MCP_SERVER_URL || 'http://localhost:3001';
   }
 
   /**
-   * Connect to MCP server
+   * Initialize MCP session
+   * Sends initialize request and stores session ID from response header
    */
-  async connect(): Promise<void> {
-    if (this.isConnected) {
-      console.log('⚠️ MCP Client already connected');
+  async initialize(): Promise<void> {
+    if (this.sessionId) {
+      console.log('[MCP Client] Already initialized with session:', this.sessionId);
       return;
     }
 
-    console.log('🔌 Connecting to MCP Server...');
+    console.log('[MCP Client] Initializing session...');
 
-    try {
-      // For now, we'll use in-process connection
-      // In production, this would connect via stdio to external server
-      this.isConnected = true;
-      console.log('✅ MCP Client connected');
+    const response = await fetch(`${this.baseUrl}/mcp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: this.nextRequestId(),
+        method: 'initialize',
+        params: {
+          protocolVersion: '2025-03-26',
+          clientInfo: { name: 'censuschat-backend', version: '1.0.0' },
+          capabilities: {},
+        },
+      }),
+    });
 
-    } catch (error) {
-      console.error('❌ Failed to connect to MCP Server:', error);
-      throw error;
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Initialize failed: ${response.status} - ${errorText}`);
     }
+
+    this.sessionId = response.headers.get('Mcp-Session-Id');
+    if (!this.sessionId) {
+      throw new Error('No session ID in initialize response');
+    }
+
+    console.log('[MCP Client] Session initialized:', this.sessionId);
+  }
+
+  /**
+   * Call an MCP tool by name
+   * Auto-initializes session if not already connected
+   */
+  async callTool(name: string, args: Record<string, unknown> = {}): Promise<any> {
+    if (!this.sessionId) {
+      await this.initialize();
+    }
+
+    console.log(`[MCP Client] Calling tool: ${name}`);
+
+    const response = await fetch(`${this.baseUrl}/mcp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json, text/event-stream',
+        'Mcp-Session-Id': this.sessionId!,
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: this.nextRequestId(),
+        method: 'tools/call',
+        params: { name, arguments: args },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Tool call failed: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json() as { error?: { message?: string }; result?: unknown };
+    if (result.error) {
+      throw new Error(result.error.message || JSON.stringify(result.error));
+    }
+
+    return result.result;
   }
 
   /**
    * Disconnect from MCP server
+   * Sends DELETE request to terminate session
    */
   async disconnect(): Promise<void> {
-    if (!this.isConnected) {
-      console.log('⚠️ MCP Client not connected');
+    if (!this.sessionId) {
+      console.log('[MCP Client] Not connected, nothing to disconnect');
       return;
     }
 
-    console.log('🔌 Disconnecting from MCP Server...');
+    console.log('[MCP Client] Disconnecting session:', this.sessionId);
 
-    if (this.transport) {
-      await this.client.close();
-      this.transport = null;
+    try {
+      await fetch(`${this.baseUrl}/mcp`, {
+        method: 'DELETE',
+        headers: { 'Mcp-Session-Id': this.sessionId },
+      });
+    } catch (error) {
+      console.error('[MCP Client] Disconnect error (ignored):', error);
     }
 
-    this.isConnected = false;
-    console.log('✅ MCP Client disconnected');
+    this.sessionId = null;
+    console.log('[MCP Client] Disconnected');
   }
 
   /**
-   * Call get_information_schema tool
+   * Get client connection status
+   */
+  getStatus(): { isConnected: boolean; sessionId: string | null } {
+    return { isConnected: !!this.sessionId, sessionId: this.sessionId };
+  }
+
+  // ============================================================
+  // Convenience methods matching existing interface
+  // ============================================================
+
+  /**
+   * Get database schema information
    */
   async getInformationSchema(): Promise<MCPToolCallResult> {
-    this.ensureConnected();
-
     try {
-      console.log('🔍 Calling get_information_schema tool...');
-
-      // Import and use the server directly for in-process calls
-      const { getSQLValidator } = await import('../validation/sqlValidator');
-      const { CENSUS_SCHEMA } = await import('../validation/sqlSecurityPolicies');
-
-      const validator = getSQLValidator();
-      const securityPolicy = validator.getInformationSchema();
-
-      return {
-        success: true,
-        result: {
-          schema: CENSUS_SCHEMA,
-          security_policy: securityPolicy
-        }
-      };
-
+      const toolResult = await this.callTool('get_information_schema');
+      return this.parseToolResult(toolResult);
     } catch (error) {
-      console.error('❌ getInformationSchema error:', error);
+      console.error('[MCP Client] getInformationSchema error:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
 
   /**
-   * Call validate_sql_query tool
+   * Validate SQL query against security policies
    */
   async validateSQLQuery(query: string): Promise<MCPToolCallResult> {
-    this.ensureConnected();
-
     try {
-      console.log('🔍 Calling validate_sql_query tool...');
-      console.log('   Query:', query.substring(0, 100) + '...');
-
-      // Import and use the validator directly for in-process calls
-      const { getSQLValidator } = await import('../validation/sqlValidator');
-      const validator = getSQLValidator();
-
-      const validationResult = await validator.validateSQL(query);
-
-      if (!validationResult.valid) {
-        return {
-          success: false,
-          validationErrors: validationResult.errors,
-          error: 'SQL validation failed'
-        };
-      }
-
-      return {
-        success: true,
-        result: validationResult
-      };
-
+      const toolResult = await this.callTool('validate_sql_query', { query });
+      return this.parseToolResult(toolResult);
     } catch (error) {
-      console.error('❌ validateSQLQuery error:', error);
+      console.error('[MCP Client] validateSQLQuery error:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
 
   /**
-   * Call execute_query tool
+   * Execute validated SQL query
    */
   async executeQuery(query: string): Promise<MCPToolCallResult> {
-    this.ensureConnected();
-
     try {
-      console.log('🔍 Calling execute_query tool...');
-      console.log('   Query:', query.substring(0, 100) + '...');
-
-      // Step 1: Validate SQL first
-      const validationResult = await this.validateSQLQuery(query);
-
-      if (!validationResult.success) {
-        return validationResult;
-      }
-
-      // Step 2: Execute validated SQL
-      const { getDuckDBPool } = await import('../utils/duckdbPool');
-      const pool = getDuckDBPool();
-
-      const sanitizedSQL = validationResult.result.sanitizedSQL;
-      const data = await pool.query(sanitizedSQL);
-
-      return {
-        success: true,
-        result: {
-          data,
-          metadata: {
-            rowCount: data.length,
-            tables: validationResult.result.tables,
-            columns: validationResult.result.columns,
-            sanitizedSQL
-          }
-        }
-      };
-
+      const toolResult = await this.callTool('execute_query', { query });
+      return this.parseToolResult(toolResult);
     } catch (error) {
-      console.error('❌ executeQuery error:', error);
+      console.error('[MCP Client] executeQuery error:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
 
   /**
-   * Generic tool call method
+   * Parse MCP tool result content to MCPToolCallResult format
    */
-  async callTool(toolName: string, args: Record<string, any>): Promise<MCPToolCallResult> {
-    switch (toolName) {
-      case 'get_information_schema':
-        return await this.getInformationSchema();
+  private parseToolResult(toolResult: any): MCPToolCallResult {
+    // MCP tool results have content array with text items
+    if (!toolResult?.content || !Array.isArray(toolResult.content)) {
+      return { success: false, error: 'Invalid tool result format' };
+    }
 
-      case 'validate_sql_query':
-        return await this.validateSQLQuery(args.query);
+    // Find text content item
+    const textContent = toolResult.content.find((c: any) => c.type === 'text');
+    if (!textContent?.text) {
+      return { success: false, error: 'No text content in tool result' };
+    }
 
-      case 'execute_query':
-        return await this.executeQuery(args.query);
+    // Parse JSON from text content
+    try {
+      const parsed = JSON.parse(textContent.text);
 
-      default:
+      // Check if result indicates error
+      if (parsed.error) {
         return {
           success: false,
-          error: `Unknown tool: ${toolName}`
+          error: parsed.error,
+          validationErrors: parsed.validationErrors,
         };
+      }
+
+      // Check validation result format
+      if (parsed.valid === false) {
+        return {
+          success: false,
+          error: 'SQL validation failed',
+          validationErrors: parsed.errors,
+        };
+      }
+
+      return { success: true, result: parsed };
+    } catch {
+      // If not JSON, return as plain text result
+      return { success: true, result: { text: textContent.text } };
     }
   }
 
   /**
-   * Get client status
+   * Generate incrementing request ID
    */
-  getStatus(): { isConnected: boolean } {
-    return { isConnected: this.isConnected };
-  }
-
-  /**
-   * Ensure client is connected
-   */
-  private ensureConnected(): void {
-    if (!this.isConnected) {
-      throw new Error('MCP Client is not connected. Call connect() first.');
-    }
+  private nextRequestId(): number {
+    return ++this.requestId;
   }
 }
 
-// Singleton instance
-let mcpClientInstance: CensusChat_MCPClient | null = null;
+// ============================================================
+// Singleton management
+// ============================================================
 
-export function getCensusChat_MCPClient(): CensusChat_MCPClient {
+let mcpClientInstance: MCPHttpClient | null = null;
+
+/**
+ * Get singleton MCP HTTP client instance
+ */
+export function getMcpClient(): MCPHttpClient {
   if (!mcpClientInstance) {
-    mcpClientInstance = new CensusChat_MCPClient();
+    mcpClientInstance = new MCPHttpClient();
   }
   return mcpClientInstance;
 }
 
-export async function closeCensusChat_MCPClient(): Promise<void> {
+/**
+ * Close and reset the MCP client singleton
+ */
+export async function closeMcpClient(): Promise<void> {
   if (mcpClientInstance) {
     await mcpClientInstance.disconnect();
     mcpClientInstance = null;
   }
 }
+
+// ============================================================
+// Legacy exports for backwards compatibility
+// ============================================================
+
+/**
+ * @deprecated Use getMcpClient() instead
+ */
+export const getCensusChat_MCPClient = getMcpClient;
+
+/**
+ * @deprecated Use closeMcpClient() instead
+ */
+export const closeCensusChat_MCPClient = closeMcpClient;
+
+/**
+ * @deprecated Use MCPHttpClient instead
+ */
+export const CensusChat_MCPClient = MCPHttpClient;

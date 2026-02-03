@@ -238,7 +238,7 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
             // NEW: Use MCP client to validate and execute SQL
             console.log('🔒 Validating SQL with MCP security layer...');
             const mcpClient = getCensusChat_MCPClient();
-            await mcpClient.connect();
+            // HTTP client auto-initializes on first call
 
             const mcpResult = await mcpClient.executeQuery(sqlQuery);
 
