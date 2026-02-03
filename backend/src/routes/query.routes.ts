@@ -7,11 +7,15 @@ import { mapStateAbbreviationsInQuery } from '../utils/stateMapper';
 import { getCensusChat_MCPClient } from '../mcp/mcpClient';
 import { getHealthcareAnalyticsModule } from '../modules/healthcare_analytics';
 import { getAuditLogger } from '../utils/auditLogger';
+import { AgentService, isComparisonQuery } from '../agent/agentService';
 
 const router = Router();
 
 // Feature flag for DuckDB pool usage
 const USE_PRODUCTION_DUCKDB = process.env.USE_PRODUCTION_DUCKDB === 'true';
+
+// Feature flag for Agent SDK usage (gradual rollout)
+const USE_AGENT_SDK = process.env.USE_AGENT_SDK === 'true';
 
 // DuckDB query helper using connection pool (DEPRECATED - use MCP client instead)
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -149,6 +153,59 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
         // Step 0: Map state abbreviations to full names (CA → California)
         const preprocessedQuery = mapStateAbbreviationsInQuery(query);
         console.log(`📝 Preprocessed query: "${preprocessedQuery}"`);
+
+        // Agent SDK path (opt-in via feature flag)
+        if (USE_AGENT_SDK) {
+          console.log('🤖 Using Agent SDK for query processing...');
+
+          // Get or create agent service (could be per-request or singleton)
+          const agentService = new AgentService();
+
+          const agentResult = await agentService.query(preprocessedQuery);
+
+          if (agentResult.success && agentResult.data) {
+            const queryTime = (Date.now() - startTime) / 1000;
+
+            // Handle comparison responses
+            if ('comparison' in agentResult.data) {
+              return {
+                success: true,
+                message: `Comparison complete for ${agentResult.data.comparison.regions.length} regions`,
+                data: agentResult.data.comparison.regions,
+                comparison: agentResult.data.comparison,
+                metadata: {
+                  queryTime,
+                  totalRecords: agentResult.data.comparison.regions.length,
+                  dataSource: 'Agent SDK with MCP',
+                  confidenceLevel: 0.95,
+                  usedAgentSDK: true,
+                  analysis: { explanation: agentResult.data.explanation },
+                },
+              };
+            }
+
+            // Handle standard query responses
+            return {
+              success: true,
+              message: `Found ${agentResult.data.metadata.rowCount} records`,
+              data: agentResult.data.data,
+              metadata: {
+                queryTime,
+                totalRecords: agentResult.data.metadata.rowCount,
+                dataSource: 'Agent SDK with MCP',
+                confidenceLevel: 0.95,
+                usedAgentSDK: true,
+                analysis: {
+                  explanation: agentResult.data.explanation,
+                  suggestedRefinements: agentResult.data.suggestedRefinements,
+                },
+              },
+            };
+          } else {
+            console.warn('Agent SDK query failed, falling back to standard flow:', agentResult.error);
+            // Fall through to standard processing below
+          }
+        }
 
         // Step 1: Use MCP service to analyze and validate the query
         const analysis = await anthropicService.analyzeQuery(preprocessedQuery);
