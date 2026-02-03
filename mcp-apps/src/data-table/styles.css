@@ -1,0 +1,87 @@
+/**
+ * Data Table Styles
+ * Minimal custom styles - most styling via Tailwind classes
+ */
+
+/* Ensure table fills container */
+.data-table-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Sticky header support */
+.data-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Smooth scrolling */
+.data-table-scroll {
+  overflow: auto;
+  scroll-behavior: smooth;
+}
+
+/* Focus states for accessibility */
+.data-table button:focus-visible,
+.data-table input:focus-visible,
+.data-table select:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Drillable cell hover effect */
+.drillable-cell {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.drillable-cell:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+/* Sort indicator transition */
+.sort-indicator {
+  transition: transform 0.15s ease;
+}
+
+/* Filter input focus ring */
+.filter-input:focus {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* Pagination button states */
+.pagination-btn {
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.pagination-btn:disabled {
+  cursor: not-allowed;
+}
+
+.pagination-btn:not(:disabled):hover {
+  background-color: #f3f4f6;
+}
+
+/* Row hover animation */
+.table-row {
+  transition: background-color 0.1s ease;
+}
+
+/* Loading skeleton animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
