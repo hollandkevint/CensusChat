@@ -20,10 +20,10 @@ Requirements for this modernization milestone. Each maps to roadmap phases.
 
 ### MCP Infrastructure
 
-- [ ] **MCP-01**: Upgrade @modelcontextprotocol/sdk from 1.0.4 to ^1.25.2
-- [ ] **MCP-02**: Migrate from StdioServerTransport to StreamableHTTPServerTransport
-- [ ] **MCP-03**: Add HTTP routes for MCP (POST /mcp, GET /mcp SSE, DELETE /mcp)
-- [ ] **MCP-04**: Update mcpClient.ts to use HTTP fetch instead of in-process calls
+- [x] **MCP-01**: Upgrade @modelcontextprotocol/sdk from 1.0.4 to ^1.25.2
+- [x] **MCP-02**: Migrate from StdioServerTransport to StreamableHTTPServerTransport
+- [x] **MCP-03**: Add HTTP routes for MCP (POST /mcp, GET /mcp SSE, DELETE /mcp)
+- [x] **MCP-04**: Update mcpClient.ts to use HTTP fetch instead of in-process calls
 - [ ] **MCP-05**: Install and configure @modelcontextprotocol/ext-apps for UI resources
 
 ### Interactive UI (MCP Apps)
@@ -94,11 +94,11 @@ Which phases cover which requirements. Validated during roadmap creation.
 | DUCK-06 | Phase 1 | Complete |
 | DUCK-07 | Phase 1 | Complete |
 | DUCK-08 | Phase 1 | Complete |
-| MCP-01 | Phase 2 | Pending |
-| MCP-02 | Phase 2 | Pending |
-| MCP-03 | Phase 2 | Pending |
-| MCP-04 | Phase 2 | Pending |
-| MCP-05 | Phase 2 | Pending |
+| MCP-01 | Phase 2 | Complete |
+| MCP-02 | Phase 2 | Complete |
+| MCP-03 | Phase 2 | Complete |
+| MCP-04 | Phase 2 | Complete |
+| MCP-05 | Phase 3 | Pending |
 | UI-01 | Phase 3 | Pending |
 | UI-02 | Phase 3 | Pending |
 | UI-03 | Phase 3 | Pending |
@@ -124,4 +124,4 @@ Which phases cover which requirements. Validated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-01*
-*Last updated: 2026-02-02 - Phase 1 requirements complete*
+*Last updated: 2026-02-02 - Phase 2 requirements complete (MCP-05 deferred to Phase 3)*
