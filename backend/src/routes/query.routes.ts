@@ -8,6 +8,7 @@ import { getCensusChat_MCPClient } from '../mcp/mcpClient';
 import { getHealthcareAnalyticsModule } from '../modules/healthcare_analytics';
 import { getAuditLogger } from '../utils/auditLogger';
 import { AgentService, isComparisonQuery } from '../agent/agentService';
+import { AgentSdkService } from '../agent/agentSdkService';
 
 const router = Router();
 
@@ -158,9 +159,38 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
         if (USE_AGENT_SDK) {
           console.log('🤖 Using Agent SDK for query processing...');
 
-          // Get or create agent service (could be per-request or singleton)
-          const agentService = new AgentService();
+          // Use AgentSdkService for parallel comparison, AgentService for standard queries
+          const isComparison = isComparisonQuery(preprocessedQuery);
 
+          if (isComparison) {
+            console.log('📊 Comparison query detected - using AgentSdkService with parallel execution');
+            const agentSdkService = new AgentSdkService();
+            const agentResult = await agentSdkService.queryComparison(preprocessedQuery);
+
+            if (agentResult.success && agentResult.data) {
+              const queryTime = (Date.now() - startTime) / 1000;
+              return {
+                success: true,
+                message: `Comparison complete for ${agentResult.data.comparison.regions.length} regions`,
+                data: agentResult.data.comparison.regions,
+                comparison: agentResult.data.comparison,
+                metadata: {
+                  queryTime,
+                  totalRecords: agentResult.data.comparison.regions.length,
+                  dataSource: 'Agent SDK with parallel MCP',
+                  confidenceLevel: 0.95,
+                  usedAgentSDK: true,
+                  parallelExecution: true,
+                  analysis: { explanation: agentResult.data.explanation },
+                },
+              };
+            }
+            // Fall through to AgentService if AgentSdkService fails
+            console.warn('AgentSdkService comparison failed, falling back to AgentService');
+          }
+
+          // Standard query or fallback - use AgentService
+          const agentService = new AgentService();
           const agentResult = await agentService.query(preprocessedQuery);
 
           if (agentResult.success && agentResult.data) {

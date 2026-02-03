@@ -331,4 +331,26 @@ export class AgentSdkService {
   getUserId(): string {
     return this.userId;
   }
+
+  /**
+   * Execute a comparison query using parallel execution
+   *
+   * Extracts regions from prompt and queries them in parallel using Promise.all
+   */
+  async queryComparison(prompt: string): Promise<{ success: boolean; data?: ComparisonResponse; error?: string }> {
+    const result = await queryComparisonParallel(prompt);
+
+    // Track session for follow-up queries
+    if (result.success) {
+      const sessionId = `comparison-${Date.now()}`;
+      this.currentSessionId = sessionId;
+      this.sessionManager.storeSession(this.userId, sessionId, prompt, result);
+    }
+
+    return {
+      success: result.success,
+      data: result,
+      error: result.success ? undefined : "Comparison query failed",
+    };
+  }
 }
