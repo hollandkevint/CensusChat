@@ -1,6 +1,7 @@
 import { censusDataLoader } from '../utils/censusDataLoader';
 import { getHealthcareAnalyticsModule } from '../modules/healthcare_analytics';
 import { dataFreshnessTracker } from '../utils/dataFreshnessTracker';
+import { getDuckDBPool } from '../utils/duckdbPool';
 
 export interface DataRefreshResult {
   success: boolean;
@@ -311,6 +312,64 @@ export class DataRefreshService {
         availableDatasets: [],
         recordCounts: {}
       };
+    }
+  }
+
+  /**
+   * Refresh county data using MERGE INTO statement (DuckDB 1.4+)
+   *
+   * Uses atomic MERGE operation instead of DELETE + INSERT for better
+   * performance and transaction safety. RETURNING clause provides
+   * counts of updated vs inserted rows.
+   *
+   * @param newData Array of county records to merge
+   * @returns Count of updated and inserted rows
+   */
+  async refreshCountyDataWithMerge(
+    newData: Array<{ state_fips: string; county_fips: string; population: number; median_income: number }>
+  ): Promise<{ updated: number; inserted: number }> {
+    const pool = getDuckDBPool();
+    const conn = await pool.acquire();
+
+    try {
+      // Create staging table from new data
+      // Using VALUES clause to create inline table from array
+      if (newData.length === 0) {
+        return { updated: 0, inserted: 0 };
+      }
+
+      const valuesClause = newData
+        .map(d => `('${d.state_fips}', '${d.county_fips}', ${d.population}, ${d.median_income})`)
+        .join(',\n        ');
+
+      await conn.run(`
+        CREATE OR REPLACE TEMP TABLE staging_county AS
+        SELECT * FROM (VALUES
+        ${valuesClause}
+        ) AS t(state_fips, county_fips, population, median_income)
+      `);
+
+      // MERGE with RETURNING to count actions
+      // merge_action column returns 'UPDATE' or 'INSERT' for each affected row
+      const reader = await conn.runAndReadAll(`
+        MERGE INTO county_data AS target
+        USING staging_county AS source
+        ON target.state_fips = source.state_fips
+           AND target.county_fips = source.county_fips
+        WHEN MATCHED THEN UPDATE SET
+          population = source.population,
+          median_income = source.median_income
+        WHEN NOT MATCHED THEN INSERT BY NAME
+        RETURNING merge_action
+      `);
+
+      const actions = reader.getRowObjects() as Array<{ merge_action: string }>;
+      return {
+        updated: actions.filter(a => a.merge_action === 'UPDATE').length,
+        inserted: actions.filter(a => a.merge_action === 'INSERT').length
+      };
+    } finally {
+      pool.release(conn);
     }
   }
 
