@@ -160,6 +160,114 @@ export async function queryWithAgentSdk(
 }
 
 /**
+ * Comparison response structure for parallel region comparison
+ */
+export interface ComparisonResponse {
+  success: boolean;
+  comparison: {
+    regions: Array<{
+      region_name: string;
+      total_population?: number;
+      seniors_65_plus?: number;
+      median_income?: number;
+      key_metrics?: Record<string, unknown>;
+      result?: string;
+    }>;
+    summary: string;
+    differences: string[];
+  };
+  explanation: string;
+}
+
+/**
+ * Extract regions from a comparison query prompt
+ * Matches patterns like "Tampa Bay vs Phoenix" or "compare Dallas and Houston"
+ */
+export function extractRegions(prompt: string): string[] {
+  // Match "A vs B" or "A versus B" patterns
+  const vsMatch = prompt.match(/(.+?)\s+(?:vs\.?|versus)\s+(.+?)(?:\s+for|$)/i);
+  if (vsMatch) {
+    return [vsMatch[1].trim(), vsMatch[2].trim()];
+  }
+
+  // Match "compare A and B" or "compare A, B" patterns
+  const compareMatch = prompt.match(/compare\s+(.+?)\s+(?:and|,)\s+(.+?)(?:\s+for|$)/i);
+  if (compareMatch) {
+    return [compareMatch[1].trim(), compareMatch[2].trim()];
+  }
+
+  // Match "difference between A and B" pattern
+  const diffMatch = prompt.match(/difference\s+between\s+(.+?)\s+and\s+(.+?)(?:\s+for|$)/i);
+  if (diffMatch) {
+    return [diffMatch[1].trim(), diffMatch[2].trim()];
+  }
+
+  return [];
+}
+
+/**
+ * Combine results from parallel region queries into a comparison response
+ */
+function combineRegionResults(
+  results: AgentSdkResult[],
+  regionNames: string[]
+): ComparisonResponse {
+  const successfulResults = results.filter((r) => r.success);
+
+  return {
+    success: successfulResults.length > 0,
+    comparison: {
+      regions: results.map((r, i) => ({
+        region_name: regionNames[i],
+        result: r.result,
+        // Additional metrics would be extracted from result parsing
+      })),
+      summary: `Parallel comparison of ${regionNames.join(" vs ")}`,
+      differences: [],
+    },
+    explanation: `Compared ${regionNames.length} regions in parallel. ${successfulResults.length}/${results.length} queries succeeded.`,
+  };
+}
+
+/**
+ * Query comparison using parallel execution with Promise.all
+ *
+ * For queries like "Compare Tampa Bay vs Phoenix for Medicare eligible population",
+ * this extracts the regions and runs queries for each in parallel.
+ */
+export async function queryComparisonParallel(
+  prompt: string,
+  options: AgentSdkOptions = {}
+): Promise<ComparisonResponse> {
+  // Extract regions from prompt
+  const extractedRegions = extractRegions(prompt);
+
+  if (extractedRegions.length < 2) {
+    // Fall back to single query for non-comparison prompts
+    const result = await queryWithAgentSdk(prompt, options);
+    return {
+      success: result.success,
+      comparison: {
+        regions: [],
+        summary: "",
+        differences: [],
+      },
+      explanation: result.result?.toString() || result.error || "",
+    };
+  }
+
+  // Run region queries in parallel using Promise.all
+  const regionPromises = extractedRegions.map((region) =>
+    queryWithAgentSdk(`Analyze demographic data for ${region}: ${prompt}`, options)
+  );
+
+  const results = await Promise.all(regionPromises);
+
+  // Combine results into comparison format
+  return combineRegionResults(results, extractedRegions);
+}
+
+/**
  * AgentSdkService class for stateful usage with session management
  *
  * Wraps queryWithAgentSdk with user-scoped session tracking.
