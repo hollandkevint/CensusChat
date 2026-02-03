@@ -470,6 +470,50 @@ export function createMcpServer(sessionId: string): McpServer {
     }
   );
 
+  // Register execute_comparison_query tool for bar chart visualization
+  // Wraps execute_query with bar chart UI resource
+  registerAppTool(
+    server,
+    'execute_comparison_query',
+    {
+      description: 'Execute a SQL query for demographic comparison and display as a bar chart. Best for comparing categories (regions, demographics, etc.) with numeric values.',
+      inputSchema: {
+        query: z.string().describe('SQL SELECT query comparing categories with numeric values'),
+      },
+      _meta: {
+        ui: {
+          resourceUri: 'ui://censuschat/bar-chart.html',
+          visibility: ['model', 'app'],
+        },
+      },
+    },
+    async (args) => {
+      return handleExecuteQuery(args.query);
+    }
+  );
+
+  // Register execute_trend_query tool for line chart visualization
+  // Wraps execute_query with line chart UI resource
+  registerAppTool(
+    server,
+    'execute_trend_query',
+    {
+      description: 'Execute a SQL query for trend analysis and display as a line chart. Best for time-series data (year, month, date columns) with numeric values.',
+      inputSchema: {
+        query: z.string().describe('SQL SELECT query with time-series data and numeric values'),
+      },
+      _meta: {
+        ui: {
+          resourceUri: 'ui://censuschat/line-chart.html',
+          visibility: ['model', 'app'],
+        },
+      },
+    },
+    async (args) => {
+      return handleExecuteQuery(args.query);
+    }
+  );
+
   // Register UI resources for MCP Apps
   registerUIResources(server);
 
