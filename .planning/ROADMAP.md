@@ -12,7 +12,7 @@ This modernization transforms CensusChat from a static query interface into an i
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: DuckDB 1.4 Upgrade** - Migrate database layer to 1.4.x with encryption and new API
+- [x] **Phase 1: DuckDB 1.4 Upgrade** - Migrate database layer to 1.4.x with encryption and new API
 - [ ] **Phase 2: MCP Transport Migration** - Upgrade SDK and switch to HTTP transport
 - [ ] **Phase 3: Interactive UI Layer** - Add MCP Apps for tables, charts, and drill-down
 - [ ] **Phase 4: Agent SDK Integration** - Enable structured outputs and multi-agent workflows
@@ -32,9 +32,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 01-01-PLAN.md - Package upgrade and DuckDBPool rewrite (Wave 1)
-- [ ] 01-02-PLAN.md - Encryption migration and MERGE implementation (Wave 2)
-- [ ] 01-03-PLAN.md - Profiler integration and performance validation (Wave 2)
+- [x] 01-01-PLAN.md - Package upgrade and DuckDBPool rewrite (Wave 1)
+- [x] 01-02-PLAN.md - Encryption migration and MERGE implementation (Wave 2)
+- [x] 01-03-PLAN.md - Profiler integration and performance validation (Wave 2)
 
 ### Phase 2: MCP Transport Migration
 **Goal**: MCP server communicates over HTTP (Streamable HTTP transport) enabling external client connections
@@ -93,11 +93,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. DuckDB 1.4 Upgrade | 0/3 | Planned | - |
+| 1. DuckDB 1.4 Upgrade | 3/3 | Complete | 2026-02-02 |
 | 2. MCP Transport Migration | 0/2 | Not started | - |
 | 3. Interactive UI Layer | 0/3 | Not started | - |
 | 4. Agent SDK Integration | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-02*
+*Last updated: 2026-02-02 - Phase 1 complete*

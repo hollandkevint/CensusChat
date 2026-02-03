@@ -9,14 +9,14 @@ Requirements for this modernization milestone. Each maps to roadmap phases.
 
 ### DuckDB Upgrade
 
-- [ ] **DUCK-01**: Upgrade DuckDB from 1.3.2 to 1.4.3
-- [ ] **DUCK-02**: Migrate from `duckdb` npm package to `@duckdb/node-api`
-- [ ] **DUCK-03**: Rewrite DuckDBPool to use new async API patterns
-- [ ] **DUCK-04**: Enable AES-256-GCM encryption for census.duckdb
-- [ ] **DUCK-05**: Migrate existing database via COPY FROM DATABASE
-- [ ] **DUCK-06**: Enable in-memory compression for query performance
-- [ ] **DUCK-07**: Implement MERGE statement support for data refresh
-- [ ] **DUCK-08**: Add profiler metrics endpoint for query performance insights
+- [x] **DUCK-01**: Upgrade DuckDB from 1.3.2 to 1.4.3
+- [x] **DUCK-02**: Migrate from `duckdb` npm package to `@duckdb/node-api`
+- [x] **DUCK-03**: Rewrite DuckDBPool to use new async API patterns
+- [x] **DUCK-04**: Enable AES-256-GCM encryption for census.duckdb
+- [x] **DUCK-05**: Migrate existing database via COPY FROM DATABASE
+- [x] **DUCK-06**: Enable in-memory compression for query performance
+- [x] **DUCK-07**: Implement MERGE statement support for data refresh
+- [x] **DUCK-08**: Add profiler metrics endpoint for query performance insights
 
 ### MCP Infrastructure
 
@@ -86,14 +86,14 @@ Which phases cover which requirements. Validated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DUCK-01 | Phase 1 | Pending |
-| DUCK-02 | Phase 1 | Pending |
-| DUCK-03 | Phase 1 | Pending |
-| DUCK-04 | Phase 1 | Pending |
-| DUCK-05 | Phase 1 | Pending |
-| DUCK-06 | Phase 1 | Pending |
-| DUCK-07 | Phase 1 | Pending |
-| DUCK-08 | Phase 1 | Pending |
+| DUCK-01 | Phase 1 | Complete |
+| DUCK-02 | Phase 1 | Complete |
+| DUCK-03 | Phase 1 | Complete |
+| DUCK-04 | Phase 1 | Complete |
+| DUCK-05 | Phase 1 | Complete |
+| DUCK-06 | Phase 1 | Complete |
+| DUCK-07 | Phase 1 | Complete |
+| DUCK-08 | Phase 1 | Complete |
 | MCP-01 | Phase 2 | Pending |
 | MCP-02 | Phase 2 | Pending |
 | MCP-03 | Phase 2 | Pending |
@@ -124,4 +124,4 @@ Which phases cover which requirements. Validated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-01*
-*Last updated: 2026-02-02 after roadmap validation*
+*Last updated: 2026-02-02 - Phase 1 requirements complete*
