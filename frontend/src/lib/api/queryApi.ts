@@ -23,6 +23,14 @@ export class QueryApiError extends Error {
   }
 }
 
+/**
+ * UI resource from MCP server
+ */
+export interface UIResource {
+  uri: string;
+  html: string;
+}
+
 export const queryApi = {
   async executeQuery(queryRequest: QueryRequest): Promise<QueryResponse> {
     try {
@@ -69,6 +77,34 @@ export const queryApi = {
         500,
         'UNKNOWN_ERROR'
       );
+    }
+  },
+
+  /**
+   * Get available UI resources for MCP Apps
+   * Returns HTML content for interactive visualizations
+   */
+  async getUIResources(): Promise<UIResource[]> {
+    try {
+      const apiBaseUrl = getApiBaseUrl();
+      const response = await fetch(`${apiBaseUrl}/api/v1/mcp/resources`);
+
+      if (!response.ok) {
+        throw new QueryApiError(
+          'Failed to fetch UI resources',
+          response.status,
+          'UI_RESOURCES_ERROR'
+        );
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof QueryApiError) {
+        throw error;
+      }
+      // Return empty array on network errors (graceful degradation)
+      console.warn('[queryApi] UI resources unavailable, using fallback rendering');
+      return [];
     }
   }
 };

@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { queryApi, QueryApiError } from '../lib/api/queryApi';
 import { ChatMessage } from '../types/query.types';
 import { ExportButton } from './ExportButton';
 import { DataRefreshButton } from './DataRefreshButton';
+import { AppBridge, DrillDownParams } from './AppBridge';
 
 interface ChatInterfaceProps {
   onQuery?: (query: string) => Promise<any>;
@@ -21,6 +22,7 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
   ]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [uiResources, setUIResources] = useState<Map<string, string>>(new Map());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -30,6 +32,28 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Fetch UI resources on mount for interactive rendering
+  useEffect(() => {
+    async function loadUIResources() {
+      try {
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const response = await fetch(`${apiBaseUrl}/api/v1/mcp/resources`);
+        if (response.ok) {
+          const resources: Array<{ uri: string; html: string }> = await response.json();
+          const resourceMap = new Map<string, string>();
+          for (const r of resources) {
+            resourceMap.set(r.uri, r.html);
+          }
+          setUIResources(resourceMap);
+          console.log(`[ChatInterface] Loaded ${resources.length} UI resources`);
+        }
+      } catch (error) {
+        console.warn('[ChatInterface] UI resources not available, falling back to static tables');
+      }
+    }
+    loadUIResources();
+  }, []);
 
   const handleSendMessage = async () => {
     if (!input.trim() || isProcessing) return;
@@ -130,6 +154,86 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
     console.error('Export failed:', error);
     // Could show an error toast notification here
   };
+
+  /**
+   * Handle drill-down from interactive data table
+   * Fetches block groups within a county and displays results
+   */
+  const handleDrillDown = useCallback(async (params: DrillDownParams) => {
+    const countyFips = params.filters?.countyFips as string;
+    const countyName = params.filters?.countyName as string;
+
+    if (!countyFips) {
+      console.warn('[ChatInterface] Drill-down missing countyFips');
+      return;
+    }
+
+    // Add loading message
+    const loadingMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: 'assistant',
+      content: `Drilling into block groups for ${countyName || countyFips}...`,
+      timestamp: new Date(),
+      isLoading: true
+    };
+    setMessages(prev => [...prev, loadingMessage]);
+    setIsProcessing(true);
+
+    try {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      // Call drill-down endpoint via MCP transport
+      const response = await fetch(`${apiBaseUrl}/mcp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'tools/call',
+          params: {
+            name: 'execute_drill_down_query',
+            arguments: { countyFips }
+          },
+          id: Date.now()
+        })
+      });
+
+      const result = await response.json();
+
+      // Parse tool result from MCP response
+      let toolResult;
+      if (result.result?.content?.[0]?.text) {
+        toolResult = JSON.parse(result.result.content[0].text);
+      } else {
+        throw new Error('Invalid MCP response format');
+      }
+
+      // Remove loading and add result
+      setMessages(prev => {
+        const withoutLoading = prev.filter(msg => !msg.isLoading);
+        return [...withoutLoading, {
+          id: Date.now().toString(),
+          type: 'assistant',
+          content: `Block groups in ${countyName || countyFips}: ${toolResult.data?.length || 0} found`,
+          timestamp: new Date(),
+          data: toolResult.data,
+          metadata: toolResult.metadata
+        }];
+      });
+    } catch (error) {
+      console.error('[ChatInterface] Drill-down error:', error);
+      setMessages(prev => {
+        const withoutLoading = prev.filter(msg => !msg.isLoading);
+        return [...withoutLoading, {
+          id: Date.now().toString(),
+          type: 'assistant',
+          content: `Failed to load block groups for ${countyName || countyFips}`,
+          timestamp: new Date(),
+          error: true
+        }];
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  }, []);
 
   const renderDataTable = (data: any[]) => {
     if (!data || data.length === 0) return null;
@@ -256,7 +360,21 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
                 </div>
               )}
 
-              {message.data && renderDataTable(message.data)}
+              {/* Render data: AppBridge for interactive table, fallback to static */}
+              {message.data && !message.isLoading && (
+                uiResources.has('ui://censuschat/data-table.html') ? (
+                  <AppBridge
+                    resourceUri="ui://censuschat/data-table.html"
+                    resourceHtml={uiResources.get('ui://censuschat/data-table.html')!}
+                    toolResult={{ success: true, data: message.data, metadata: message.metadata }}
+                    onDrillDown={handleDrillDown}
+                    className="mt-4"
+                    height="24rem"
+                  />
+                ) : (
+                  renderDataTable(message.data)
+                )
+              )}
 
               {message.data && !message.isLoading && (
                 <div className="mt-4">

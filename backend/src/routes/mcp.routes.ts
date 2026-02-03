@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { readFileSync, existsSync, readdirSync } from 'fs';
+import { join } from 'path';
 import { getMCPHealthcareService } from '../services/mcpHealthcareService';
 import { authenticateMCPRequest, authorizeMCPTool, MCPPermission } from '../middleware/mcpAuth';
 import { createErrorResponse, MCPErrorCode } from '../utils/mcpResponseFormatter';
@@ -161,5 +163,40 @@ router.post('/tools/:toolName',
     }
   }
 );
+
+/**
+ * GET /api/v1/mcp/resources - Return available UI resources
+ * Returns HTML content for MCP Apps that can be rendered in sandboxed iframes
+ */
+router.get('/resources', (req, res) => {
+  try {
+    const mcpAppsDir = join(__dirname, '../mcp/mcpApps');
+    const resources: Array<{ uri: string; html: string }> = [];
+
+    if (existsSync(mcpAppsDir)) {
+      const files = readdirSync(mcpAppsDir).filter(f => f.endsWith('.html'));
+      for (const file of files) {
+        try {
+          const html = readFileSync(join(mcpAppsDir, file), 'utf-8');
+          resources.push({
+            uri: `ui://censuschat/${file}`,
+            html
+          });
+        } catch (fileError) {
+          console.warn(`[MCP] Failed to read UI resource: ${file}`, fileError);
+        }
+      }
+    }
+
+    res.json(resources);
+  } catch (error) {
+    console.error('❌ MCP resources error:', error);
+    res.status(500).json(createErrorResponse(
+      'resources',
+      MCPErrorCode.INTERNAL_SERVER_ERROR,
+      'Failed to retrieve UI resources'
+    ));
+  }
+});
 
 export { router as mcpRoutes };
