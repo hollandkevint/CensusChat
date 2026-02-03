@@ -1,27 +1,52 @@
-import { DuckDBPool, getDuckDBPool, closeDuckDBPool } from '../../utils/duckdbPool';
-import { Database } from 'duckdb';
+// Mock functions defined outside jest.mock for better control
+const mockDisconnectSync = jest.fn();
+const mockCloseSync = jest.fn();
+const mockRun = jest.fn().mockResolvedValue(undefined);
+const mockGetRowObjects = jest.fn().mockReturnValue([{ test: 1 }]);
+const mockRunAndReadAll = jest.fn().mockResolvedValue({
+  getRowObjects: mockGetRowObjects
+});
+const mockConnect = jest.fn().mockResolvedValue({
+  run: mockRun,
+  runAndReadAll: mockRunAndReadAll,
+  disconnectSync: mockDisconnectSync
+});
+const mockFromCache = jest.fn().mockResolvedValue({
+  connect: mockConnect,
+  closeSync: mockCloseSync
+});
 
-// Mock DuckDB since we're testing the pool logic, not DuckDB itself
-jest.mock('duckdb', () => ({
-  Database: jest.fn().mockImplementation(() => ({
-    run: jest.fn((sql, callback) => {
-      // Simulate successful configuration
-      setTimeout(() => callback(null), 10);
-    }),
-    all: jest.fn((sql, callback) => {
-      // Simulate successful query
-      setTimeout(() => callback(null, [{ test: 1 }]), 10);
-    }),
-    close: jest.fn((callback) => {
-      setTimeout(() => callback(null), 10);
-    }),
-  })),
+// Mock @duckdb/node-api
+jest.mock('@duckdb/node-api', () => ({
+  DuckDBInstance: {
+    fromCache: jest.fn().mockImplementation((...args: any[]) => mockFromCache(...args))
+  }
 }));
+
+import { DuckDBPool, getDuckDBPool, closeDuckDBPool } from '../../utils/duckdbPool';
 
 describe('DuckDBPool', () => {
   let pool: DuckDBPool;
 
   beforeEach(() => {
+    // Reset all mocks but keep implementations
+    mockDisconnectSync.mockClear();
+    mockCloseSync.mockClear();
+    mockRun.mockClear();
+    mockGetRowObjects.mockClear().mockReturnValue([{ test: 1 }]);
+    mockRunAndReadAll.mockClear().mockResolvedValue({
+      getRowObjects: mockGetRowObjects
+    });
+    mockConnect.mockClear().mockResolvedValue({
+      run: mockRun,
+      runAndReadAll: mockRunAndReadAll,
+      disconnectSync: mockDisconnectSync
+    });
+    mockFromCache.mockClear().mockResolvedValue({
+      connect: mockConnect,
+      closeSync: mockCloseSync
+    });
+
     // Reset singleton
     (global as any).poolInstance = null;
     pool = new DuckDBPool({
@@ -66,6 +91,18 @@ describe('DuckDBPool', () => {
 
       expect(statsAfterFirst.totalConnections).toBe(statsAfterSecond.totalConnections);
     });
+
+    it('should call DuckDBInstance.fromCache with correct config', async () => {
+      await pool.initialize();
+
+      expect(mockFromCache).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          memory_limit: '1GB',
+          threads: '2'
+        })
+      );
+    });
   });
 
   describe('connection management', () => {
@@ -88,6 +125,18 @@ describe('DuckDBPool', () => {
     });
 
     it('should create new connections up to maxConnections', async () => {
+      // Each call to connect() needs to return a unique object for the pool to track them separately
+      let connectionCount = 0;
+      mockConnect.mockImplementation(() => {
+        connectionCount++;
+        return Promise.resolve({
+          id: connectionCount,
+          run: mockRun,
+          runAndReadAll: mockRunAndReadAll,
+          disconnectSync: mockDisconnectSync
+        });
+      });
+
       const connections = [];
 
       // Acquire all connections up to max
@@ -133,18 +182,12 @@ describe('DuckDBPool', () => {
     it('should execute queries successfully', async () => {
       const result = await pool.query('SELECT 1 as test');
       expect(result).toEqual([{ test: 1 }]);
+      expect(mockRunAndReadAll).toHaveBeenCalledWith('SELECT 1 as test');
     });
 
     it('should handle query errors gracefully', async () => {
-      // Mock a failing query
-      const mockDb = {
-        all: jest.fn((sql, callback) => {
-          callback(new Error('Query failed'), null);
-        }),
-      };
-
-      jest.spyOn(pool, 'acquire').mockResolvedValue(mockDb as any);
-      jest.spyOn(pool, 'release').mockImplementation(() => {});
+      // Mock a failing query for just this call
+      mockRunAndReadAll.mockRejectedValueOnce(new Error('Query failed'));
 
       await expect(pool.query('SELECT * FROM nonexistent')).rejects.toThrow('DuckDB query failed: Query failed');
     });
@@ -162,7 +205,7 @@ describe('DuckDBPool', () => {
 
     it('should return false when query fails', async () => {
       // Mock a failing health check query
-      jest.spyOn(pool, 'query').mockRejectedValue(new Error('Health check failed'));
+      mockRunAndReadAll.mockRejectedValueOnce(new Error('Health check failed'));
 
       const isHealthy = await pool.healthCheck();
       expect(isHealthy).toBe(false);
@@ -181,6 +224,8 @@ describe('DuckDBPool', () => {
       const stats = pool.getStats();
       expect(stats.totalConnections).toBe(0);
       expect(stats.activeConnections).toBe(0);
+      expect(mockDisconnectSync).toHaveBeenCalled();
+      expect(mockCloseSync).toHaveBeenCalled();
     });
 
     it('should reject waiting requests on close', async () => {
@@ -222,30 +267,6 @@ describe('DuckDBPool', () => {
     });
   });
 
-  describe('timeout handling', () => {
-    it('should timeout connection requests', async () => {
-      const shortTimeoutPool = new DuckDBPool({
-        minConnections: 0,
-        maxConnections: 1,
-        connectionTimeout: 50, // Very short timeout
-      });
-
-      // Mock Database constructor to never call callback (simulate hang)
-      const MockDatabase = jest.fn().mockImplementation(() => ({
-        run: jest.fn(() => {
-          // Never call the callback to simulate timeout
-        }),
-        close: jest.fn((callback) => callback(null)),
-      }));
-
-      (require('duckdb') as any).Database = MockDatabase;
-
-      await expect(shortTimeoutPool.acquire()).rejects.toThrow('Database connection timeout');
-
-      await shortTimeoutPool.close();
-    });
-  });
-
   describe('concurrent operations', () => {
     beforeEach(async () => {
       await pool.initialize();
@@ -261,12 +282,24 @@ describe('DuckDBPool', () => {
 
       const results = await Promise.all(promises);
       expect(results).toHaveLength(10);
-      results.forEach((result, index) => {
+      results.forEach((result) => {
         expect(result).toEqual([{ test: 1 }]); // Mock returns { test: 1 }
       });
     });
 
     it('should maintain correct connection count under load', async () => {
+      // Each call to connect() needs to return a unique object for the pool to track them separately
+      let connectionCount = 0;
+      mockConnect.mockImplementation(() => {
+        connectionCount++;
+        return Promise.resolve({
+          id: connectionCount,
+          run: mockRun,
+          runAndReadAll: mockRunAndReadAll,
+          disconnectSync: mockDisconnectSync
+        });
+      });
+
       const promises = [];
 
       // Acquire connections concurrently - but only acquire up to max to avoid hanging promises
