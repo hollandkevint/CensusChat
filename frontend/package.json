@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@modelcontextprotocol/ext-apps": "^1.0.1",
     "@tanstack/react-query": "^5.84.0",
+    "@tanstack/react-table": "^8.21.3",
     "axios": "^1.11.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.535.0",

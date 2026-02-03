@@ -41,6 +41,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.64.0",
     "@duckdb/node-api": "^1.4.3-r.3",
+    "@modelcontextprotocol/ext-apps": "^1.0.1",
     "@modelcontextprotocol/sdk": "^1.25.3",
     "@types/stream-buffers": "^3.0.7",
     "@types/uuid": "^11.0.0",
