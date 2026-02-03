@@ -6,6 +6,7 @@ import censusRoutes from './census.routes';
 import { exportRoutes } from './export.routes';
 import { healthRoutes } from './health.routes';
 import { mcpRoutes } from './mcp.routes';
+import { mcpTransportRouter } from '../mcp/mcpRoutes';
 import { metricsRouter } from './metrics.routes';
 import dataRefreshRoutes from './dataRefresh.routes';
 import dataLoadingRoutes from './dataLoading';
@@ -15,6 +16,9 @@ import dataLoadingRoutes from './dataLoading';
 export const setupRoutes = (app: Express) => {
   // Health check routes (no version prefix)
   app.use('/health', healthRoutes);
+
+  // MCP transport endpoints (protocol level - for external MCP clients)
+  app.use('/mcp', mcpTransportRouter);
 
   // API v1 routes - temporarily disable data loading while investigating startup issues
   // app.use('/api/v1/auth', authRoutes);
@@ -42,6 +46,7 @@ export const setupRoutes = (app: Express) => {
         dataLoading: '/api/v1/data-loading',
         export: '/api/v1/export',
         mcp: '/api/v1/mcp',
+        mcpTransport: '/mcp',
         metrics: '/api/v1/metrics',
         dataRefresh: '/api/data/refresh',
         health: '/health',
