@@ -82,6 +82,7 @@ Agent SDK Integration - all plans complete, all gaps closed:
 2. Session context injection via getSession() ✓
 3. Parallel comparison with Promise.all ✓
 4. Document tools via MCP (correct approach) ✓
+5. AgentSdkService wired to query routes (quick fix) ✓
 
 ## Phase 3 Summary (Complete)
 
