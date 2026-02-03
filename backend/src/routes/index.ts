@@ -6,6 +6,7 @@ import censusRoutes from './census.routes';
 import { exportRoutes } from './export.routes';
 import { healthRoutes } from './health.routes';
 import { mcpRoutes } from './mcp.routes';
+import { metricsRouter } from './metrics.routes';
 import dataRefreshRoutes from './dataRefresh.routes';
 import dataLoadingRoutes from './dataLoading';
 // import { dataLoadTestRoutes } from './dataLoadTest.routes';
@@ -23,6 +24,7 @@ export const setupRoutes = (app: Express) => {
   // app.use('/api/v1/data-loading', dataLoadingRoutes);
   app.use('/api/v1/export', exportRoutes);
   app.use('/api/v1/mcp', mcpRoutes);
+  app.use('/api/v1/metrics', metricsRouter);
   app.use('/api/data', dataRefreshRoutes);
   // app.use('/api/v1/data-load-test', dataLoadTestRoutes);
   // app.use('/api/v1/manual-data-load', manualDataLoadRoutes);
@@ -40,6 +42,7 @@ export const setupRoutes = (app: Express) => {
         dataLoading: '/api/v1/data-loading',
         export: '/api/v1/export',
         mcp: '/api/v1/mcp',
+        metrics: '/api/v1/metrics',
         dataRefresh: '/api/data/refresh',
         health: '/health',
         demo: '/health/demo',
