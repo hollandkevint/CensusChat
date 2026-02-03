@@ -149,6 +149,7 @@ async function handleValidateSQLQuery(query: string): Promise<{
 /**
  * Handle execute_query tool call
  * Validates and executes SQL against the census database
+ * Includes pagination metadata for UI rendering
  */
 async function handleExecuteQuery(query: string): Promise<{
   content: Array<{ type: 'text'; text: string }>;
@@ -202,6 +203,17 @@ async function handleExecuteQuery(query: string): Promise<{
     const pool = getDuckDBPool();
     const data = await pool.query(validationResult.sanitizedSQL!);
 
+    // Determine if there might be more rows (based on LIMIT in query)
+    const limitMatch = query.match(/\bLIMIT\s+(\d+)/i);
+    const limit = limitMatch ? parseInt(limitMatch[1], 10) : null;
+    const hasMore = limit !== null && data.length >= limit;
+
+    // Get cursor for pagination (last geoid if available)
+    const lastRow = data[data.length - 1];
+    const nextCursor = lastRow && (lastRow.geoid || lastRow.county_fips)
+      ? String(lastRow.geoid || lastRow.county_fips)
+      : undefined;
+
     return {
       content: [
         {
@@ -212,6 +224,8 @@ async function handleExecuteQuery(query: string): Promise<{
               data,
               metadata: {
                 rowCount: data.length,
+                hasMore,
+                nextCursor: hasMore ? nextCursor : undefined,
                 tables: validationResult.tables,
                 columns: validationResult.columns,
               },
@@ -224,6 +238,139 @@ async function handleExecuteQuery(query: string): Promise<{
     };
   } catch (error) {
     console.error('[MCP] Query execution error:', error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            },
+            null,
+            2
+          ),
+        },
+      ],
+      isError: true,
+    };
+  }
+}
+
+/**
+ * Handle execute_drill_down_query tool call
+ * Returns block groups within a specific county
+ * Uses cursor-based pagination for efficient paging through results
+ */
+async function handleDrillDownQuery(
+  countyFips: string,
+  cursor?: string
+): Promise<{
+  content: Array<{ type: 'text'; text: string }>;
+  isError?: boolean;
+}> {
+  if (!countyFips) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: false,
+              error: 'countyFips parameter is required',
+            },
+            null,
+            2
+          ),
+        },
+      ],
+      isError: true,
+    };
+  }
+
+  // Validate FIPS code format (5 digits: 2 state + 3 county)
+  if (!/^\d{5}$/.test(countyFips)) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: false,
+              error: 'Invalid county FIPS code format. Expected 5 digits.',
+            },
+            null,
+            2
+          ),
+        },
+      ],
+      isError: true,
+    };
+  }
+
+  try {
+    const pool = getDuckDBPool();
+
+    // Build query for block groups within county
+    // Fetch 101 rows to detect if there are more
+    const cursorCondition = cursor ? `AND geoid > '${cursor}'` : '';
+    const query = `
+      SELECT
+        geoid,
+        name,
+        total_population,
+        median_household_income,
+        pct_65_and_over,
+        pct_with_health_insurance
+      FROM block_group_data_expanded
+      WHERE LEFT(geoid, 5) = '${countyFips}'
+      ${cursorCondition}
+      ORDER BY geoid
+      LIMIT 101
+    `;
+
+    const data = await pool.query(query);
+
+    // Check if there are more results
+    const hasMore = data.length > 100;
+    const results = hasMore ? data.slice(0, 100) : data;
+
+    // Get next cursor from last returned row
+    const lastRow = results[results.length - 1];
+    const nextCursor = hasMore && lastRow ? String(lastRow.geoid) : undefined;
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              data: results,
+              metadata: {
+                rowCount: results.length,
+                hasMore,
+                nextCursor,
+                countyFips,
+                tables: ['block_group_data_expanded'],
+                columns: [
+                  'geoid',
+                  'name',
+                  'total_population',
+                  'median_household_income',
+                  'pct_65_and_over',
+                  'pct_with_health_insurance',
+                ],
+              },
+            },
+            jsonReplacer,
+            2
+          ),
+        },
+      ],
+    };
+  } catch (error) {
+    console.error('[MCP] Drill-down query error:', error);
     return {
       content: [
         {
@@ -297,6 +444,29 @@ export function createMcpServer(sessionId: string): McpServer {
     },
     async (args) => {
       return handleExecuteQuery(args.query);
+    }
+  );
+
+  // Register execute_drill_down_query tool for block group exploration
+  // Enables drilling from county to block groups with cursor-based pagination
+  registerAppTool(
+    server,
+    'execute_drill_down_query',
+    {
+      description: 'Execute a drill-down query to retrieve block groups within a county. Results are paginated using cursor-based navigation.',
+      inputSchema: {
+        countyFips: z.string().describe('County FIPS code (5 digits: 2 state + 3 county)'),
+        cursor: z.string().optional().describe('Cursor for pagination (geoid of last row from previous page)'),
+      },
+      _meta: {
+        ui: {
+          resourceUri: 'ui://censuschat/data-table.html',
+          visibility: ['model', 'app'],
+        },
+      },
+    },
+    async (args) => {
+      return handleDrillDownQuery(args.countyFips, args.cursor);
     }
   );
 
