@@ -19,6 +19,7 @@
     "load-states": "ts-node scripts/load-acs-state.ts",
     "create-geo-hierarchy": "ts-node scripts/create-geo-hierarchy.ts",
     "load-all-geography": "npm run load-states && npm run load-tracts && npm run load-blockgroups-expanded && npm run create-geo-hierarchy",
+    "migrate-encrypted": "ts-node scripts/migrate-encrypted.ts",
     "test-blockgroup": "ts-node scripts/test-blockgroup-load.ts",
     "duckdb": "duckdb data/census.duckdb",
     "eval": "ts-node src/evals/query-eval.ts",
