@@ -7,13 +7,19 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:data-table": "MCP_APP=data-table vite build",
+    "build:bar-chart": "MCP_APP=bar-chart vite build",
+    "build:line-chart": "MCP_APP=line-chart vite build",
+    "build:all": "npm run build:data-table && npm run build:bar-chart && npm run build:line-chart",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "1.0.1",
+    "@tanstack/react-table": "^8.21.3",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "recharts": "^3.7.0"
   },
   "devDependencies": {
     "@types/react": "^19",

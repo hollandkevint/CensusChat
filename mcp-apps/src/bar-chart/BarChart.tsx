@@ -128,7 +128,10 @@ export function BarChart({
           <RechartsBarChart
             data={data}
             margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-            onClick={(e) => e?.activePayload?.[0]?.payload && handleClick(e.activePayload[0].payload)}
+            onClick={(e) => {
+              const payload = (e as { activePayload?: Array<{ payload: Record<string, unknown> }> })?.activePayload?.[0]?.payload;
+              if (payload) handleClick(payload);
+            }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
 

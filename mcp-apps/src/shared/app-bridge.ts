@@ -3,7 +3,7 @@
  * Wraps @modelcontextprotocol/ext-apps App class for CensusChat apps
  */
 
-import { App, type AppMessage, type ResourceContents } from '@modelcontextprotocol/ext-apps';
+import { App } from '@modelcontextprotocol/ext-apps';
 
 /**
  * Tool result data passed to MCP Apps
@@ -14,6 +14,8 @@ export interface ToolResult {
   data?: Record<string, unknown>[];
   metadata?: {
     rowCount: number;
+    hasMore?: boolean;
+    nextCursor?: string;
     tables?: string[];
     columns?: string[];
   };
@@ -47,15 +49,15 @@ export interface AppToHostMessage {
  */
 export interface HostToAppMessage {
   type: 'tool-result' | 'resource-contents';
-  payload: ToolResult | ResourceContents;
+  payload: ToolResult | unknown;
 }
 
 /**
  * Create and connect an MCP App instance
  * Returns a connected App ready to receive tool results
  */
-export async function createApp(): Promise<App> {
-  const app = new App();
+export async function createApp(name: string = 'CensusChat App'): Promise<App> {
+  const app = new App({ name, version: '1.0.0' });
 
   // Connect to parent window
   await app.connect();
