@@ -8,7 +8,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { QueryResponseSchema, QueryResponse } from "./schemas";
 import { regionAnalyzerConfig, RegionAnalysisResultSchema } from "./agents";
 import { getMcpConfig, CENSUS_TOOLS } from "./mcpConfig";
-import { getSessionManager } from "./sessionManager";
+import { getSessionManager, SessionContext } from "./sessionManager";
 
 const anthropic = new Anthropic();
 
@@ -301,9 +301,21 @@ export class AgentService {
   async query(
     prompt: string
   ): Promise<AgentQueryResult<QueryResponse | ComparisonResponse>> {
+    // Retrieve session context for conversational follow-up
+    const sessionId = this.sessionManager.getSessionIdForUser(this.userId);
+    let contextPrompt = prompt;
+
+    if (sessionId) {
+      const session = this.sessionManager.getSession(sessionId);
+      if (session?.lastQuery && session?.lastResult) {
+        // Inject prior context for follow-up queries
+        contextPrompt = this.buildContextualPrompt(prompt, session);
+      }
+    }
+
     // Detect comparison queries and route appropriately
-    if (isComparisonQuery(prompt)) {
-      const result = await queryComparison(prompt, {
+    if (isComparisonQuery(contextPrompt)) {
+      const result = await queryComparison(contextPrompt, {
         model: this.model,
       });
 
@@ -321,7 +333,7 @@ export class AgentService {
     }
 
     // Standard query
-    const result = await queryCensus(prompt, {
+    const result = await queryCensus(contextPrompt, {
       model: this.model,
       systemPrompt: this.systemPrompt,
     });
@@ -337,6 +349,38 @@ export class AgentService {
     }
 
     return result;
+  }
+
+  /**
+   * Build a prompt with prior context for follow-up queries
+   * Enables conversational patterns like "Now filter to income > $75K"
+   */
+  private buildContextualPrompt(prompt: string, session: SessionContext): string {
+    const priorContext = `
+Previous query: "${session.lastQuery}"
+Previous result summary: ${this.summarizeResult(session.lastResult)}
+
+Current query: "${prompt}"
+
+If the current query references "it", "that", "these", or uses refinement language like "now filter", "also show", "but only", interpret in context of the previous query.`;
+
+    return priorContext;
+  }
+
+  /**
+   * Summarize a result for context injection
+   */
+  private summarizeResult(result: unknown): string {
+    if (!result) return "No prior result";
+    const r = result as Record<string, unknown>;
+    if (r.data && Array.isArray(r.data)) {
+      return `${r.data.length} rows of data`;
+    }
+    if (r.comparison && typeof r.comparison === "object") {
+      const comp = r.comparison as { regions?: unknown[] };
+      return `Comparison of ${comp.regions?.length || 0} regions`;
+    }
+    return "Prior query completed";
   }
 
   async queryWithSchema<T extends z.ZodType>(
