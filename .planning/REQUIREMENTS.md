@@ -34,7 +34,7 @@ Requirements for this modernization milestone. Each maps to roadmap phases.
 - [ ] **UI-04**: Implement column filtering without re-querying
 - [ ] **UI-05**: Add bar chart visualization for demographic comparisons
 - [ ] **UI-06**: Add line chart visualization for trend data
-- [ ] **UI-07**: Implement click-to-drill-down (county → block groups)
+- [ ] **UI-07**: Implement click-to-drill-down (county -> block groups)
 - [ ] **UI-08**: Add in-chat export controls (format picker, column selector)
 - [ ] **UI-09**: Add App Bridge to Next.js frontend for iframe rendering
 - [ ] **UI-10**: Register MCP tools with _meta.ui.resourceUri for interactive returns
@@ -82,7 +82,7 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+Which phases cover which requirements. Validated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -120,8 +120,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 **Coverage:**
 - v1 requirements: 30 total
 - Mapped to phases: 30
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-01*
-*Last updated: 2026-02-01 after initial definition*
+*Last updated: 2026-02-02 after roadmap validation*
