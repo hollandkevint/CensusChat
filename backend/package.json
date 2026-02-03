@@ -61,7 +61,9 @@
     "pg": "^8.16.3",
     "redis": "^5.7.0",
     "stream-buffers": "^3.0.3",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "zod": "^4.3.6",
+    "zod-to-json-schema": "^3.25.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
