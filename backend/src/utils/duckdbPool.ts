@@ -9,6 +9,7 @@ export interface DuckDBPoolConfig {
   dbPath?: string;
   memoryLimit?: string;
   threads?: number;
+  encryptionKey?: string;
 }
 
 export interface PoolStats {
@@ -24,6 +25,7 @@ export class DuckDBPool extends EventEmitter {
   private activeConnections: Set<DuckDBConnection> = new Set();
   private readonly config: DuckDBPoolConfig;
   private readonly dbPath: string;
+  private readonly encryptionKey: string;
   private waitingQueue: Array<{
     resolve: (conn: DuckDBConnection) => void;
     reject: (error: Error) => void;
@@ -47,9 +49,14 @@ export class DuckDBPool extends EventEmitter {
 
     this.dbPath = config.dbPath || path.join(process.cwd(), 'data', 'census.duckdb');
 
+    // Read encryption key from config or environment variable
+    // If set, the database file must already be encrypted
+    this.encryptionKey = config.encryptionKey || process.env.DUCKDB_ENCRYPTION_KEY || '';
+
     console.log('DuckDB Pool initialized with config:', {
       ...this.config,
-      dbPath: this.dbPath
+      dbPath: this.dbPath,
+      encrypted: this.encryptionKey ? 'yes' : 'no'
     });
   }
 
@@ -62,11 +69,21 @@ export class DuckDBPool extends EventEmitter {
     console.log('Initializing DuckDB connection pool...');
 
     try {
-      // Create instance with configuration using fromCache for singleton management
-      this.instance = await DuckDBInstance.fromCache(this.dbPath, {
-        memory_limit: this.config.memoryLimit || '4GB',
-        threads: String(this.config.threads || 4),
-      });
+      if (this.encryptionKey) {
+        // For encrypted databases, use in-memory instance and ATTACH encrypted file
+        // This is the recommended pattern from DuckDB encryption documentation
+        console.log('Using encrypted database mode...');
+        this.instance = await DuckDBInstance.create(':memory:', {
+          memory_limit: this.config.memoryLimit || '4GB',
+          threads: String(this.config.threads || 4),
+        });
+      } else {
+        // For unencrypted databases, use fromCache for singleton management
+        this.instance = await DuckDBInstance.fromCache(this.dbPath, {
+          memory_limit: this.config.memoryLimit || '4GB',
+          threads: String(this.config.threads || 4),
+        });
+      }
 
       // Create minimum connections
       for (let i = 0; i < this.config.minConnections; i++) {
@@ -98,6 +115,7 @@ export class DuckDBPool extends EventEmitter {
       await conn.run(`SET default_null_order = 'NULLS LAST'`);
 
       // Install and load extensions for data federation
+      // httpfs provides hardware-accelerated encryption via OpenSSL
       try {
         await conn.run('INSTALL httpfs');
         await conn.run('LOAD httpfs');
@@ -110,6 +128,24 @@ export class DuckDBPool extends EventEmitter {
         await conn.run('LOAD spatial');
       } catch (e) {
         // Extension may already be installed, continue
+      }
+
+      // Attach encrypted database if encryption key is provided
+      if (this.encryptionKey) {
+        try {
+          await conn.run(`
+            ATTACH '${this.dbPath}' AS census (
+              ENCRYPTION_KEY '${this.encryptionKey}',
+              ENCRYPTION_CIPHER 'GCM'
+            )
+          `);
+          // Set census as the default schema for queries
+          await conn.run('USE census');
+          console.log('Encrypted database attached successfully');
+        } catch (e) {
+          const error = e as Error;
+          throw new Error(`Failed to attach encrypted database: ${error.message}`);
+        }
       }
 
       console.log('Healthcare settings and extensions configured');
