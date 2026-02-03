@@ -6,8 +6,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { QueryResponseSchema, QueryResponse } from "./schemas";
+import { regionAnalyzerConfig, RegionAnalysisResultSchema } from "./agents";
+import { getMcpConfig, CENSUS_TOOLS } from "./mcpConfig";
 
 const anthropic = new Anthropic();
+
+// Re-export for external use
+export { regionAnalyzerConfig, RegionAnalysisResultSchema, getMcpConfig, CENSUS_TOOLS };
 
 export interface AgentQueryOptions {
   model?: string;
@@ -112,6 +117,142 @@ Respond ONLY with valid JSON. No markdown code blocks, no explanations outside t
   }
 }
 
+// Comparison response schema
+export const ComparisonResponseSchema = z.object({
+  success: z.boolean(),
+  comparison: z.object({
+    regions: z.array(
+      z.object({
+        region_name: z.string(),
+        total_population: z.number(),
+        seniors_65_plus: z.number().optional(),
+        median_income: z.number().optional(),
+        key_metrics: z.record(z.string(), z.unknown()).optional(),
+      })
+    ),
+    summary: z.string(),
+    differences: z.array(z.string()).optional(),
+  }),
+  explanation: z.string(),
+});
+
+export type ComparisonResponse = z.infer<typeof ComparisonResponseSchema>;
+
+/**
+ * Detect if a query is a comparison request
+ */
+export function isComparisonQuery(prompt: string): boolean {
+  const comparisonPatterns = [
+    /\bcompare\b/i,
+    /\bvs\.?\b/i,
+    /\bversus\b/i,
+    /\bdifference between\b/i,
+    /\bhow does.*compare\b/i,
+    /\bwhich.*better\b/i,
+  ];
+  return comparisonPatterns.some((pattern) => pattern.test(prompt));
+}
+
+/**
+ * Compare multiple regions
+ * Example: "Compare Tampa Bay vs Phoenix for Medicare eligible population"
+ */
+export async function queryComparison(
+  prompt: string,
+  options: AgentQueryOptions = {}
+): Promise<AgentQueryResult<ComparisonResponse>> {
+  const model = options.model || "claude-sonnet-4-20250514";
+  const maxTokens = options.maxTokens || 8192;
+
+  // Convert schema to JSON Schema using zodToJsonSchema (NOT z.toJSONSchema which doesn't exist)
+  // Type assertion needed: zod-to-json-schema typed for zod v3, we use v4
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const jsonSchema = zodToJsonSchema(ComparisonResponseSchema as any, {
+    name: "comparison_response",
+    $refStrategy: "none",
+  });
+
+  const systemPrompt = `You are a census data analyst for CensusChat specializing in regional comparisons.
+
+When comparing regions, analyze demographic data and respond with JSON in this exact format:
+{
+  "success": true/false,
+  "comparison": {
+    "regions": [
+      {
+        "region_name": "Region Name",
+        "total_population": number,
+        "seniors_65_plus": number (optional),
+        "median_income": number (optional),
+        "key_metrics": { additional metrics }
+      }
+    ],
+    "summary": "Brief comparison summary",
+    "differences": ["Notable difference 1", "Notable difference 2"]
+  },
+  "explanation": "Detailed explanation of comparison"
+}
+
+Schema for validation:
+${JSON.stringify(jsonSchema, null, 2)}
+
+Respond ONLY with valid JSON. No markdown code blocks.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model,
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages: [
+        {
+          role: "user",
+          content: `Compare the following regions: ${prompt}`,
+        },
+      ],
+    });
+
+    const textContent = response.content.find((block) => block.type === "text");
+    if (!textContent || textContent.type !== "text") {
+      return {
+        success: false,
+        error: "No text content in comparison response",
+      };
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(textContent.text);
+    } catch {
+      return {
+        success: false,
+        error: `Failed to parse comparison JSON: ${textContent.text.substring(0, 100)}...`,
+      };
+    }
+
+    const validated = ComparisonResponseSchema.safeParse(parsed);
+    if (!validated.success) {
+      return {
+        success: false,
+        error: `Comparison schema validation failed: ${validated.error.message}`,
+      };
+    }
+
+    return {
+      success: true,
+      data: validated.data,
+      usage: {
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+      },
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown comparison error",
+    };
+  }
+}
+
 /**
  * Convenience function for census queries with default schema
  */
@@ -152,7 +293,17 @@ export class AgentService {
     this.systemPrompt = options?.systemPrompt;
   }
 
-  async query(prompt: string): Promise<AgentQueryResult<QueryResponse>> {
+  async query(
+    prompt: string
+  ): Promise<AgentQueryResult<QueryResponse | ComparisonResponse>> {
+    // Detect comparison queries and route appropriately
+    if (isComparisonQuery(prompt)) {
+      return queryComparison(prompt, {
+        model: this.model,
+      }) as Promise<AgentQueryResult<QueryResponse | ComparisonResponse>>;
+    }
+
+    // Standard query
     return queryCensus(prompt, {
       model: this.model,
       systemPrompt: this.systemPrompt,
