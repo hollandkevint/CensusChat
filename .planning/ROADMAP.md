@@ -45,11 +45,11 @@ Plans:
   2. mcpClient.ts successfully executes queries via HTTP fetch instead of in-process
   3. External MCP clients (Claude Desktop, Postman) can connect to the server
   4. Session management persists context across multiple requests
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 02-01: SDK upgrade and transport migration
-- [ ] 02-02: HTTP routes and client refactor
+- [ ] 02-01-PLAN.md - SDK upgrade, session manager, and HTTP transport server (Wave 1)
+- [ ] 02-02-PLAN.md - HTTP client refactor and integration verification (Wave 2)
 
 ### Phase 3: Interactive UI Layer
 **Goal**: Query results render as interactive components (sortable tables, charts, drill-down navigation) inside chat
@@ -94,10 +94,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. DuckDB 1.4 Upgrade | 3/3 | Complete | 2026-02-02 |
-| 2. MCP Transport Migration | 0/2 | Not started | - |
+| 2. MCP Transport Migration | 0/2 | Ready | - |
 | 3. Interactive UI Layer | 0/3 | Not started | - |
 | 4. Agent SDK Integration | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-02 - Phase 1 complete*
+*Last updated: 2026-02-02 - Phase 2 planned*
