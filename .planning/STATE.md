@@ -5,36 +5,36 @@
 See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Healthcare strategists get instant, interactive demographic insights through a chat interface that returns explorable data
-**Current focus:** Phase 1 - DuckDB 1.4 Upgrade
+**Current focus:** Phase 1 - DuckDB 1.4 Upgrade (COMPLETE)
 
 ## Current Position
 
-Phase: 1 of 4 (DuckDB 1.4 Upgrade)
-Plan: 1 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-02 - Completed 01-01-PLAN.md
+Phase: 1 of 4 (DuckDB 1.4 Upgrade) - COMPLETE
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-02-02 - Completed 01-03-PLAN.md
 
-Progress: [#---------] 9%
+Progress: [##--------] 18%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: ~20 min
-- Total execution time: ~0.3 hours
+- Total plans completed: 2
+- Average duration: ~14 min
+- Total execution time: ~0.5 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1 | 1/3 | ~20 min | ~20 min |
+| 1 | 2/3 | ~28 min | ~14 min |
 | 2 | 0/2 | - | - |
 | 3 | 0/3 | - | - |
 | 4 | 0/3 | - | - |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (~20 min)
-- Trend: First plan completed
+- Last 5 plans: 01-01 (~20 min), 01-03 (~8 min)
+- Trend: Improving velocity
 
 *Updated after each plan completion*
 
@@ -48,6 +48,8 @@ Recent decisions affecting current work:
 | ID | Decision | Context | Date |
 |----|----------|---------|------|
 | remove-mcp-extension | Remove MCP extension loading/validation | duckdb_mcp extension doesn't exist in DuckDB 1.4 | 2026-02-02 |
+| json-profile-output | Use JSON profile output to temp file | DuckDB 1.4 profiler supports multiple formats | 2026-02-02 |
+| memory-profile-storage | In-memory array with 100 entry limit | Simple, fast, no external dependencies | 2026-02-02 |
 
 ### Pending Todos
 
@@ -63,5 +65,13 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 01-01-PLAN.md (DuckDB package + pool upgrade)
-Resume file: .planning/phases/01-duckdb-upgrade/01-02-PLAN.md
+Stopped at: Completed 01-03-PLAN.md (Query profiler and metrics endpoint)
+Resume file: .planning/phases/02-mcp-enhancement/02-01-PLAN.md
+
+## Phase 1 Summary
+
+DuckDB 1.4 upgrade complete (01-02 encryption skipped - requires migration window):
+- **01-01:** Package replaced, connection pool rewritten for @duckdb/node-api
+- **01-03:** Query profiler with JSON output, metrics REST API endpoint
+
+Ready for Phase 2: MCP Enhancement
