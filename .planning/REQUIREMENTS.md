@@ -24,20 +24,20 @@ Requirements for this modernization milestone. Each maps to roadmap phases.
 - [x] **MCP-02**: Migrate from StdioServerTransport to StreamableHTTPServerTransport
 - [x] **MCP-03**: Add HTTP routes for MCP (POST /mcp, GET /mcp SSE, DELETE /mcp)
 - [x] **MCP-04**: Update mcpClient.ts to use HTTP fetch instead of in-process calls
-- [ ] **MCP-05**: Install and configure @modelcontextprotocol/ext-apps for UI resources
+- [x] **MCP-05**: Install and configure @modelcontextprotocol/ext-apps for UI resources
 
 ### Interactive UI (MCP Apps)
 
-- [ ] **UI-01**: Create MCP App build pipeline with Vite + vite-plugin-singlefile
-- [ ] **UI-02**: Implement sortable data tables with TanStack Table
-- [ ] **UI-03**: Implement server-side pagination for large result sets
-- [ ] **UI-04**: Implement column filtering without re-querying
-- [ ] **UI-05**: Add bar chart visualization for demographic comparisons
-- [ ] **UI-06**: Add line chart visualization for trend data
-- [ ] **UI-07**: Implement click-to-drill-down (county -> block groups)
-- [ ] **UI-08**: Add in-chat export controls (format picker, column selector)
-- [ ] **UI-09**: Add App Bridge to Next.js frontend for iframe rendering
-- [ ] **UI-10**: Register MCP tools with _meta.ui.resourceUri for interactive returns
+- [x] **UI-01**: Create MCP App build pipeline with Vite + vite-plugin-singlefile
+- [x] **UI-02**: Implement sortable data tables with TanStack Table
+- [x] **UI-03**: Implement server-side pagination for large result sets
+- [x] **UI-04**: Implement column filtering without re-querying
+- [x] **UI-05**: Add bar chart visualization for demographic comparisons
+- [x] **UI-06**: Add line chart visualization for trend data
+- [x] **UI-07**: Implement click-to-drill-down (county -> block groups)
+- [x] **UI-08**: Add in-chat export controls (format picker, column selector)
+- [x] **UI-09**: Add App Bridge to Next.js frontend for iframe rendering
+- [x] **UI-10**: Register MCP tools with _meta.ui.resourceUri for interactive returns
 
 ### Agent SDK Integration
 
@@ -98,17 +98,17 @@ Which phases cover which requirements. Validated during roadmap creation.
 | MCP-02 | Phase 2 | Complete |
 | MCP-03 | Phase 2 | Complete |
 | MCP-04 | Phase 2 | Complete |
-| MCP-05 | Phase 3 | Pending |
-| UI-01 | Phase 3 | Pending |
-| UI-02 | Phase 3 | Pending |
-| UI-03 | Phase 3 | Pending |
-| UI-04 | Phase 3 | Pending |
-| UI-05 | Phase 3 | Pending |
-| UI-06 | Phase 3 | Pending |
-| UI-07 | Phase 3 | Pending |
-| UI-08 | Phase 3 | Pending |
-| UI-09 | Phase 3 | Pending |
-| UI-10 | Phase 3 | Pending |
+| MCP-05 | Phase 3 | Complete |
+| UI-01 | Phase 3 | Complete |
+| UI-02 | Phase 3 | Complete |
+| UI-03 | Phase 3 | Complete |
+| UI-04 | Phase 3 | Complete |
+| UI-05 | Phase 3 | Complete |
+| UI-06 | Phase 3 | Complete |
+| UI-07 | Phase 3 | Complete |
+| UI-08 | Phase 3 | Complete |
+| UI-09 | Phase 3 | Complete |
+| UI-10 | Phase 3 | Complete |
 | AGENT-01 | Phase 4 | Pending |
 | AGENT-02 | Phase 4 | Pending |
 | AGENT-03 | Phase 4 | Pending |
@@ -124,4 +124,4 @@ Which phases cover which requirements. Validated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-01*
-*Last updated: 2026-02-02 - Phase 2 requirements complete (MCP-05 deferred to Phase 3)*
+*Last updated: 2026-02-03 - Phase 3 requirements complete (MCP-05, UI-01 through UI-10)*
