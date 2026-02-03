@@ -2,13 +2,65 @@
  * MCP Server Implementation with HTTP Transport
  * Implements JSON-RPC 2.0 protocol for Model Context Protocol
  * Uses StreamableHTTPServerTransport for HTTP-based client connections
+ * Supports MCP Apps for interactive UI rendering
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import {
+  registerAppTool,
+  registerAppResource,
+  RESOURCE_MIME_TYPE,
+} from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 import { getDuckDBPool } from '../utils/duckdbPool';
 import { getSQLValidator } from '../validation/sqlValidator';
 import { CENSUS_SCHEMA } from '../validation/sqlSecurityPolicies';
+
+/**
+ * UI resource configuration for MCP Apps
+ */
+interface UIResource {
+  name: string;
+  uri: string;
+  description: string;
+}
+
+/**
+ * Available UI resources for MCP Apps
+ * Built by vite in mcp-apps/ and output to this directory
+ */
+const UI_RESOURCES: UIResource[] = [
+  {
+    name: 'data-table.html',
+    uri: 'ui://censuschat/data-table.html',
+    description: 'Interactive data table with sorting and filtering',
+  },
+  {
+    name: 'bar-chart.html',
+    uri: 'ui://censuschat/bar-chart.html',
+    description: 'Bar chart visualization for categorical data',
+  },
+  {
+    name: 'line-chart.html',
+    uri: 'ui://censuschat/line-chart.html',
+    description: 'Line chart visualization for time series data',
+  },
+];
+
+/**
+ * Load UI resource HTML from disk
+ * Returns null if file doesn't exist (graceful degradation)
+ */
+function loadUIResource(filename: string): string | null {
+  const resourcePath = join(__dirname, 'mcpApps', filename);
+  if (existsSync(resourcePath)) {
+    return readFileSync(resourcePath, 'utf-8');
+  }
+  console.warn(`[MCP] UI resource not found: ${filename} (path: ${resourcePath})`);
+  return null;
+}
 
 /**
  * JSON stringify replacer that handles BigInt values
@@ -225,19 +277,68 @@ export function createMcpServer(sessionId: string): McpServer {
     }
   );
 
-  // Register execute_query tool
-  server.tool(
+  // Register execute_query tool with UI resource for interactive display
+  // Uses registerAppTool to enable MCP Apps rendering
+  registerAppTool(
+    server,
     'execute_query',
-    'Validate and execute a SQL query on the census database',
     {
-      query: z.string().describe('SQL SELECT query to execute'),
+      description: 'Validate and execute a SQL query on the census database. Results can be displayed in an interactive data table.',
+      inputSchema: {
+        query: z.string().describe('SQL SELECT query to execute'),
+      },
+      _meta: {
+        ui: {
+          resourceUri: 'ui://censuschat/data-table.html',
+          // Tool visible to both model and app (for drill-down)
+          visibility: ['model', 'app'],
+        },
+      },
     },
     async (args) => {
       return handleExecuteQuery(args.query);
     }
   );
 
+  // Register UI resources for MCP Apps
+  registerUIResources(server);
+
   return server;
+}
+
+/**
+ * Register UI resources for MCP Apps
+ * These are single-file HTML bundles built by Vite
+ * If resources don't exist yet, tools still work but return JSON only
+ */
+function registerUIResources(server: McpServer): void {
+  for (const resource of UI_RESOURCES) {
+    const html = loadUIResource(resource.name);
+
+    if (html) {
+      registerAppResource(
+        server,
+        resource.description,
+        resource.uri,
+        {
+          description: resource.description,
+          mimeType: RESOURCE_MIME_TYPE,
+        },
+        async () => ({
+          contents: [
+            {
+              uri: resource.uri,
+              mimeType: RESOURCE_MIME_TYPE,
+              text: html,
+            },
+          ],
+        })
+      );
+      console.log(`[MCP] Registered UI resource: ${resource.uri}`);
+    } else {
+      console.log(`[MCP] UI resource not available: ${resource.uri} (will use JSON fallback)`);
+    }
+  }
 }
 
 /**

@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "allowJs": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
