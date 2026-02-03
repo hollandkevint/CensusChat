@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Healthcare strategists get instant, interactive demographic insights through a chat interface that returns explorable data
-**Current focus:** Phase 4 - Agent SDK Integration (COMPLETE)
+**Current focus:** Phase 4 - Agent SDK Integration (gap closure)
 
 ## Current Position
 
 Phase: 4 of 4 (Agent SDK Integration)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-02-03 - Completed 04-03-PLAN.md
+Plan: 3 of 5 complete - gap closure plans created
+Status: Gap closure in progress
+Last activity: 2026-02-03 - Gap closure plans 04-04, 04-05 created
 
-Progress: [##########] 100%
+Progress: [######----] 60%
 
 ## Performance Metrics
 
@@ -82,16 +82,26 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-03T19:02:58Z
-Stopped at: Completed 04-03-PLAN.md (Phase 4 complete)
-Resume file: None (all phases complete)
+Last session: 2026-02-03T20:45:00Z
+Stopped at: Created gap closure plans 04-04-PLAN.md, 04-05-PLAN.md
+Resume file: .planning/phases/04-agent-sdk-integration/04-04-PLAN.md
 
-## Phase 4 Summary (Complete)
+## Phase 4 Summary (Gap Closure)
 
-Agent SDK Integration complete:
-- **04-01:** Zod schemas, AgentService with queryWithSchema(), type-safe structured outputs
-- **04-02:** MCP config, regionAnalyzerConfig, ComparisonResponseSchema, query routes with USE_AGENT_SDK flag
-- **04-03:** Session manager for conversational context, document generation MCP tools (Excel, CSV, PDF)
+Agent SDK Integration - original plans complete, gaps identified:
+- **04-01:** Zod schemas, AgentService with queryWithSchema(), type-safe structured outputs ✓
+- **04-02:** MCP config, regionAnalyzerConfig, ComparisonResponseSchema, query routes with USE_AGENT_SDK flag ✓
+- **04-03:** Session manager for conversational context, document generation MCP tools (Excel, CSV, PDF) ✓
+
+**Gap Closure Plans:**
+- **04-04:** Install @anthropic-ai/claude-agent-sdk and create agentSdkService.ts wrapper
+- **04-05:** Wire session context injection and implement parallel region comparison
+
+**Gaps Being Closed:**
+1. Agent SDK was never installed (using base @anthropic-ai/sdk)
+2. SessionManager stores but never retrieves/injects context
+3. Comparison queries run sequentially, not parallel
+4. Document tools via MCP (REINTERPRETED: Agent SDK has no native Excel/PDF skills - MCP tools ARE correct)
 
 ## Phase 3 Summary (Complete)
 

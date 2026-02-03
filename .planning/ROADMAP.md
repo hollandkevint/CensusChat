@@ -76,14 +76,16 @@ Plans:
   1. Query responses return validated JSON matching defined Zod schemas
   2. User can say "Compare Tampa Bay vs Phoenix" and get parallel results for both regions
   3. Conversational context persists ("Now filter to income > $75K" references prior query)
-  4. Agent can generate Excel reports without custom ExcelJS code (native skill)
-  5. Agent can generate PDF reports without custom pdfkit code (native skill)
-**Plans**: 3 plans in 2 waves
+  4. Agent can generate Excel reports via MCP tools (Agent SDK connects to MCP)
+  5. Agent can generate PDF reports via MCP tools (Agent SDK connects to MCP)
+**Plans**: 5 plans in 2 waves
 
 Plans:
-- [ ] 04-01-PLAN.md - Agent SDK installation and Zod structured outputs (Wave 1)
-- [ ] 04-02-PLAN.md - MCP integration and multi-region comparison subagents (Wave 2)
-- [ ] 04-03-PLAN.md - Session memory and document generation MCP tools (Wave 2)
+- [x] 04-01-PLAN.md - Zod structured outputs foundation (Wave 1) - COMPLETE
+- [x] 04-02-PLAN.md - MCP config and comparison query support (Wave 2) - COMPLETE
+- [x] 04-03-PLAN.md - Session manager and document MCP tools (Wave 2) - COMPLETE
+- [ ] 04-04-PLAN.md - Agent SDK installation and wrapper service (Wave 1) - GAP CLOSURE
+- [ ] 04-05-PLAN.md - Session context injection and parallel queries (Wave 2) - GAP CLOSURE
 
 ## Progress
 
@@ -96,8 +98,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. DuckDB 1.4 Upgrade | 3/3 | Complete | 2026-02-02 |
 | 2. MCP Transport Migration | 2/2 | Complete | 2026-02-02 |
 | 3. Interactive UI Layer | 3/3 | Complete | 2026-02-03 |
-| 4. Agent SDK Integration | 0/3 | Planned | - |
+| 4. Agent SDK Integration | 3/5 | Gap Closure | - |
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-03 - Phase 4 planned*
+*Last updated: 2026-02-03 - Gap closure plans added (04-04, 04-05)*
