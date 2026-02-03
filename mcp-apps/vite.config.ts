@@ -5,20 +5,32 @@ import { resolve } from 'path';
 import { renameSync, existsSync, rmSync } from 'fs';
 
 /**
+ * App entry points for multi-app build
+ */
+const APP_ENTRIES = ['data-table', 'bar-chart', 'line-chart'] as const;
+
+/**
  * Custom plugin to flatten output structure
- * Moves nested index.html to data-table.html in root
+ * Moves nested index.html files to {app-name}.html in root
  */
 function flattenOutput() {
   return {
     name: 'flatten-output',
     closeBundle() {
-      const srcPath = resolve(__dirname, '../backend/src/mcp/mcpApps/src/data-table/index.html');
-      const destPath = resolve(__dirname, '../backend/src/mcp/mcpApps/data-table.html');
-      const srcDir = resolve(__dirname, '../backend/src/mcp/mcpApps/src');
+      const outDir = resolve(__dirname, '../backend/src/mcp/mcpApps');
 
-      if (existsSync(srcPath)) {
-        renameSync(srcPath, destPath);
-        // Clean up empty directories
+      for (const appName of APP_ENTRIES) {
+        const srcPath = resolve(outDir, `src/${appName}/index.html`);
+        const destPath = resolve(outDir, `${appName}.html`);
+
+        if (existsSync(srcPath)) {
+          renameSync(srcPath, destPath);
+        }
+      }
+
+      // Clean up empty src directory
+      const srcDir = resolve(outDir, 'src');
+      if (existsSync(srcDir)) {
         rmSync(srcDir, { recursive: true, force: true });
       }
     },
@@ -43,9 +55,9 @@ export default defineConfig({
     // Don't clean output on build - preserve other apps
     emptyOutDir: false,
     rollupOptions: {
-      input: {
-        'data-table': resolve(__dirname, 'src/data-table/index.html'),
-      },
+      input: Object.fromEntries(
+        APP_ENTRIES.map(name => [name, resolve(__dirname, `src/${name}/index.html`)])
+      ),
     },
   },
 });
