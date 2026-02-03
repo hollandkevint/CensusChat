@@ -78,12 +78,12 @@ Plans:
   3. Conversational context persists ("Now filter to income > $75K" references prior query)
   4. Agent can generate Excel reports without custom ExcelJS code (native skill)
   5. Agent can generate PDF reports without custom pdfkit code (native skill)
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 04-01: SDK installation and structured outputs
-- [ ] 04-02: Multi-agent orchestration and session memory
-- [ ] 04-03: Native skill integration (Excel/PDF)
+- [ ] 04-01-PLAN.md - Agent SDK installation and Zod structured outputs (Wave 1)
+- [ ] 04-02-PLAN.md - MCP integration and multi-region comparison subagents (Wave 2)
+- [ ] 04-03-PLAN.md - Session memory and document generation MCP tools (Wave 2)
 
 ## Progress
 
@@ -96,8 +96,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 | 1. DuckDB 1.4 Upgrade | 3/3 | Complete | 2026-02-02 |
 | 2. MCP Transport Migration | 2/2 | Complete | 2026-02-02 |
 | 3. Interactive UI Layer | 3/3 | Complete | 2026-02-03 |
-| 4. Agent SDK Integration | 0/3 | Not started | - |
+| 4. Agent SDK Integration | 0/3 | Planned | - |
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-03 - Phase 3 complete*
+*Last updated: 2026-02-03 - Phase 4 planned*
