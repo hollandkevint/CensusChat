@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 3 of 4 (Interactive UI Layer)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-02-02 - Phase 2 verified and complete
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-03 - Completed 03-01-PLAN.md
 
-Progress: [#####-----] 55%
+Progress: [######----] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: ~14 min
-- Total execution time: ~0.9 hours
+- Total plans completed: 5
+- Average duration: ~12 min
+- Total execution time: ~1.0 hours
 
 **By Phase:**
 
@@ -29,12 +29,12 @@ Progress: [#####-----] 55%
 |-------|-------|-------|----------|
 | 1 | 3/3 | ~43 min | ~14 min |
 | 2 | 2/2 | ~27 min | ~13 min |
-| 3 | 0/3 | - | - |
+| 3 | 1/3 | ~4 min | ~4 min |
 | 4 | 0/3 | - | - |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (~8 min), 01-02 (~15 min), 02-01 (~12 min), 02-02 (~15 min)
-- Trend: Stable velocity
+- Last 5 plans: 01-02 (~15 min), 02-01 (~12 min), 02-02 (~15 min), 03-01 (~4 min)
+- Trend: Stable to improving velocity
 
 *Updated after each plan completion*
 
@@ -55,6 +55,9 @@ Recent decisions affecting current work:
 | server-tool-api | Use server.tool() for tool registration | SDK 1.25.x pattern replaces setRequestHandler | 2026-02-02 |
 | auto-init-session | Auto-initialize MCP session on first tool call | Eliminates explicit connect() requirement | 2026-02-02 |
 | sse-response-parsing | Parse SSE responses in MCP client | SDK returns text/event-stream even with JSON accept | 2026-02-02 |
+| mcp-apps-output-dir | Output MCP Apps to backend/src/mcp/mcpApps/ | Apps served as MCP resources from server directory | 2026-02-03 |
+| iframe-sandbox-scripts | Use sandbox="allow-scripts" only | Security: no same-origin access to parent DOM/storage | 2026-02-03 |
+| module-resolution-node16 | Use moduleResolution: node16 | Required for ext-apps subpath exports resolution | 2026-02-03 |
 
 ### Pending Todos
 
@@ -69,9 +72,14 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-02
-Stopped at: Phase 2 complete, ready for Phase 3 planning
-Resume file: None (start fresh with /gsd:plan-phase 3)
+Last session: 2026-02-03
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None (continue with /gsd:execute-phase 3)
+
+## Phase 3 Summary (In Progress)
+
+Interactive UI Layer:
+- **03-01:** MCP Apps build pipeline, AppBridge component, UI resource registration
 
 ## Phase 2 Summary
 

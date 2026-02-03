@@ -64,7 +64,7 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 03-01-PLAN.md - MCP Apps infrastructure, build pipeline, and App Bridge (Wave 1)
+- [x] 03-01-PLAN.md - MCP Apps infrastructure, build pipeline, and App Bridge (Wave 1)
 - [ ] 03-02-PLAN.md - Data table MCP App with sorting, filtering, and drill-down (Wave 2)
 - [ ] 03-03-PLAN.md - Chart MCP Apps (bar/line) and export controls (Wave 2)
 
@@ -95,9 +95,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 |-------|----------------|--------|-----------|
 | 1. DuckDB 1.4 Upgrade | 3/3 | Complete | 2026-02-02 |
 | 2. MCP Transport Migration | 2/2 | Complete | 2026-02-02 |
-| 3. Interactive UI Layer | 0/3 | Ready to execute | - |
+| 3. Interactive UI Layer | 1/3 | In progress | - |
 | 4. Agent SDK Integration | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-02*
-*Last updated: 2026-02-03 - Phase 3 planned*
+*Last updated: 2026-02-03 - 03-01 complete*
