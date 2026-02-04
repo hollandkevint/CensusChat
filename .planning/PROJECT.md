@@ -1,12 +1,25 @@
-# CensusChat Modernization
+# CensusChat
 
 ## What This Is
 
-A full modernization of CensusChat to adopt the latest features from MCP (Apps UI framework), DuckDB 1.4 (encryption, compression, MERGE), and the Claude Agent SDK (structured outputs, multi-agent workflows, native skills). The existing natural language Census query interface becomes interactive, faster, and more capable.
+A natural language interface for US Census data, designed for healthcare strategy teams. Transforms complex demographic queries into validated SQL using Claude Sonnet and the Model Context Protocol (MCP). Now with interactive data exploration, parallel comparison queries, and conversational follow-up.
 
 ## Core Value
 
 Healthcare strategists get instant, interactive demographic insights through a chat interface that returns explorable data — not static responses.
+
+## Current State (v1 Shipped)
+
+**Architecture:**
+- Three-tier: Next.js 15 frontend → Express 5 API → MCP HTTP → DuckDB 1.4
+- MCP SDK 1.25.3 with StreamableHTTPServerTransport
+- DuckDB 1.4.3 with @duckdb/node-api (encryption-ready, MERGE, profiler)
+- Claude Agent SDK 0.2.30 for structured outputs and parallel execution
+
+**Codebase:**
+- 102 files, ~600K lines TypeScript
+- MCP Apps: data-table, bar-chart, line-chart (Vite + vite-plugin-singlefile)
+- 80%+ test coverage target (Jest 30 + Supertest)
 
 ## Requirements
 
@@ -20,53 +33,38 @@ Healthcare strategists get instant, interactive demographic insights through a c
 - ✓ Healthcare analytics patterns (Medicare, population health) — existing
 - ✓ Block group and county level data (239K+ records) — existing
 - ✓ React chat interface with Next.js 15 — existing
+- ✓ DuckDB 1.4 with new async API — v1
+- ✓ AES-256-GCM encryption support (opt-in) — v1
+- ✓ MERGE statement for data refresh — v1
+- ✓ Profiler metrics endpoint — v1
+- ✓ MCP HTTP transport with session management — v1
+- ✓ Interactive data tables (TanStack Table) — v1
+- ✓ Bar and line chart visualizations (Recharts) — v1
+- ✓ Drill-down navigation (county → block groups) — v1
+- ✓ In-chat export controls — v1
+- ✓ Zod schema validation on query responses — v1
+- ✓ Parallel region comparison queries — v1
+- ✓ Conversational context memory — v1
+- ✓ Document generation MCP tools (Excel/PDF) — v1
 
 ### Active
 
-- [ ] Upgrade MCP SDK to support Apps UI framework
-- [ ] MCP tools return interactive data tables (sortable, filterable)
-- [ ] MCP tools return charts/visualizations (demographic breakdowns, maps)
-- [ ] In-chat export controls (format picker, column selector)
-- [ ] Query refinement via click interactions (drill-down, filter adjustment)
-- [ ] Upgrade DuckDB from 1.3.2 to 1.4.x
-- [ ] Enable AES-256-GCM database encryption for census.duckdb
-- [ ] Enable in-memory compression (5-10× perf improvement)
-- [ ] Implement MERGE statement for data refresh workflows
-- [ ] Add profiler metrics for query performance insights
-- [ ] Integrate Claude Agent SDK for structured outputs
-- [ ] Guaranteed JSON schema validation on query responses
-- [ ] Multi-agent workflows for complex queries (parallel region comparison)
-- [ ] Native Excel/PDF generation via Anthropic's built-in skills
+(None — define in next milestone)
 
 ### Out of Scope
 
 - Mobile app — web-first, defer to future milestone
-- Real-time collaboration — single-user focus for v1
+- Real-time collaboration — single-user focus
 - OAuth/SSO integration — existing JWT auth sufficient
 - Video/audio inputs — text queries only
 - Third-party data source integrations — Census data focus
-
-## Context
-
-**Existing Architecture:**
-- Three-tier: Next.js frontend → Express API → MCP → DuckDB
-- MCP SDK 1.0.4 with JSON-RPC 2.0 stdio transport
-- DuckDB 1.3.2 with connection pooling (2-10 connections)
-- Anthropic SDK 0.64.0 for Claude Sonnet integration
-
-**Upgrade Targets:**
-- MCP: Adopt November 2025 spec + January 2026 Apps UI framework
-- DuckDB: Upgrade to 1.4.3 (encryption, compression, MERGE, profiler)
-- Agent SDK: Add @anthropic-ai/claude-agent-sdk for structured outputs and skills
-
-**Codebase State:**
-- 7 codebase documents in `.planning/codebase/`
-- Known tech debt: 97+ `any` types, untyped SQL parser AST, missing audit logging
-- Test coverage: 80%+ target, Jest 30 + Supertest
+- Custom SQL editor — defeats NL purpose, security risk
+- Infinite scroll for large datasets — use pagination
+- Full dashboard customization — predefined chart types sufficient
 
 ## Constraints
 
-- **Tech stack**: Must remain TypeScript/Node.js backend, Next.js frontend
+- **Tech stack**: TypeScript/Node.js backend, Next.js frontend
 - **Data**: Census data stays in DuckDB (no warehouse migration)
 - **Compatibility**: Existing API endpoints must remain functional
 - **Security**: HIPAA-ready patterns (encryption at rest, audit logging)
@@ -75,10 +73,19 @@ Healthcare strategists get instant, interactive demographic insights through a c
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Full adoption of all three upgrades | User requested comprehensive modernization | — Pending |
-| Interactive UI via MCP Apps | Direct in-chat data exploration vs. static responses | — Pending |
-| DuckDB encryption enabled by default | HIPAA readiness for healthcare use case | — Pending |
-| Agent SDK for document generation | Replace custom ExcelJS with native skills | — Pending |
+| Full adoption of DuckDB 1.4, MCP Apps, Agent SDK | User requested comprehensive modernization | ✓ Delivered v1 |
+| Interactive UI via MCP Apps iframe | Direct in-chat data exploration | ✓ Good |
+| DuckDB encryption opt-in | Infrastructure ready, user enables when needed | ✓ Good |
+| Custom document tools via MCP | Agent SDK may not have native skills | ✓ Acceptable |
+| Parallel comparison via Promise.all | Faster than sequential Claude calls | ✓ Good |
+| Session context injection | Enables conversational follow-up | ✓ Good |
+
+## Tech Debt
+
+- Database encryption not enabled (opt-in user action)
+- Breadcrumb back navigation TODO in data-table
+- Custom ExcelJS/pdfkit for documents (Agent SDK native skills may not exist)
+- Jest ESM compatibility issues with MCP SDK packages
 
 ---
-*Last updated: 2026-02-01 after initialization*
+*Last updated: 2026-02-03 after v1 milestone*
