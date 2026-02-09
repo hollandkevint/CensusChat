@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "jest",
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
     "seed:demo": "ts-node src/scripts/seedDemoData.ts",
     "test:export": "ts-node src/scripts/testExport.ts",
