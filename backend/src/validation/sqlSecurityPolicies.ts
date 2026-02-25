@@ -14,6 +14,86 @@ export interface SecurityPolicy {
 
 // CensusChat database schema
 export const CENSUS_SCHEMA = {
+  state_data: {
+    columns: [
+      'geoid', 'state_fips', 'state_name',
+      // Demographics
+      'population', 'median_age', 'male_population', 'female_population',
+      'under_5', 'age_5_17', 'age_18_64', 'age_65_plus',
+      'white_alone', 'black_alone', 'asian_alone', 'hispanic_latino',
+      // Economics
+      'median_household_income', 'per_capita_income',
+      'income_less_10k', 'income_10_to_25k', 'income_25_to_50k',
+      'income_50_to_75k', 'income_75_to_100k', 'income_100_to_150k',
+      'income_150_to_200k', 'income_200k_plus',
+      'public_assistance_income', 'snap_benefits',
+      'poverty_rate', 'unemployment_rate',
+      // Education
+      'some_high_school_pct', 'high_school_grad_pct', 'some_college_pct', 'bachelors_plus_pct',
+      // Housing
+      'total_housing_units', 'vacant_units', 'median_home_value',
+      'renter_occupied_pct', 'rent_burden_50pct', 'crowded_housing',
+      'single_family_homes', 'mobile_homes', 'median_year_built',
+      // Technology
+      'with_computer_pct', 'with_broadband_pct', 'no_internet_pct',
+      // Transportation
+      'commute_under_10_min', 'commute_10_to_19_min', 'commute_20_to_29_min',
+      'commute_30_to_44_min', 'commute_45_plus_min', 'work_from_home',
+      'public_transit_pct', 'no_vehicle_transit_pct',
+      // Occupation
+      'management_occupations_pct', 'healthcare_occupations_pct', 'retail_sales_pct',
+      // Healthcare
+      'uninsured_rate', 'uninsured_under_19', 'uninsured_19_to_64', 'uninsured_65_plus',
+      'disability_rate', 'ambulatory_difficulty_pct', 'independent_living_difficulty_pct',
+      // Language
+      'limited_english_pct', 'spanish_limited_english_pct', 'asian_limited_english_pct',
+      // Family
+      'children_with_2_parents_pct', 'children_single_parent_pct',
+      'single_person_households_pct', 'seniors_living_alone_pct', 'grandparents_responsible_pct'
+    ],
+    primaryKey: ['geoid'],
+    description: 'State-level demographics from ACS 5-Year (51 states including DC)'
+  },
+  tract_data: {
+    columns: [
+      'geoid', 'state_fips', 'county_fips', 'tract_fips', 'state_name', 'county_name',
+      // Demographics
+      'population', 'median_age', 'male_population', 'female_population',
+      'under_5', 'age_5_17', 'age_18_64', 'age_65_plus',
+      'white_alone', 'black_alone', 'asian_alone', 'hispanic_latino',
+      // Economics
+      'median_household_income', 'per_capita_income',
+      'income_less_10k', 'income_10_to_25k', 'income_25_to_50k',
+      'income_50_to_75k', 'income_75_to_100k', 'income_100_to_150k',
+      'income_150_to_200k', 'income_200k_plus',
+      'public_assistance_income', 'snap_benefits',
+      'poverty_rate', 'unemployment_rate',
+      // Education
+      'some_high_school_pct', 'high_school_grad_pct', 'some_college_pct', 'bachelors_plus_pct',
+      // Housing
+      'total_housing_units', 'vacant_units', 'median_home_value',
+      'renter_occupied_pct', 'rent_burden_50pct', 'crowded_housing',
+      'single_family_homes', 'mobile_homes', 'median_year_built',
+      // Technology
+      'with_computer_pct', 'with_broadband_pct', 'no_internet_pct',
+      // Transportation
+      'commute_under_10_min', 'commute_10_to_19_min', 'commute_20_to_29_min',
+      'commute_30_to_44_min', 'commute_45_plus_min', 'work_from_home',
+      'public_transit_pct', 'no_vehicle_transit_pct',
+      // Occupation
+      'management_occupations_pct', 'healthcare_occupations_pct', 'retail_sales_pct',
+      // Healthcare
+      'uninsured_rate', 'uninsured_under_19', 'uninsured_19_to_64', 'uninsured_65_plus',
+      'disability_rate', 'ambulatory_difficulty_pct', 'independent_living_difficulty_pct',
+      // Language
+      'limited_english_pct', 'spanish_limited_english_pct', 'asian_limited_english_pct',
+      // Family
+      'children_with_2_parents_pct', 'children_single_parent_pct',
+      'single_person_households_pct', 'seniors_living_alone_pct', 'grandparents_responsible_pct'
+    ],
+    primaryKey: ['geoid'],
+    description: 'Census tract-level demographics from ACS 5-Year (84,400 tracts)'
+  },
   county_data: {
     columns: [
       'county_name',
@@ -90,11 +170,83 @@ export const CENSUS_SCHEMA = {
 
 // Security policy for production Census data
 export const censusChatSecurityPolicy: SecurityPolicy = {
-  // Allow county and block group tables (standard and expanded)
-  allowedTables: ['county_data', 'block_group_data', 'block_group_data_expanded'],
+  // Allow all geographic levels: state, county, tract, block group
+  allowedTables: ['state_data', 'tract_data', 'county_data', 'block_group_data', 'block_group_data_expanded'],
 
   // Explicit column allowlist per table
   allowedColumns: {
+    state_data: [
+      'geoid', 'state_fips', 'state_name',
+      // Demographics
+      'population', 'median_age', 'male_population', 'female_population',
+      'under_5', 'age_5_17', 'age_18_64', 'age_65_plus',
+      'white_alone', 'black_alone', 'asian_alone', 'hispanic_latino',
+      // Economics
+      'median_household_income', 'per_capita_income',
+      'income_less_10k', 'income_10_to_25k', 'income_25_to_50k',
+      'income_50_to_75k', 'income_75_to_100k', 'income_100_to_150k',
+      'income_150_to_200k', 'income_200k_plus',
+      'public_assistance_income', 'snap_benefits',
+      'poverty_rate', 'unemployment_rate',
+      // Education
+      'some_high_school_pct', 'high_school_grad_pct', 'some_college_pct', 'bachelors_plus_pct',
+      // Housing
+      'total_housing_units', 'vacant_units', 'median_home_value',
+      'renter_occupied_pct', 'rent_burden_50pct', 'crowded_housing',
+      'single_family_homes', 'mobile_homes', 'median_year_built',
+      // Technology
+      'with_computer_pct', 'with_broadband_pct', 'no_internet_pct',
+      // Transportation
+      'commute_under_10_min', 'commute_10_to_19_min', 'commute_20_to_29_min',
+      'commute_30_to_44_min', 'commute_45_plus_min', 'work_from_home',
+      'public_transit_pct', 'no_vehicle_transit_pct',
+      // Occupation
+      'management_occupations_pct', 'healthcare_occupations_pct', 'retail_sales_pct',
+      // Healthcare
+      'uninsured_rate', 'uninsured_under_19', 'uninsured_19_to_64', 'uninsured_65_plus',
+      'disability_rate', 'ambulatory_difficulty_pct', 'independent_living_difficulty_pct',
+      // Language
+      'limited_english_pct', 'spanish_limited_english_pct', 'asian_limited_english_pct',
+      // Family
+      'children_with_2_parents_pct', 'children_single_parent_pct',
+      'single_person_households_pct', 'seniors_living_alone_pct', 'grandparents_responsible_pct'
+    ],
+    tract_data: [
+      'geoid', 'state_fips', 'county_fips', 'tract_fips', 'state_name', 'county_name',
+      // Demographics
+      'population', 'median_age', 'male_population', 'female_population',
+      'under_5', 'age_5_17', 'age_18_64', 'age_65_plus',
+      'white_alone', 'black_alone', 'asian_alone', 'hispanic_latino',
+      // Economics
+      'median_household_income', 'per_capita_income',
+      'income_less_10k', 'income_10_to_25k', 'income_25_to_50k',
+      'income_50_to_75k', 'income_75_to_100k', 'income_100_to_150k',
+      'income_150_to_200k', 'income_200k_plus',
+      'public_assistance_income', 'snap_benefits',
+      'poverty_rate', 'unemployment_rate',
+      // Education
+      'some_high_school_pct', 'high_school_grad_pct', 'some_college_pct', 'bachelors_plus_pct',
+      // Housing
+      'total_housing_units', 'vacant_units', 'median_home_value',
+      'renter_occupied_pct', 'rent_burden_50pct', 'crowded_housing',
+      'single_family_homes', 'mobile_homes', 'median_year_built',
+      // Technology
+      'with_computer_pct', 'with_broadband_pct', 'no_internet_pct',
+      // Transportation
+      'commute_under_10_min', 'commute_10_to_19_min', 'commute_20_to_29_min',
+      'commute_30_to_44_min', 'commute_45_plus_min', 'work_from_home',
+      'public_transit_pct', 'no_vehicle_transit_pct',
+      // Occupation
+      'management_occupations_pct', 'healthcare_occupations_pct', 'retail_sales_pct',
+      // Healthcare
+      'uninsured_rate', 'uninsured_under_19', 'uninsured_19_to_64', 'uninsured_65_plus',
+      'disability_rate', 'ambulatory_difficulty_pct', 'independent_living_difficulty_pct',
+      // Language
+      'limited_english_pct', 'spanish_limited_english_pct', 'asian_limited_english_pct',
+      // Family
+      'children_with_2_parents_pct', 'children_single_parent_pct',
+      'single_person_households_pct', 'seniors_living_alone_pct', 'grandparents_responsible_pct'
+    ],
     county_data: [
       'county_name',
       'state_name',
