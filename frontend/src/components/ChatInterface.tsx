@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { queryApi, QueryApiError } from '../lib/api/queryApi';
 import { ChatMessage } from '../types/query.types';
 import { ExportButton } from './ExportButton';
 import { DataRefreshButton } from './DataRefreshButton';
 import { AppBridge, DrillDownParams } from './AppBridge';
+import QuerySuggestions from './QuerySuggestions';
 
 interface ChatInterfaceProps {
   onQuery?: (query: string) => Promise<any>;
@@ -23,7 +24,32 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [uiResources, setUIResources] = useState<Map<string, string>>(new Map());
+  const [lastQueryText, setLastQueryText] = useState<string>('');
+  const [lastQueryCategory, setLastQueryCategory] = useState<'healthcare' | 'marketing' | 'demographics' | 'geographic' | undefined>();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Detect query category from text
+  const detectCategory = useCallback((text: string): 'healthcare' | 'marketing' | 'demographics' | 'geographic' | undefined => {
+    const lower = text.toLowerCase();
+    if (['medicare', 'medicaid', 'uninsured', 'disability', 'seniors', '65+', 'healthcare', 'health'].some(kw => lower.includes(kw))) {
+      return 'healthcare';
+    }
+    if (['income', 'affluent', 'broadband', 'commute', 'marketing', 'consumer'].some(kw => lower.includes(kw))) {
+      return 'marketing';
+    }
+    if (['population', 'age', 'race', 'education', 'poverty'].some(kw => lower.includes(kw))) {
+      return 'demographics';
+    }
+    if (['state', 'county', 'tract', 'compare'].some(kw => lower.includes(kw))) {
+      return 'geographic';
+    }
+    return undefined;
+  }, []);
+
+  // Handle suggestion selection
+  const handleSelectSuggestion = useCallback((query: string) => {
+    setInput(query);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -74,6 +100,8 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
     };
 
     setMessages(prev => [...prev, userMessage, loadingMessage]);
+    setLastQueryText(input.trim());
+    setLastQueryCategory(detectCategory(input.trim()));
     setInput('');
     setIsProcessing(true);
 
@@ -410,8 +438,18 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Suggestions */}
+      <div className="border-t px-4 pt-3 flex-shrink-0">
+        <QuerySuggestions
+          currentInput={input}
+          lastQueryText={lastQueryText}
+          lastQueryCategory={lastQueryCategory}
+          onSelectSuggestion={handleSelectSuggestion}
+        />
+      </div>
+
       {/* Input */}
-      <div className="border-t p-4 flex-shrink-0">
+      <div className="px-4 pb-4 flex-shrink-0">
         <div className="flex space-x-3">
           <input
             type="text"
