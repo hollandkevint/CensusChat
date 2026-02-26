@@ -35,6 +35,11 @@ coverage/
 *.lcov
 .nyc_output/
 
+# Playwright test outputs
+playwright-report/
+test-results/
+playwright/.cache/
+
 # TypeScript build info
 *.tsbuildinfo
 
