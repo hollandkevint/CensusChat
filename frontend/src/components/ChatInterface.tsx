@@ -7,6 +7,8 @@ import { ExportButton } from './ExportButton';
 import { DataRefreshButton } from './DataRefreshButton';
 import { AppBridge, DrillDownParams } from './AppBridge';
 import QuerySuggestions from './QuerySuggestions';
+import ShareDialog from './ShareDialog';
+import { Share2 } from 'lucide-react';
 
 interface ChatInterfaceProps {
   onQuery?: (query: string) => Promise<any>;
@@ -26,6 +28,12 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
   const [uiResources, setUIResources] = useState<Map<string, string>>(new Map());
   const [lastQueryText, setLastQueryText] = useState<string>('');
   const [lastQueryCategory, setLastQueryCategory] = useState<'healthcare' | 'marketing' | 'demographics' | 'geographic' | undefined>();
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareDialogData, setShareDialogData] = useState<{
+    queryText: string;
+    queryResult: { sql?: string; data: Record<string, unknown>[]; columns: string[]; rowCount: number };
+    category?: 'healthcare' | 'marketing' | 'demographics' | 'geographic' | 'custom';
+  } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Detect query category from text
@@ -182,6 +190,24 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
     console.error('Export failed:', error);
     // Could show an error toast notification here
   };
+
+  const handleOpenShareDialog = useCallback((
+    queryText: string,
+    data: any[],
+    category?: 'healthcare' | 'marketing' | 'demographics' | 'geographic'
+  ) => {
+    const columns = data.length > 0 ? Object.keys(data[0]) : [];
+    setShareDialogData({
+      queryText,
+      queryResult: {
+        data,
+        columns,
+        rowCount: data.length
+      },
+      category
+    });
+    setShareDialogOpen(true);
+  }, []);
 
   /**
    * Handle drill-down from interactive data table
@@ -405,7 +431,7 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
               )}
 
               {message.data && !message.isLoading && (
-                <div className="mt-4">
+                <div className="mt-4 flex items-center gap-2">
                   <ExportButton
                     queryResult={{
                       success: true,
@@ -424,6 +450,21 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
                     onExportError={handleExportError}
                     size="small"
                   />
+                  <button
+                    onClick={() => {
+                      const userQuery = messages.find(m => m.type === 'user' && m.timestamp < message.timestamp);
+                      handleOpenShareDialog(
+                        userQuery?.content || 'Query',
+                        message.data!,
+                        detectCategory(userQuery?.content || '') as any
+                      );
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-700 dark:text-green-300 rounded-lg transition-colors"
+                    title="Share results"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Share
+                  </button>
                 </div>
               )}
             </div>
@@ -472,6 +513,20 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
           ⚡ Powered by Anthropic Sonnet 4 • 🏥 Healthcare-grade accuracy • 🔒 HIPAA compliant
         </div>
       </div>
+
+      {/* Share Dialog */}
+      {shareDialogData && (
+        <ShareDialog
+          isOpen={shareDialogOpen}
+          onClose={() => {
+            setShareDialogOpen(false);
+            setShareDialogData(null);
+          }}
+          queryText={shareDialogData.queryText}
+          queryResult={shareDialogData.queryResult}
+          category={shareDialogData.category}
+        />
+      )}
     </div>
   );
 }

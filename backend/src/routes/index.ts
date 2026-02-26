@@ -10,6 +10,7 @@ import { mcpTransportRouter } from '../mcp/mcpRoutes';
 import { metricsRouter } from './metrics.routes';
 import dataRefreshRoutes from './dataRefresh.routes';
 import dataLoadingRoutes from './dataLoading';
+import { sharingRoutes } from './sharing.routes';
 // import { dataLoadTestRoutes } from './dataLoadTest.routes';
 // import { manualDataLoadRoutes } from './manualDataLoad.routes';
 
@@ -29,6 +30,7 @@ export const setupRoutes = (app: Express) => {
   app.use('/api/v1/export', exportRoutes);
   app.use('/api/v1/mcp', mcpRoutes);
   app.use('/api/v1/metrics', metricsRouter);
+  app.use('/api/v1/share', sharingRoutes);
   app.use('/api/data', dataRefreshRoutes);
   // app.use('/api/v1/data-load-test', dataLoadTestRoutes);
   // app.use('/api/v1/manual-data-load', manualDataLoadRoutes);
@@ -48,6 +50,7 @@ export const setupRoutes = (app: Express) => {
         mcp: '/api/v1/mcp',
         mcpTransport: '/mcp',
         metrics: '/api/v1/metrics',
+        share: '/api/v1/share',
         dataRefresh: '/api/data/refresh',
         health: '/health',
         demo: '/health/demo',
