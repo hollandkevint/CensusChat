@@ -14,6 +14,7 @@ import {
 import { PriorityQueueManager } from './PriorityQueueManager';
 import { ConcurrentWorkerPool } from '../processing/ConcurrentWorkerPool';
 import { DataLoadMonitor } from '../monitoring/DataLoadMonitor';
+import { ConcurrentDuckDBManager } from '../database/ConcurrentDuckDBManager';
 import { configurationManager } from '../utils/LoadingConfiguration';
 import { LOADING_PHASES, calculateJobPriority } from '../utils/PriorityDefinitions';
 import { censusApiService } from '../../services/censusApiService';
@@ -23,7 +24,8 @@ export class DataLoadingOrchestrator extends EventEmitter {
   private queueManager: PriorityQueueManager;
   private workerPool: ConcurrentWorkerPool;
   private monitor: DataLoadMonitor;
-  
+  private databaseManager?: ConcurrentDuckDBManager;
+
   private isRunning: boolean = false;
   private isPaused: boolean = false;
   private currentPhase?: string;
@@ -35,22 +37,23 @@ export class DataLoadingOrchestrator extends EventEmitter {
   private completedJobs: Map<string, DataLoadResult> = new Map();
   private failedJobs: Map<string, LoadingError> = new Map();
   
-  constructor(customConfig?: Partial<LoadingConfiguration>) {
+  constructor(customConfig?: Partial<LoadingConfiguration>, databaseManager?: ConcurrentDuckDBManager) {
     super();
-    
+
     this.config = configurationManager.getConfiguration();
     if (customConfig) {
       configurationManager.updateConfiguration(customConfig);
       this.config = configurationManager.getConfiguration();
     }
-    
+
     this.queueManager = new PriorityQueueManager(this.config);
     this.workerPool = new ConcurrentWorkerPool(this.config);
     this.monitor = new DataLoadMonitor(this.config);
-    
+    this.databaseManager = databaseManager;
+
     this.sessionStartTime = new Date();
     this.setupEventHandlers();
-    
+
     console.log('DataLoadingOrchestrator initialized');
   }
   
@@ -343,7 +346,7 @@ export class DataLoadingOrchestrator extends EventEmitter {
       metrics: this.getMetrics(),
       progress: this.getProgress(),
       rateLimit: this.getCurrentRateLimit(),
-      connections: [], // TODO: Get from database manager
+      connections: this.databaseManager?.getActiveConnections() ?? [],
       activeJobs: Array.from(this.activeJobs.values()),
       queueDepth: this.queueManager.getQueueDepth()
     };

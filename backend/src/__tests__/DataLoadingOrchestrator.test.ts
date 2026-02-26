@@ -1,15 +1,30 @@
 import { DataLoadingOrchestrator } from '../data-loading/orchestration/DataLoadingOrchestrator';
 import { createTestConfig, createTestGeography, wait, MockEventEmitter } from '../test/helpers/testUtils';
-import { mockCensusApiService } from '../test/fixtures/censusApiResponses';
 
 // Mock the dependencies
 jest.mock('../data-loading/orchestration/PriorityQueueManager');
 jest.mock('../data-loading/processing/ConcurrentWorkerPool');
 jest.mock('../data-loading/monitoring/DataLoadMonitor');
-jest.mock('../data-loading/utils/LoadingConfiguration');
-jest.mock('../services/censusApiService', () => ({
-  censusApiService: mockCensusApiService
-}));
+jest.mock('../data-loading/database/ConcurrentDuckDBManager');
+jest.mock('../data-loading/utils/LoadingConfiguration', () => {
+  const { createTestConfig } = require('../test/helpers/testUtils');
+  return {
+    configurationManager: {
+      getConfiguration: jest.fn().mockReturnValue(createTestConfig()),
+      updateConfiguration: jest.fn(),
+      shouldPauseLoading: jest.fn().mockReturnValue(false),
+      getApiCallBudget: jest.fn().mockReturnValue({
+        available: 400,
+        reserved: 50,
+        total: 500
+      })
+    }
+  };
+});
+jest.mock('../services/censusApiService', () => {
+  const { mockCensusApiService } = require('../test/fixtures/censusApiResponses');
+  return { censusApiService: mockCensusApiService };
+});
 
 describe('DataLoadingOrchestrator', () => {
   let orchestrator: DataLoadingOrchestrator;
@@ -59,18 +74,6 @@ describe('DataLoadingOrchestrator', () => {
           queryResponseTime: 0,
           connectionPoolUsage: 0
         }
-      })
-    };
-
-    // Mock the configuration manager
-    require('../data-loading/utils/LoadingConfiguration').configurationManager = {
-      getConfiguration: jest.fn().mockReturnValue(createTestConfig()),
-      updateConfiguration: jest.fn(),
-      shouldPauseLoading: jest.fn().mockReturnValue(false),
-      getApiCallBudget: jest.fn().mockReturnValue({
-        available: 400,
-        reserved: 50,
-        total: 500
       })
     };
 
@@ -315,7 +318,7 @@ describe('DataLoadingOrchestrator', () => {
 
     test('should provide loading context', () => {
       const context = orchestrator.getContext();
-      
+
       expect(context).toHaveProperties([
         'config',
         'metrics',
@@ -325,8 +328,49 @@ describe('DataLoadingOrchestrator', () => {
         'activeJobs',
         'queueDepth'
       ]);
-      
+
       expect(context.queueDepth).toBe(0);
+    });
+
+    test('should return empty connections when no database manager is provided', () => {
+      const context = orchestrator.getContext();
+      expect(context.connections).toEqual([]);
+    });
+
+    test('should return connections from database manager when provided', () => {
+      const mockConnections = [
+        {
+          id: 'reader_1',
+          type: 'reader' as const,
+          inUse: false,
+          createdAt: new Date(),
+          lastUsedAt: new Date(),
+          transactionCount: 5
+        },
+        {
+          id: 'writer_1',
+          type: 'writer' as const,
+          inUse: true,
+          createdAt: new Date(),
+          lastUsedAt: new Date(),
+          transactionCount: 12
+        }
+      ];
+
+      const mockDatabaseManager = {
+        getActiveConnections: jest.fn().mockReturnValue(mockConnections)
+      };
+
+      const orchestratorWithDb = new DataLoadingOrchestrator(
+        undefined,
+        mockDatabaseManager as any
+      );
+
+      const context = orchestratorWithDb.getContext();
+      expect(context.connections).toEqual(mockConnections);
+      expect(mockDatabaseManager.getActiveConnections).toHaveBeenCalled();
+
+      orchestratorWithDb.removeAllListeners();
     });
   });
 
