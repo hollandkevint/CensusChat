@@ -9,6 +9,7 @@ import { AppBridge, DrillDownParams } from './AppBridge';
 import QuerySuggestions from './QuerySuggestions';
 import ShareDialog from './ShareDialog';
 import { Share2 } from 'lucide-react';
+import { trackEvent } from '../services/analyticsService';
 
 interface ChatInterfaceProps {
   onQuery?: (query: string) => Promise<any>;
@@ -132,6 +133,16 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
         result = apiResponse;
       }
 
+      // Track successful query
+      const queryCategory = detectCategory(input.trim());
+      trackEvent({
+        eventType: 'query_executed',
+        queryCategory: queryCategory || 'custom',
+        executionTime: result.metadata?.queryTime ? result.metadata.queryTime * 1000 : undefined,
+        rowCount: result.data?.length || result.metadata?.totalRecords,
+        cacheHit: result.metadata?.cached || false
+      });
+
       // Remove loading message and add actual response
       setMessages(prev => {
         const withoutLoading = prev.filter(msg => !msg.isLoading);
@@ -147,6 +158,13 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
       });
     } catch (error) {
       console.error('Query error:', error);
+
+      // Track query error
+      trackEvent({
+        eventType: 'query_error',
+        queryCategory: detectCategory(input.trim()) || 'custom',
+        errorType: error instanceof QueryApiError ? error.type : 'unknown'
+      });
 
       // Remove loading message and add error response
       setMessages(prev => {
