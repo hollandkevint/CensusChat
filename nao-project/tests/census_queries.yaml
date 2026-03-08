@@ -1,0 +1,269 @@
+# CensusChat Test Cases
+# Maps natural language queries to expected SQL patterns
+
+test_cases:
+
+  # --- Simple county lookups ---
+
+  - id: county_basic_lookup
+    description: Simple county population lookup
+    natural_language: "What is the population of Miami-Dade County, Florida?"
+    expected_table: county_data
+    expected_sql_pattern: |
+      SELECT county_name, state_name, population
+      FROM county_data
+      WHERE state_name = 'Florida'
+        AND county_name = 'Miami-Dade County'
+      LIMIT 100
+    expected_columns:
+      - county_name
+      - state_name
+      - population
+
+  - id: county_poverty_rate
+    description: County poverty rate query
+    natural_language: "Show me the poverty rate for Cook County, Illinois"
+    expected_table: county_data
+    expected_sql_pattern: |
+      SELECT county_name, state_name, population, poverty_rate
+      FROM county_data
+      WHERE state_name = 'Illinois'
+        AND county_name = 'Cook County'
+      LIMIT 100
+    expected_columns:
+      - county_name
+      - poverty_rate
+
+  # --- Medicare eligible seniors ---
+
+  - id: medicare_seniors_county
+    description: Medicare eligible population for a county
+    natural_language: "How many Medicare eligible seniors are in Hillsborough County, Florida?"
+    expected_table: block_group_data
+    expected_sql_pattern: |
+      SELECT
+        county_name, state_name,
+        SUM(population) AS total_population,
+        SUM(age_65_plus) AS medicare_eligible_seniors,
+        ROUND(SUM(age_65_plus) * 100.0 / NULLIF(SUM(population), 0), 2) AS medicare_eligible_pct
+      FROM block_group_data
+      WHERE state_name = 'Florida'
+        AND county_name = 'Hillsborough County'
+      GROUP BY county_name, state_name
+      LIMIT 100
+    expected_columns:
+      - age_65_plus
+      - population
+
+  - id: medicare_seniors_high_income
+    description: Medicare seniors with income filter
+    natural_language: "Show me Medicare eligible seniors in Tampa Bay with household income over $75K"
+    expected_table: block_group_data_expanded
+    expected_sql_pattern: |
+      SELECT
+        county_name, state_name, geoid,
+        population, age_65_plus, median_household_income
+      FROM block_group_data_expanded
+      WHERE state_name = 'Florida'
+        AND county_name IN ('Hillsborough County', 'Pinellas County', 'Pasco County', 'Manatee County')
+        AND median_household_income > 75000
+      ORDER BY age_65_plus DESC
+      LIMIT 100
+    expected_columns:
+      - age_65_plus
+      - median_household_income
+
+  # --- Income filtering ---
+
+  - id: income_band_distribution
+    description: Income distribution using expanded table bands
+    natural_language: "What is the income distribution in Los Angeles County block groups?"
+    expected_table: block_group_data_expanded
+    expected_sql_pattern: |
+      SELECT
+        county_name,
+        SUM(income_less_10k) AS under_10k,
+        SUM(income_10_to_25k) AS income_10_25k,
+        SUM(income_25_to_50k) AS income_25_50k,
+        SUM(income_50_to_75k) AS income_50_75k,
+        SUM(income_75_to_100k) AS income_75_100k,
+        SUM(income_100_to_150k) AS income_100_150k,
+        SUM(income_150_to_200k) AS income_150_200k,
+        SUM(income_200k_plus) AS over_200k
+      FROM block_group_data_expanded
+      WHERE state_name = 'California'
+        AND county_name = 'Los Angeles County'
+      GROUP BY county_name
+      LIMIT 100
+    expected_columns:
+      - income_less_10k
+      - income_200k_plus
+
+  - id: low_income_areas
+    description: Finding low-income block groups
+    natural_language: "Find block groups in Texas with median income below $30,000"
+    expected_table: block_group_data
+    expected_sql_pattern: |
+      SELECT
+        geoid, county_name, state_name,
+        population, median_household_income, poverty_rate
+      FROM block_group_data
+      WHERE state_name = 'Texas'
+        AND median_household_income < 30000
+      ORDER BY median_household_income ASC
+      LIMIT 100
+    expected_columns:
+      - median_household_income
+      - poverty_rate
+
+  # --- Multi-county comparisons ---
+
+  - id: multi_county_comparison
+    description: Compare demographics across multiple counties
+    natural_language: "Compare population and median income of the five boroughs of New York City"
+    expected_table: county_data
+    expected_sql_pattern: |
+      SELECT county_name, state_name, population, median_income
+      FROM county_data
+      WHERE state_name = 'New York'
+        AND county_name IN ('New York County', 'Kings County', 'Queens County', 'Bronx County', 'Richmond County')
+      ORDER BY population DESC
+      LIMIT 100
+    expected_columns:
+      - county_name
+      - population
+      - median_income
+
+  - id: state_county_ranking
+    description: Rank counties within a state
+    natural_language: "Show me the top 10 most populated counties in California"
+    expected_table: county_data
+    expected_sql_pattern: |
+      SELECT county_name, state_name, population, median_income, poverty_rate
+      FROM county_data
+      WHERE state_name = 'California'
+      ORDER BY population DESC
+      LIMIT 10
+    expected_columns:
+      - county_name
+      - population
+
+  # --- Block group drill-downs ---
+
+  - id: block_group_seniors_drilldown
+    description: Senior population drill-down at block group level
+    natural_language: "Show me block groups in Maricopa County, Arizona with the highest percentage of seniors"
+    expected_table: block_group_data
+    expected_sql_pattern: |
+      SELECT
+        geoid, county_name, state_name,
+        population, age_65_plus,
+        ROUND(age_65_plus * 100.0 / NULLIF(population, 0), 2) AS senior_pct
+      FROM block_group_data
+      WHERE state_name = 'Arizona'
+        AND county_name = 'Maricopa County'
+        AND population > 0
+      ORDER BY senior_pct DESC
+      LIMIT 50
+    expected_columns:
+      - geoid
+      - age_65_plus
+      - population
+
+  - id: block_group_uninsured
+    description: Uninsured population at block group level
+    natural_language: "Find block groups in Harris County, Texas with highest uninsured rates"
+    expected_table: block_group_data
+    expected_sql_pattern: |
+      SELECT
+        geoid, county_name, state_name,
+        population, uninsured_rate, median_household_income
+      FROM block_group_data
+      WHERE state_name = 'Texas'
+        AND county_name = 'Harris County'
+        AND population > 0
+      ORDER BY uninsured_rate DESC
+      LIMIT 50
+    expected_columns:
+      - geoid
+      - uninsured_rate
+
+  # --- Healthcare access queries ---
+
+  - id: healthcare_access_digital_divide
+    description: Digital divide and telehealth readiness
+    natural_language: "Which block groups in Florida have the lowest broadband access?"
+    expected_table: block_group_data_expanded
+    expected_sql_pattern: |
+      SELECT
+        geoid, county_name, state_name,
+        population, with_broadband_pct, no_internet_pct, with_computer_pct
+      FROM block_group_data_expanded
+      WHERE state_name = 'Florida'
+        AND population > 0
+      ORDER BY with_broadband_pct ASC
+      LIMIT 50
+    expected_columns:
+      - with_broadband_pct
+      - no_internet_pct
+
+  - id: healthcare_disability_isolation
+    description: Senior isolation and disability risk
+    natural_language: "Find areas in Ohio where seniors are most at risk of isolation"
+    expected_table: block_group_data_expanded
+    expected_sql_pattern: |
+      SELECT
+        geoid, county_name, state_name,
+        population, age_65_plus,
+        seniors_living_alone_pct,
+        disability_rate,
+        no_vehicle_transit_pct,
+        limited_english_pct
+      FROM block_group_data_expanded
+      WHERE state_name = 'Ohio'
+        AND age_65_plus > 0
+      ORDER BY seniors_living_alone_pct DESC
+      LIMIT 50
+    expected_columns:
+      - seniors_living_alone_pct
+      - disability_rate
+      - no_vehicle_transit_pct
+
+  - id: healthcare_workforce
+    description: Healthcare workforce concentration
+    natural_language: "Which counties in Georgia have the highest healthcare workforce concentration?"
+    expected_table: block_group_data_expanded
+    expected_sql_pattern: |
+      SELECT
+        county_name, state_name,
+        SUM(population) AS total_population,
+        ROUND(SUM(healthcare_occupations_pct * population) / NULLIF(SUM(population), 0), 2) AS weighted_healthcare_occ_pct
+      FROM block_group_data_expanded
+      WHERE state_name = 'Georgia'
+      GROUP BY county_name, state_name
+      ORDER BY weighted_healthcare_occ_pct DESC
+      LIMIT 20
+    expected_columns:
+      - healthcare_occupations_pct
+
+  - id: sdoh_composite
+    description: Social determinants of health composite view
+    natural_language: "Show me the most vulnerable block groups in Philadelphia County by social determinants of health"
+    expected_table: block_group_data_expanded
+    expected_sql_pattern: |
+      SELECT
+        geoid, county_name, state_name,
+        population, poverty_rate, unemployment_rate,
+        uninsured_rate, limited_english_pct, no_vehicle_transit_pct,
+        disability_rate, seniors_living_alone_pct
+      FROM block_group_data_expanded
+      WHERE state_name = 'Pennsylvania'
+        AND county_name = 'Philadelphia County'
+        AND population > 0
+      ORDER BY poverty_rate DESC
+      LIMIT 50
+    expected_columns:
+      - poverty_rate
+      - unemployment_rate
+      - uninsured_rate
+      - limited_english_pct

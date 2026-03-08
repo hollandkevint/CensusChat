@@ -1,0 +1,54 @@
+# Nao Analytics Agent Configuration for CensusChat
+# https://github.com/getnao/nao
+
+name: CensusChat
+description: >
+  Natural language interface for US Census healthcare demographics.
+  Transforms complex demographic queries into validated SQL against
+  ACS 5-Year data covering 3,144 counties and 239,741 block groups.
+
+database:
+  type: duckdb
+  path: ../backend/data/census.duckdb
+  options:
+    memory_limit: 4GB
+    threads: 4
+    read_only: true
+
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+  api_key: ${ANTHROPIC_API_KEY}
+  max_tokens: 4096
+  temperature: 0
+
+mcp:
+  servers:
+    - name: censuschat
+      transport: http
+      url: http://localhost:3001/mcp
+
+security:
+  max_row_limit: 1000
+  allowed_statement_types:
+    - SELECT
+  require_sql_validation: true
+  audit_log_path: ../backend/logs/sql-audit.log
+
+context:
+  rules_file: ./RULES.md
+  context_dir: ./context
+  test_dir: ./tests
+
+export:
+  formats:
+    - excel
+    - csv
+    - pdf
+
+environment:
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+  CENSUS_API_KEY: ${CENSUS_API_KEY}
+  DUCKDB_PATH: ${DUCKDB_PATH:-../backend/data/census.duckdb}
+  REDIS_HOST: ${REDIS_HOST:-localhost}
+  REDIS_PORT: ${REDIS_PORT:-6379}
