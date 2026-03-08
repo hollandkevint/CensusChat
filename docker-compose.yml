@@ -17,7 +17,7 @@ version: '3.8'
 #   - PostgreSQL (5432) - User data and sessions
 #   - Redis (6379)      - Caching and rate limiting
 #   - Backend (3001)    - API server with DuckDB
-#   - Frontend (3000)   - Next.js application
+#   - Nao (5005)        - Analytics agent frontend
 
 services:
   # PostgreSQL Database for user data and sessions
@@ -77,7 +77,7 @@ services:
       CENSUS_API_KEY: ${CENSUS_API_KEY}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       DUCKDB_PATH: /app/data/census.duckdb
-      CORS_ORIGIN: http://localhost:3000
+      CORS_ORIGIN: http://localhost:5005
       PORT: 3001
     ports:
       - "3001:3001"
@@ -93,30 +93,29 @@ services:
       timeout: 10s
       retries: 3
 
-  # Frontend Application
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      target: deps  # Only build to deps stage for development
-    container_name: censuschat-frontend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules  # Don't overwrite node_modules
-    environment:
-      NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:3001
-      INTERNAL_API_URL: http://backend:3001
+  # Nao Analytics Agent Frontend (replaces Next.js frontend)
+  # Note: The previous Next.js frontend service has been replaced by Nao.
+  # The frontend/ directory and its Dockerfile can be removed in a future cleanup.
+  nao:
+    image: getnao/nao:latest
+    container_name: censuschat-nao
     ports:
-      - "3000:3000"
+      - "5005:5005"
+    volumes:
+      - ./nao-project:/app/project:ro
+      - ./backend/data:/app/data:ro
+    environment:
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-changeme-in-production}
+      - BETTER_AUTH_URL=http://localhost:5005
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - NAO_DEFAULT_PROJECT_PATH=/app/project
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-censuschat_user}:${POSTGRES_PASSWORD:-censuschat_pass}@postgres:5432/${POSTGRES_DB:-censuschat}
     depends_on:
-      - backend
-    command: npm run dev
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    restart: unless-stopped
 
 volumes:
   postgres_data:

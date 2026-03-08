@@ -6,7 +6,7 @@
 # This script will:
 # 1. Check prerequisites (Docker, Node.js)
 # 2. Create .env file if needed
-# 3. Start all services (PostgreSQL, Redis, Backend, Frontend)
+# 3. Start all services (PostgreSQL, Redis, Backend, Nao)
 # 4. Initialize DuckDB with demo data
 # 5. Verify all services are healthy
 #
@@ -125,6 +125,17 @@ setup_env() {
         sed -i "s|POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=dev_postgres_password_2024|g" .env
     fi
 
+    # Generate a secure BETTER_AUTH_SECRET for Nao
+    if command -v openssl &> /dev/null; then
+        BETTER_AUTH_SECRET=$(openssl rand -base64 32 | tr -d '\n')
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s|BETTER_AUTH_SECRET=.*|BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET|g" .env
+        else
+            sed -i "s|BETTER_AUTH_SECRET=.*|BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET|g" .env
+        fi
+        print_success "Generated secure BETTER_AUTH_SECRET"
+    fi
+
     print_success ".env file created from .env.example"
     print_info "You can edit .env to add your Census API key and Anthropic API key later"
 }
@@ -133,8 +144,8 @@ setup_env() {
 check_ports() {
     print_info "Checking if required ports are available..."
 
-    PORTS=(3000 3001 5432 6379)
-    PORT_NAMES=("Frontend" "Backend" "PostgreSQL" "Redis")
+    PORTS=(5005 3001 5432 6379)
+    PORT_NAMES=("Nao Frontend" "Backend" "PostgreSQL" "Redis")
 
     for i in "${!PORTS[@]}"; do
         PORT=${PORTS[$i]}
@@ -215,12 +226,12 @@ wait_for_services() {
         sleep 1
     done
 
-    # Wait for Frontend
-    echo -n "Waiting for Frontend"
+    # Wait for Nao Frontend
+    echo -n "Waiting for Nao Frontend"
     for i in {1..60}; do
-        if curl -f http://localhost:3000 &> /dev/null; then
+        if curl -f http://localhost:5005 &> /dev/null; then
             echo ""
-            print_success "Frontend is ready"
+            print_success "Nao Frontend is ready"
             break
         fi
         echo -n "."
@@ -273,11 +284,11 @@ verify_setup() {
         print_error "Backend API verification failed"
     fi
 
-    # Check Frontend
-    if curl -f -s http://localhost:3000 > /dev/null; then
-        print_success "Frontend is operational"
+    # Check Nao Frontend
+    if curl -f -s http://localhost:5005 > /dev/null; then
+        print_success "Nao Frontend is operational"
     else
-        print_error "Frontend verification failed"
+        print_error "Nao Frontend verification failed"
     fi
 }
 
@@ -289,14 +300,14 @@ show_instructions() {
     echo -e "${GREEN}✅ All services are running and healthy!${NC}"
     echo ""
     echo -e "${BLUE}Access your application:${NC}"
-    echo "  📱 Frontend:    http://localhost:3000"
-    echo "  🔧 Backend API: http://localhost:3001/api/v1"
-    echo "  💚 Health:      http://localhost:3001/api/v1/health"
+    echo "  📱 Nao Frontend: http://localhost:5005"
+    echo "  🔧 Backend API:  http://localhost:3001/api/v1"
+    echo "  💚 Health:       http://localhost:3001/api/v1/health"
     echo ""
     echo -e "${BLUE}Useful commands:${NC}"
     echo "  📊 View logs:        docker compose logs -f"
     echo "  📊 Backend logs:     docker compose logs -f backend"
-    echo "  📊 Frontend logs:    docker compose logs -f frontend"
+    echo "  📊 Nao logs:         docker compose logs -f nao"
     echo "  🔄 Restart services: docker compose restart"
     echo "  🛑 Stop services:    docker compose down"
     echo "  🗄️  DuckDB CLI:       cd backend && npm run duckdb"
@@ -307,7 +318,7 @@ show_instructions() {
     echo "  • 'Counties with median income over \$75,000'"
     echo ""
     echo -e "${BLUE}Next steps:${NC}"
-    echo "  1. Visit http://localhost:3000 to start using CensusChat"
+    echo "  1. Visit http://localhost:5005 to start using CensusChat"
     echo "  2. Add your Census API key to .env to load production data"
     echo "  3. Add your Anthropic API key to .env for AI-powered queries"
     echo "  4. See docs/guides/ACS_DATA_LOADING.md to load 3,143 US counties"
