@@ -18,6 +18,9 @@ import { getDuckDBPool } from '../utils/duckdbPool';
 import { getSQLValidator } from '../validation/sqlValidator';
 import { CENSUS_SCHEMA } from '../validation/sqlSecurityPolicies';
 import { registerDocumentTools } from './documentTools';
+import { ExcelExportService } from '../services/excelExportService';
+import { dataRefreshService } from '../services/dataRefreshService';
+import { ExportRequest, QueryResultForExport } from '../models/export.models';
 
 /**
  * UI resource configuration for MCP Apps
@@ -392,6 +395,301 @@ async function handleDrillDownQuery(
 }
 
 /**
+ * Handle export_to_excel tool call
+ * Exports query results to Excel format using the ExcelExportService
+ */
+async function handleExportToExcel(
+  data: Record<string, unknown>[],
+  queryText: string,
+  options?: { includeMetadata?: boolean; maxRows?: number; customFilename?: string }
+): Promise<{
+  content: Array<{ type: 'text'; text: string }>;
+  isError?: boolean;
+}> {
+  try {
+    const exportService = new ExcelExportService();
+
+    const exportRequest: ExportRequest = {
+      queryId: 'mcp-export',
+      format: 'excel',
+      options: {
+        includeMetadata: options?.includeMetadata ?? true,
+        compression: false,
+        maxRows: options?.maxRows ?? 50000,
+        customFilename: options?.customFilename,
+      },
+    };
+
+    const queryResult: QueryResultForExport = {
+      success: true,
+      message: 'Query executed successfully',
+      data,
+      metadata: {
+        queryTime: 0,
+        totalRecords: data.length,
+        dataSource: 'US Census Bureau',
+        confidenceLevel: 0.95,
+        marginOfError: 2.3,
+        queryText,
+        executedAt: new Date().toISOString(),
+      },
+    };
+
+    const exportResponse = await exportService.exportToExcel(queryResult, exportRequest);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              downloadUrl: exportResponse.downloadUrl,
+              filename: exportResponse.filename,
+              fileSize: exportResponse.metadata.fileSize,
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  } catch (error) {
+    console.error('[MCP] Excel export error:', error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown export error',
+            },
+            null,
+            2
+          ),
+        },
+      ],
+      isError: true,
+    };
+  }
+}
+
+/**
+ * Handle export_to_csv tool call
+ * Exports query results to CSV format
+ */
+async function handleExportToCsv(
+  data: Record<string, unknown>[],
+  _queryText: string,
+  options?: { customFilename?: string }
+): Promise<{
+  content: Array<{ type: 'text'; text: string }>;
+  isError?: boolean;
+}> {
+  try {
+    if (!Array.isArray(data) || data.length === 0) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(
+              {
+                success: false,
+                error: 'No data available for export',
+              },
+              null,
+              2
+            ),
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    const fs = await import('fs');
+    const path = await import('path');
+    const crypto = await import('crypto');
+
+    const headers = Object.keys(data[0]);
+    const csvRows = [
+      headers.join(','),
+      ...data.map((row) =>
+        headers
+          .map((header) => {
+            const value = row[header];
+            if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+              return `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
+          })
+          .join(',')
+      ),
+    ];
+
+    const csvContent = csvRows.join('\n');
+    const filename =
+      options?.customFilename ||
+      `CensusChat_Export_${new Date().toISOString().slice(0, 19).replace(/:/g, '')}.csv`;
+    const tempDir = path.join(process.cwd(), 'temp', 'exports');
+
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    const filePath = path.join(tempDir, filename);
+    fs.writeFileSync(filePath, csvContent, 'utf-8');
+
+    const exportId = crypto.randomUUID();
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: true,
+              downloadUrl: `/api/v1/export/download/${exportId}`,
+              filename,
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  } catch (error) {
+    console.error('[MCP] CSV export error:', error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown export error',
+            },
+            null,
+            2
+          ),
+        },
+      ],
+      isError: true,
+    };
+  }
+}
+
+/**
+ * Handle check_data_freshness tool call
+ * Returns current data freshness status and available datasets
+ */
+async function handleCheckDataFreshness(): Promise<{
+  content: Array<{ type: 'text'; text: string }>;
+  isError?: boolean;
+}> {
+  try {
+    const status = await dataRefreshService.getRefreshStatus();
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              lastRefreshAt: status.lastRefresh || null,
+              isHealthy: status.isHealthy,
+              availableDatasets: status.availableDatasets,
+              recordCounts: status.recordCounts,
+            },
+            null,
+            2
+          ),
+        },
+      ],
+    };
+  } catch (error) {
+    console.error('[MCP] Data freshness check error:', error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            },
+            null,
+            2
+          ),
+        },
+      ],
+      isError: true,
+    };
+  }
+}
+
+/**
+ * Handle refresh_census_data tool call
+ * Triggers a census data refresh operation
+ */
+async function handleRefreshCensusData(datasets?: string[]): Promise<{
+  content: Array<{ type: 'text'; text: string }>;
+  isError?: boolean;
+}> {
+  try {
+    let result;
+
+    if (datasets && datasets.length > 0) {
+      // Incremental refresh for specific datasets
+      result = await dataRefreshService.performIncrementalUpdate(datasets);
+    } else {
+      // Full refresh
+      result = await dataRefreshService.refreshHealthcareData();
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: result.success,
+              status: result.success ? 'completed' : 'failed',
+              recordsUpdated: result.recordsUpdated,
+              duration: result.duration,
+              datasetsRefreshed: result.datasetsRefreshed,
+              error: result.error,
+            },
+            null,
+            2
+          ),
+        },
+      ],
+      isError: !result.success,
+    };
+  } catch (error) {
+    console.error('[MCP] Data refresh error:', error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: false,
+              status: 'failed',
+              error: error instanceof Error ? error.message : 'Unknown error',
+            },
+            null,
+            2
+          ),
+        },
+      ],
+      isError: true,
+    };
+  }
+}
+
+/**
  * Create a new MCP server instance with all tools registered
  * Each session gets its own server instance
  */
@@ -512,6 +810,71 @@ export function createMcpServer(sessionId: string): McpServer {
     },
     async (args) => {
       return handleExecuteQuery(args.query);
+    }
+  );
+
+  // Register export_to_excel tool
+  server.tool(
+    'export_to_excel',
+    'Export query results to Excel format for download',
+    {
+      data: z.array(z.record(z.unknown())).describe('Array of result objects to export'),
+      queryText: z.string().describe('The original natural language query'),
+      options: z
+        .object({
+          includeMetadata: z.boolean().optional().describe('Include metadata worksheet'),
+          maxRows: z.number().optional().describe('Maximum rows to export'),
+          customFilename: z.string().optional().describe('Custom filename for the export'),
+        })
+        .optional()
+        .describe('Optional export configuration'),
+    },
+    async (args) => {
+      return handleExportToExcel(args.data, args.queryText, args.options);
+    }
+  );
+
+  // Register export_to_csv tool
+  server.tool(
+    'export_to_csv',
+    'Export query results to CSV format',
+    {
+      data: z.array(z.record(z.unknown())).describe('Array of result objects to export'),
+      queryText: z.string().describe('The original natural language query'),
+      options: z
+        .object({
+          customFilename: z.string().optional().describe('Custom filename for the export'),
+        })
+        .optional()
+        .describe('Optional export configuration'),
+    },
+    async (args) => {
+      return handleExportToCsv(args.data, args.queryText, args.options);
+    }
+  );
+
+  // Register check_data_freshness tool
+  server.tool(
+    'check_data_freshness',
+    'Check when census data was last refreshed and if refresh is needed',
+    {},
+    async () => {
+      return handleCheckDataFreshness();
+    }
+  );
+
+  // Register refresh_census_data tool
+  server.tool(
+    'refresh_census_data',
+    'Trigger a full census data refresh from the Census Bureau API',
+    {
+      datasets: z
+        .array(z.string())
+        .optional()
+        .describe('Optional array of dataset names to refresh (e.g., census_variables, zip5_demographics, block_group_demographics)'),
+    },
+    async (args) => {
+      return handleRefreshCensusData(args.datasets);
     }
   );
 
