@@ -26,12 +26,12 @@
 
 ### Core Features
 
-- ✅ **TRUE MCP IMPLEMENTATION**: Production SQL validation layer with security policies
+- ✅ **Enterprise Security**: Privacy-first architecture with encryption at rest
 - ✅ **SQL Injection Protection**: Table/column allowlists, row limits, dangerous pattern blocking
 - ✅ **Interactive Results**: Sortable tables, filterable data, drill-down navigation
 - ✅ **Parallel Queries**: "Compare Tampa Bay vs Phoenix" runs both simultaneously
 - ✅ **Conversational Context**: "Now filter to income > $75K" understands prior query
-- ✅ **Audit Compliance**: All queries logged for HIPAA/GDPR
+- ✅ **Audit Compliance**: All queries logged
 
 **Current Data**:
 - **County Level**: 3,144 US counties with demographics
@@ -94,8 +94,8 @@ const stack = {
 ### **Performance Metrics**
 - **Sub-2 Second Queries** with MCP validation
 - **Parallel Execution** for comparison queries
-- **82%+ Test Coverage** with comprehensive test suites
-- **HIPAA-Ready Architecture** with encryption and audit logging
+- **Comprehensive test suites** with CI on every push
+- **Privacy-first architecture** with encryption, audit logging, and no PHI stored
 
 ---
 
@@ -179,14 +179,16 @@ Open http://localhost:3000 and start querying.
 
 ## 📈 **Market Impact**
 
+*Illustrative framing — figures are directional estimates for the consulting work this replaces, not audited market data.*
+
 **Problem We Solve:**
-- **$2.8B** spent annually on demographic consulting
-- **6,090** hospitals needing demographic analysis
+- **~$2.8B** estimated annual spend on demographic consulting
+- **6,000+** hospitals needing demographic analysis
 - **30,000+** senior care facilities planning expansion
 
 **Our Solution:**
-- **200x cost reduction**: $50K → $297/month
-- **300x speed improvement**: 6 weeks → seconds
+- **~200x cost reduction**: $50K project → $297/month
+- **~300x speed improvement**: 6 weeks → seconds
 - **Unlimited iterations** with conversational follow-up
 
 ---
@@ -197,9 +199,9 @@ Open http://localhost:3000 and start querying.
 **[📧 Request Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
 
 ### **For Developers**
-- Write quality TypeScript with 90%+ test coverage
+- Write quality TypeScript with comprehensive test coverage
 - Maintain sub-2s query response times
-- Follow HIPAA-ready security practices
+- Follow privacy-first security practices (no PHI stored, audit logging, encryption at rest)
 - Run `npm run secret-scan` before committing
 
 ---

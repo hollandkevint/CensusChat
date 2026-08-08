@@ -431,7 +431,7 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
           </button>
         </div>
         <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
-          ⚡ Powered by Anthropic Sonnet 4 • 🏥 Healthcare-grade accuracy • 🔒 HIPAA compliant
+          ⚡ Powered by Anthropic Sonnet 4 • 🏥 Healthcare-grade accuracy • 🔒 Privacy-first, no PHI stored
         </div>
       </div>
     </div>
