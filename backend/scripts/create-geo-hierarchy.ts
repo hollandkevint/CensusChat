@@ -10,7 +10,7 @@
  * - Geographic relationship lookups
  */
 
-import * as duckdb from 'duckdb';
+import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import * as path from 'path';
 import dotenv from 'dotenv';
 
@@ -27,9 +27,9 @@ interface GeoHierarchy {
   land_area_sqmi: number | null;
 }
 
-function createHierarchyTable(db: duckdb.Database): Promise<void> {
-  return new Promise((resolve, reject) => {
-    db.run(`
+async function createHierarchyTable(conn: DuckDBConnection): Promise<void> {
+  // node-api runs one statement per call; split the table + indexes.
+  await conn.run(`
       CREATE TABLE IF NOT EXISTS geo_hierarchy (
         geo_type VARCHAR(20),           -- 'state', 'county', 'tract', 'block_group'
         geoid VARCHAR(15),              -- Full GEOID for this geography
@@ -38,22 +38,15 @@ function createHierarchyTable(db: duckdb.Database): Promise<void> {
         population BIGINT,              -- Total population
         land_area_sqmi DOUBLE,          -- Land area in square miles (optional)
         PRIMARY KEY (geo_type, geoid)
-      );
-
-      -- Create indexes for fast lookups
-      CREATE INDEX IF NOT EXISTS idx_geo_hierarchy_geoid ON geo_hierarchy(geoid);
-      CREATE INDEX IF NOT EXISTS idx_geo_hierarchy_parent ON geo_hierarchy(parent_geoid);
-      CREATE INDEX IF NOT EXISTS idx_geo_hierarchy_type ON geo_hierarchy(geo_type);
-    `, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
+      )
+    `);
+  await conn.run('CREATE INDEX IF NOT EXISTS idx_geo_hierarchy_geoid ON geo_hierarchy(geoid)');
+  await conn.run('CREATE INDEX IF NOT EXISTS idx_geo_hierarchy_parent ON geo_hierarchy(parent_geoid)');
+  await conn.run('CREATE INDEX IF NOT EXISTS idx_geo_hierarchy_type ON geo_hierarchy(geo_type)');
 }
 
-function populateStateHierarchy(db: duckdb.Database): Promise<void> {
-  return new Promise((resolve, reject) => {
-    db.run(`
+async function populateStateHierarchy(conn: DuckDBConnection): Promise<void> {
+  await conn.run(`
       INSERT INTO geo_hierarchy (geo_type, geoid, parent_geoid, geo_name, population, land_area_sqmi)
       SELECT
         'state' as geo_type,
@@ -66,16 +59,11 @@ function populateStateHierarchy(db: duckdb.Database): Promise<void> {
       ON CONFLICT (geo_type, geoid) DO UPDATE SET
         geo_name = EXCLUDED.geo_name,
         population = EXCLUDED.population
-    `, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
+    `);
 }
 
-function populateCountyHierarchy(db: duckdb.Database): Promise<void> {
-  return new Promise((resolve, reject) => {
-    db.run(`
+async function populateCountyHierarchy(conn: DuckDBConnection): Promise<void> {
+  await conn.run(`
       INSERT INTO geo_hierarchy (geo_type, geoid, parent_geoid, geo_name, population, land_area_sqmi)
       SELECT
         'county' as geo_type,
@@ -88,16 +76,11 @@ function populateCountyHierarchy(db: duckdb.Database): Promise<void> {
       ON CONFLICT (geo_type, geoid) DO UPDATE SET
         geo_name = EXCLUDED.geo_name,
         population = EXCLUDED.population
-    `, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
+    `);
 }
 
-function populateTractHierarchy(db: duckdb.Database): Promise<void> {
-  return new Promise((resolve, reject) => {
-    db.run(`
+async function populateTractHierarchy(conn: DuckDBConnection): Promise<void> {
+  await conn.run(`
       INSERT INTO geo_hierarchy (geo_type, geoid, parent_geoid, geo_name, population, land_area_sqmi)
       SELECT
         'tract' as geo_type,
@@ -110,16 +93,11 @@ function populateTractHierarchy(db: duckdb.Database): Promise<void> {
       ON CONFLICT (geo_type, geoid) DO UPDATE SET
         geo_name = EXCLUDED.geo_name,
         population = EXCLUDED.population
-    `, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
+    `);
 }
 
-function populateBlockGroupHierarchy(db: duckdb.Database): Promise<void> {
-  return new Promise((resolve, reject) => {
-    db.run(`
+async function populateBlockGroupHierarchy(conn: DuckDBConnection): Promise<void> {
+  await conn.run(`
       INSERT INTO geo_hierarchy (geo_type, geoid, parent_geoid, geo_name, population, land_area_sqmi)
       SELECT
         'block_group' as geo_type,
@@ -132,16 +110,11 @@ function populateBlockGroupHierarchy(db: duckdb.Database): Promise<void> {
       ON CONFLICT (geo_type, geoid) DO UPDATE SET
         geo_name = EXCLUDED.geo_name,
         population = EXCLUDED.population
-    `, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
+    `);
 }
 
-function getHierarchyStats(db: duckdb.Database): Promise<any> {
-  return new Promise((resolve, reject) => {
-    db.all(`
+async function getHierarchyStats(conn: DuckDBConnection): Promise<any[]> {
+  const reader = await conn.runAndReadAll(`
       SELECT
         geo_type,
         COUNT(*) as count,
@@ -155,49 +128,47 @@ function getHierarchyStats(db: duckdb.Database): Promise<any> {
           WHEN 'tract' THEN 3
           WHEN 'block_group' THEN 4
         END
-    `, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows);
-    });
-  });
+    `);
+  return reader.getRowObjects();
 }
 
 async function createGeoHierarchy(): Promise<void> {
   console.log('🗺️  Creating Geographic Hierarchy Metadata...\n');
 
-  const db = new duckdb.Database(DB_PATH);
+  const instance = await DuckDBInstance.create(DB_PATH);
+  const conn = await instance.connect();
 
   try {
     // Create table
     console.log('📋 Creating geo_hierarchy table...');
-    await createHierarchyTable(db);
+    await createHierarchyTable(conn);
     console.log('✅ Table created\n');
 
     // Populate from each level
     console.log('📊 Populating hierarchy from existing data...\n');
 
     console.log('  → Loading states...');
-    await populateStateHierarchy(db);
+    await populateStateHierarchy(conn);
 
     console.log('  → Loading counties...');
-    await populateCountyHierarchy(db);
+    await populateCountyHierarchy(conn);
 
     console.log('  → Loading tracts...');
-    await populateTractHierarchy(db);
+    await populateTractHierarchy(conn);
 
     console.log('  → Loading block groups...');
-    await populateBlockGroupHierarchy(db);
+    await populateBlockGroupHierarchy(conn);
 
     console.log('\n✅ Hierarchy populated!\n');
 
     // Get stats
-    const stats = await getHierarchyStats(db);
+    const stats = await getHierarchyStats(conn);
 
     console.log('📈 Geographic Hierarchy Summary:');
     console.log('================================\n');
 
     stats.forEach((row: any) => {
-      const geoTypeFormatted = row.geo_type.replace('_', ' ').toUpperCase();
+      const geoTypeFormatted = String(row.geo_type).replace('_', ' ').toUpperCase();
       const countFormatted = row.count.toLocaleString();
       const popFormatted = row.total_population.toLocaleString();
       console.log(`  ${geoTypeFormatted.padEnd(12)} ${countFormatted.padStart(10)} geographies  |  ${popFormatted.padStart(15)} total pop`);
@@ -222,13 +193,13 @@ async function createGeoHierarchy(): Promise<void> {
     console.log('     FROM geo_hierarchy h JOIN hierarchy p ON h.geoid = p.parent_geoid');
     console.log('   ) SELECT * FROM hierarchy ORDER BY level DESC;\n');
 
-    db.close();
+    conn.closeSync();
 
     console.log('✨ Geographic hierarchy complete!\n');
 
   } catch (error) {
     console.error('❌ Error creating hierarchy:', error);
-    db.close();
+    conn.closeSync();
     throw error;
   }
 }
