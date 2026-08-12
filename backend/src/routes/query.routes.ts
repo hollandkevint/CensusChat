@@ -3,6 +3,7 @@ import { anthropicService } from '../services/anthropicService';
 import { queryRateLimit, censusApiUserRateLimit } from '../middleware/rateLimiting';
 import { FallbackService, CensusApiErrorType } from '../services/fallbackService';
 import { getDuckDBPool } from '../utils/duckdbPool';
+import { ACS_VINTAGE_LABEL } from '../config/censusVintage';
 import { mapStateAbbreviationsInQuery } from '../utils/stateMapper';
 import { getCensusChat_MCPClient } from '../mcp/mcpClient';
 import { getHealthcareAnalyticsModule } from '../modules/healthcare_analytics';
@@ -344,7 +345,7 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
 
             data = mcpResult.result.data;
             totalRecords = mcpResult.result.metadata.rowCount;
-            dataSource = 'DuckDB Production (MCP Validated)';
+            dataSource = `DuckDB Production (MCP Validated) · ${ACS_VINTAGE_LABEL}`;
             usedDuckDB = true;
 
             // Log successful execution

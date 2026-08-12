@@ -1,3 +1,5 @@
+import { ACS_VINTAGE_LABEL } from '../config/censusVintage';
+
 export interface DataFreshness {
   dataset: string;
   lastUpdated: Date;
@@ -197,8 +199,8 @@ class DataFreshnessTracker {
   initializeHealthcareDatasets(): void {
     const healthcareDatasets = [
       { name: 'census_variables', source: 'US Census Bureau', staleHours: 168 }, // 1 week
-      { name: 'zip5_demographics', source: 'ACS 5-Year', staleHours: 24 }, // 1 day
-      { name: 'block_group_demographics', source: 'ACS 5-Year', staleHours: 24 }, // 1 day
+      { name: 'zip5_demographics', source: ACS_VINTAGE_LABEL, staleHours: 24 }, // 1 day
+      { name: 'block_group_demographics', source: ACS_VINTAGE_LABEL, staleHours: 24 }, // 1 day
       { name: 'healthcare_patterns', source: 'CensusChat Analytics', staleHours: 12 }, // 12 hours
       { name: 'medicare_eligibility', source: 'Healthcare Analytics', staleHours: 6 }, // 6 hours
       { name: 'population_health', source: 'Healthcare Analytics', staleHours: 6 }  // 6 hours

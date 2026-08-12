@@ -1,4 +1,5 @@
 import { censusDataLoader } from '../utils/censusDataLoader';
+import { ACS_VINTAGE_LABEL } from '../config/censusVintage';
 import { getHealthcareAnalyticsModule } from '../modules/healthcare_analytics';
 import { dataFreshnessTracker } from '../utils/dataFreshnessTracker';
 import { getDuckDBPool } from '../utils/duckdbPool';
@@ -105,7 +106,7 @@ export class DataRefreshService {
         dataFreshnessTracker.recordDataRefresh(
           'zip5_demographics',
           zip5Result.recordsLoaded,
-          'ACS 5-Year Survey'
+          ACS_VINTAGE_LABEL
         );
       } else {
         dataFreshnessTracker.markDatasetAsError(
@@ -125,7 +126,7 @@ export class DataRefreshService {
         dataFreshnessTracker.recordDataRefresh(
           'block_group_demographics',
           blockGroupResult.recordsLoaded,
-          'ACS 5-Year Survey'
+          ACS_VINTAGE_LABEL
         );
       } else {
         dataFreshnessTracker.markDatasetAsError(
