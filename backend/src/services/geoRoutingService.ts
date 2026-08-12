@@ -144,8 +144,6 @@ export function determineGeoLevel(intent: QueryIntent): GeoRoutingDecision {
  * Parse query text to extract geographic intent
  */
 export function parseQueryIntent(queryText: string): QueryIntent {
-  const lowerQuery = queryText.toLowerCase();
-
   // State detection
   const statePatterns = [
     /\b(california|texas|florida|new york|illinois|pennsylvania|ohio|georgia|north carolina|michigan)\b/i,

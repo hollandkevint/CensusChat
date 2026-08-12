@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { anthropicService } from '../services/anthropicService';
 import { queryRateLimit, censusApiUserRateLimit } from '../middleware/rateLimiting';
 import { FallbackService, CensusApiErrorType } from '../services/fallbackService';
-import { getDuckDBPool } from '../utils/duckdbPool';
 import { ACS_VINTAGE_LABEL } from '../config/censusVintage';
 import { mapStateAbbreviationsInQuery } from '../utils/stateMapper';
 import { getCensusChat_MCPClient } from '../mcp/mcpClient';
@@ -13,38 +12,8 @@ import { AgentSdkService } from '../agent/agentSdkService';
 
 const router = Router();
 
-// Feature flag for DuckDB pool usage
-const USE_PRODUCTION_DUCKDB = process.env.USE_PRODUCTION_DUCKDB === 'true';
-
 // Feature flag for Agent SDK usage (gradual rollout)
 const USE_AGENT_SDK = process.env.USE_AGENT_SDK === 'true';
-
-// DuckDB query helper using connection pool (DEPRECATED - use MCP client instead)
-/* eslint-disable @typescript-eslint/no-unused-vars */
-const queryDuckDB = async (sql: string): Promise<any[]> => {
-  if (!USE_PRODUCTION_DUCKDB) {
-    console.log('🔧 Production DuckDB disabled via feature flag, will use fallback');
-    throw new Error('Production DuckDB disabled via feature flag');
-  }
-
-  try {
-    console.log('🏊 Using DuckDB connection pool for query...');
-    const pool = getDuckDBPool();
-
-    // Initialize pool if not already done
-    if (!pool.getStats().totalConnections) {
-      console.log('🚀 Initializing DuckDB pool...');
-      await pool.initialize();
-    }
-
-    const result = await pool.query(sql);
-    console.log('✅ DuckDB pool query successful, rows:', result?.length || 0);
-    return result;
-  } catch (error) {
-    console.error('❌ DuckDB pool query error:', error);
-    throw new Error(`DuckDB pool query failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-};
 
 // Healthcare analytics helper function using FDB-MCP module
 async function tryHealthcareAnalytics(query: string, analysis: any): Promise<any> {
@@ -451,7 +420,7 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
     const result = await Promise.race([processQuery(), timeout]);
 
     // Convert BigInts to strings for JSON serialization
-    const serializedResult = JSON.parse(JSON.stringify(result, (key, value) =>
+    const serializedResult = JSON.parse(JSON.stringify(result, (_key, value) =>
       typeof value === 'bigint' ? value.toString() : value
     ));
 

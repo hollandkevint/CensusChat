@@ -189,8 +189,8 @@ export class HealthcareAnalyticsTools {
 
   private static async enrichFacilityData(
     internalData: any[],
-    parameters: any,
-    mcpClient: any
+    _parameters: any,
+    _mcpClient: any
   ): Promise<any[]> {
     // For facility data, we would typically connect to healthcare facility databases
     // For now, return internal data with a note about data sources

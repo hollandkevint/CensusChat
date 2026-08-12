@@ -7,7 +7,6 @@ const redis = new Redis({
   host: config.database.redis.host,
   port: config.database.redis.port,
   password: config.database.redis.password,
-  retryDelayOnFailover: 100,
   maxRetriesPerRequest: 3,
   lazyConnect: true,
   connectTimeout: 2000,
@@ -273,7 +272,12 @@ export async function getAllRateLimitStatus(): Promise<{
   type: 'census' | 'query' | 'user' | 'unknown';
 }[]> {
   try {
-    const keys = await redis.keys('rate_limit:*', 'census:*', 'query:*');
+    const [rateLimitKeys, censusKeys, queryKeys] = await Promise.all([
+      redis.keys('rate_limit:*'),
+      redis.keys('census:*'),
+      redis.keys('query:*')
+    ]);
+    const keys = [...rateLimitKeys, ...censusKeys, ...queryKeys];
     if (keys.length === 0) return [];
 
     const pipeline = redis.pipeline();

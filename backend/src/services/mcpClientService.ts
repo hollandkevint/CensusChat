@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { getDuckDBPool } from '../utils/duckdbPool';
 import { mcpClientConfigs, MCPClientConfig } from '../config/mcpConfig';
-import { CircuitBreaker, CircuitState } from '../utils/circuitBreaker';
+import { CircuitBreaker } from '../utils/circuitBreaker';
 import { getMCPMonitoring } from '../utils/mcpMonitoring';
 
 export interface MCPClientStatus {
@@ -170,8 +170,6 @@ export class MCPClientService extends EventEmitter {
   }
 
   private async simulateToolCall(client: string, tool: string, parameters: any): Promise<any> {
-    const pool = getDuckDBPool();
-
     // Simulate external data source calls with local data
     switch (client) {
       case 'census_api':
@@ -218,13 +216,11 @@ export class MCPClientService extends EventEmitter {
     }
   }
 
-  private async simulateMedicareAPICall(tool: string, parameters: any): Promise<any> {
+  private async simulateMedicareAPICall(tool: string, _parameters: any): Promise<any> {
     const pool = getDuckDBPool();
 
     switch (tool) {
       case 'get_ma_penetration':
-        const { geography, year } = parameters;
-
         // Simulate Medicare Advantage penetration data
         const query = `
           SELECT

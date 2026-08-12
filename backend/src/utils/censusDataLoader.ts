@@ -177,9 +177,9 @@ export class CensusDataLoader {
     try {
       console.log('Loading Census variable metadata...');
       
-      // Get common variables from knowledge base
-      const knowledgeBase = await censusApiService.getTestQueries();
-      const commonVariables = await censusApiService.getAvailableDatasets();
+      // Warm knowledge base and dataset metadata
+      await censusApiService.getTestQueries();
+      await censusApiService.getAvailableDatasets();
 
       // Manually define common variables from the PDF knowledge
       const variables: CensusVariable[] = [

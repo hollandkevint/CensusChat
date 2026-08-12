@@ -4,7 +4,6 @@
  */
 
 import { SqlPattern } from './HealthcareSqlLibrary';
-import { GeographicParams } from '../types/HealthcareAnalyticsTypes';
 
 export class MedicareEligibilityPatterns {
   static getBasicEligibilityPattern(): SqlPattern {

@@ -24,10 +24,8 @@ export interface SemanticAnalysis {
 
 export class NaturalLanguageQueryRouter {
   private patterns: Map<string, PatternDefinition> = new Map();
-  private config: HealthcareAnalyticsConfig;
 
-  constructor(config: HealthcareAnalyticsConfig) {
-    this.config = config;
+  constructor(_config: HealthcareAnalyticsConfig) {
     this.initializePatterns();
   }
 
@@ -81,7 +79,7 @@ export class NaturalLanguageQueryRouter {
   }
 
   async mapToSqlPattern(analysis: SemanticAnalysis): Promise<QueryTranslationPattern> {
-    const { intent, entities, confidence } = analysis;
+    const { intent, entities } = analysis;
 
     // Select appropriate SQL pattern based on intent and entities
     let sqlPattern = '';

@@ -11,9 +11,9 @@ const router = Router();
 const mcpService = getMCPHealthcareService();
 
 // Protocol Information
-router.get('/info', async (req, res) => {
+router.get('/info', async (_req, res) => {
   try {
-    const protocolInfo = mcpService.getProtocolInfo();
+    const protocolInfo = mcpService.getCapabilities();
     res.json(protocolInfo);
   } catch (error) {
     console.error('❌ MCP protocol info error:', error);
@@ -26,9 +26,9 @@ router.get('/info', async (req, res) => {
 });
 
 // Health Check
-router.get('/health', async (req, res) => {
+router.get('/health', async (_req, res) => {
   try {
-    const health = await mcpService.getHealthStatus();
+    const health = await mcpService.healthCheck();
     res.json(health);
   } catch (error) {
     console.error('❌ MCP health check error:', error);
@@ -41,16 +41,15 @@ router.get('/health', async (req, res) => {
 });
 
 // Available Tools
-router.get('/tools', authenticateMCPRequest, async (req, res) => {
+router.get('/tools', authenticateMCPRequest, async (_req, res) => {
   try {
-    const tools = mcpService.getAvailableTools();
+    const tools = mcpService.getToolDefinitions();
     res.json({
       success: true,
-      tools: Array.from(tools.entries()).map(([name, tool]) => ({
-        name,
+      tools: tools.map((tool) => ({
+        name: tool.name,
         description: tool.description,
-        parameters: tool.inputSchema,
-        permissions: tool.requiredPermission
+        parameters: tool.parameters
       }))
     });
   } catch (error) {
@@ -168,7 +167,7 @@ router.post('/tools/:toolName',
  * GET /api/v1/mcp/resources - Return available UI resources
  * Returns HTML content for MCP Apps that can be rendered in sandboxed iframes
  */
-router.get('/resources', (req, res) => {
+router.get('/resources', (_req, res) => {
   try {
     const mcpAppsDir = join(__dirname, '../mcp/mcpApps');
     const resources: Array<{ uri: string; html: string }> = [];
