@@ -9,8 +9,7 @@ const mockDuckDBPool = {
   initialize: jest.fn(),
   close: jest.fn(),
   getStats: jest.fn(() => ({ totalConnections: 1 })),
-  healthCheck: jest.fn(() => Promise.resolve(true)),
-  validateMCPExtension: jest.fn(() => Promise.resolve(true))
+  healthCheck: jest.fn(() => Promise.resolve(true))
 };
 
 (getDuckDBPool as jest.Mock).mockReturnValue(mockDuckDBPool);
@@ -244,10 +243,20 @@ describe('MCPServerService', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle MCP extension not available', async () => {
-      mockDuckDBPool.validateMCPExtension.mockResolvedValueOnce(false);
+    it('should reject and emit error when server startup fails fatally', async () => {
+      // A non-compatibility DuckDB failure during startMCPServer (i.e. an error
+      // that is NOT the "mcp_server_start does not exist" degrade path) must
+      // propagate out of start() and surface as an 'error' event.
+      mockDuckDBPool.query.mockRejectedValueOnce(new Error('Fatal DuckDB failure'));
 
-      await expect(mcpServer.start()).rejects.toThrow('MCP extension not available in DuckDB');
+      const errorSpy = jest.fn();
+      mcpServer.on('error', errorSpy);
+
+      await expect(mcpServer.start()).rejects.toThrow('Fatal DuckDB failure');
+      expect(errorSpy).toHaveBeenCalledWith(expect.any(Error));
+      expect(mcpServer.getStatus().isRunning).toBe(false);
+
+      mcpServer.off('error', errorSpy);
     });
 
     it('should handle MCP server function not available', async () => {

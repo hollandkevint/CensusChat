@@ -3,6 +3,27 @@
  * Tests the complete MCP flow: session management, tool execution, error handling
  */
 
+// @modelcontextprotocol/ext-apps ships as ESM that Jest's ts-jest transform does
+// not process; it is pulled in by mcp/mcpServer.ts purely to attach interactive
+// UI-resource metadata to a few tools. That UI layer is orthogonal to the HTTP
+// transport behavior under test here, so stub it: registerAppTool still registers
+// a working tool on the server (so execute_query et al. remain callable), just
+// without the UI decoration. The rest of the MCP SDK is CommonJS and loads for
+// real. (The core @modelcontextprotocol/sdk is not mocked.)
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { ZodRawShape } from 'zod';
+
+jest.mock('@modelcontextprotocol/ext-apps/server', () => ({
+  registerAppTool: (
+    server: McpServer,
+    name: string,
+    config: { description: string; inputSchema: ZodRawShape },
+    handler: Parameters<McpServer['tool']>[3]
+  ) => server.tool(name, config.description, config.inputSchema, handler),
+  registerAppResource: () => {},
+  RESOURCE_MIME_TYPE: 'text/html+skybridge',
+}));
+
 import express, { Application } from 'express';
 import { Server } from 'http';
 import { AddressInfo } from 'net';

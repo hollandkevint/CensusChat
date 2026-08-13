@@ -3,7 +3,10 @@ import express from 'express';
 import { exportRoutes } from '../../routes/export.routes';
 
 const app = express();
-app.use(express.json());
+// Mirror the production body-size limit (see src/index.ts). The default 100kb
+// limit would reject the large-dataset payload at the body parser before it
+// ever reaches the route, so the DATASET_TOO_LARGE path could not be exercised.
+app.use(express.json({ limit: '10mb' }));
 app.use('/api/v1/export', exportRoutes);
 
 describe('Export Routes', () => {
