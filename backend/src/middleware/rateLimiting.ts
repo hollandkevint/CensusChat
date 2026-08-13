@@ -7,7 +7,6 @@ const redis = new Redis({
   host: config.database.redis.host,
   port: config.database.redis.port,
   password: config.database.redis.password,
-  retryDelayOnFailover: 100,
   maxRetriesPerRequest: 3,
   lazyConnect: true,
   connectTimeout: 2000,
@@ -70,9 +69,16 @@ export const RATE_LIMIT_PRESETS = {
  */
 export function createRateLimit(rateLimitConfig: RateLimitConfig) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    // If Redis is not available, allow request to proceed
+    // If Redis is not available, allow request to proceed but still surface the
+    // configured rate-limit headers so clients get consistent limit metadata.
     if (!redisAvailable) {
       console.warn('Redis not available, skipping rate limiting');
+      res.set({
+        'X-RateLimit-Limit': rateLimitConfig.maxRequests.toString(),
+        'X-RateLimit-Remaining': rateLimitConfig.maxRequests.toString(),
+        'X-RateLimit-Reset': (Date.now() + rateLimitConfig.windowMs).toString(),
+        'X-RateLimit-Window': rateLimitConfig.windowMs.toString()
+      });
       next();
       return;
     }
@@ -273,7 +279,12 @@ export async function getAllRateLimitStatus(): Promise<{
   type: 'census' | 'query' | 'user' | 'unknown';
 }[]> {
   try {
-    const keys = await redis.keys('rate_limit:*', 'census:*', 'query:*');
+    const [rateLimitKeys, censusKeys, queryKeys] = await Promise.all([
+      redis.keys('rate_limit:*'),
+      redis.keys('census:*'),
+      redis.keys('query:*')
+    ]);
+    const keys = [...rateLimitKeys, ...censusKeys, ...queryKeys];
     if (keys.length === 0) return [];
 
     const pipeline = redis.pipeline();

@@ -4,7 +4,6 @@
  */
 
 import { SqlPattern } from './HealthcareSqlLibrary';
-import { RiskFactorParams } from '../types/HealthcareAnalyticsTypes';
 
 export class PopulationHealthPatterns {
   static getBasicRiskAssessmentPattern(): SqlPattern {

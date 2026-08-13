@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/kthkellogg/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

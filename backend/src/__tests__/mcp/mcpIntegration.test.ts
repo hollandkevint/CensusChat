@@ -3,12 +3,34 @@
  * Tests the complete MCP flow: session management, tool execution, error handling
  */
 
+// @modelcontextprotocol/ext-apps ships as ESM that Jest's ts-jest transform does
+// not process; it is pulled in by mcp/mcpServer.ts purely to attach interactive
+// UI-resource metadata to a few tools. That UI layer is orthogonal to the HTTP
+// transport behavior under test here, so stub it: registerAppTool still registers
+// a working tool on the server (so execute_query et al. remain callable), just
+// without the UI decoration. The rest of the MCP SDK is CommonJS and loads for
+// real. (The core @modelcontextprotocol/sdk is not mocked.)
+import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { ZodRawShape } from 'zod';
+
+jest.mock('@modelcontextprotocol/ext-apps/server', () => ({
+  registerAppTool: (
+    server: McpServer,
+    name: string,
+    config: { description: string; inputSchema: ZodRawShape },
+    handler: Parameters<McpServer['tool']>[3]
+  ) => server.tool(name, config.description, config.inputSchema, handler),
+  registerAppResource: () => {},
+  RESOURCE_MIME_TYPE: 'text/html+skybridge',
+}));
+
 import express, { Application } from 'express';
 import { Server } from 'http';
 import { AddressInfo } from 'net';
 import { mcpTransportRouter } from '../../mcp/mcpRoutes';
 import { MCPHttpClient } from '../../mcp/mcpClient';
 import { getSessionManager, McpSessionManager } from '../../mcp/mcpSessionManager';
+import { getDuckDBPool } from '../../utils/duckdbPool';
 
 describe('MCP HTTP Transport Integration', () => {
   let app: Application;
@@ -29,6 +51,28 @@ describe('MCP HTTP Transport Integration', () => {
     baseUrl = `http://localhost:${address.port}`;
 
     sessionManager = getSessionManager();
+
+    // Ensure county_data exists with a couple rows so the execute-query tests run
+    // hermetically in CI, where the real census.duckdb (gitignored, ~161MB) is
+    // absent. Seed only when empty, so a local DB loaded with real data is untouched.
+    const pool = getDuckDBPool();
+    await pool.initialize();
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS county_data (
+        state VARCHAR, county VARCHAR, state_name VARCHAR, county_name VARCHAR,
+        population INTEGER, median_income INTEGER, poverty_rate DOUBLE,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (state, county)
+      )
+    `);
+    const countRows = await pool.query('SELECT COUNT(*) AS c FROM county_data');
+    if (Number(countRows[0].c) === 0) {
+      await pool.query(`
+        INSERT INTO county_data (state, county, state_name, county_name, population, median_income, poverty_rate)
+        VALUES ('12','086','Florida','Miami-Dade County',2716940,68000,15.0),
+               ('06','037','California','Los Angeles County',9808667,90112,13.0)
+      `);
+    }
   });
 
   beforeEach(() => {

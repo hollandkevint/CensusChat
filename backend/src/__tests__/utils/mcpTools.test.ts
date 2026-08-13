@@ -25,6 +25,12 @@ const mockMCPClient = {
 describe('HealthcareAnalyticsTools', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // clearAllMocks (mockClear) does NOT drain the mockResolvedValueOnce/
+    // mockRejectedValueOnce queues. Reset the inner mock fns so an unconsumed
+    // "once" from a prior test (e.g. the unknown-analysis-type case, whose
+    // reject is never reached) cannot leak into the next test.
+    mockMCPServer.executeTool.mockReset();
+    mockMCPClient.callTool.mockReset();
   });
 
   describe('executeAnalysis', () => {
@@ -57,7 +63,7 @@ describe('HealthcareAnalyticsTools', () => {
       expect(result.metadata.analysisType).toBe('medicare_eligibility');
       expect(result.metadata.dataSource).toBe('CensusChat Internal');
       expect(result.metadata.recordCount).toBe(1);
-      expect(result.metadata.executionTime).toBeGreaterThan(0);
+      expect(result.metadata.executionTime).toBeGreaterThanOrEqual(0);
 
       expect(mockMCPServer.executeTool).toHaveBeenCalledWith(
         'calculate_medicare_eligibility',

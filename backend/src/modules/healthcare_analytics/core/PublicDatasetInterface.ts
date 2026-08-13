@@ -6,15 +6,21 @@
 import {
   PublicDatasetAdapter,
   StandardizedDataFormat,
-  FederatedQueryOptions,
   QueryTranslationPattern
 } from '../types/HealthcareAnalyticsTypes';
 
 // Re-export important types for external use
 export { PublicDatasetAdapter, StandardizedDataFormat } from '../types/HealthcareAnalyticsTypes';
 
+/** Connection lifecycle state for a public-dataset adapter. */
+export enum ConnectionStatus {
+  Connected = 'connected',
+  Disconnected = 'disconnected',
+  Error = 'error',
+}
+
 export abstract class BasePublicDatasetAdapter implements PublicDatasetAdapter {
-  abstract source: 'census_bureau' | 'cms' | 'cdc' | 'bls';
+  abstract source: 'census_bureau' | 'cms' | 'cms_gov' | 'cdc' | 'bls';
   abstract name: string;
   abstract version: string;
 

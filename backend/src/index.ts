@@ -71,6 +71,10 @@ app.use(errorHandler);
 // Start server
 const PORT = config.port;
 
+// Under test, supertest drives the exported `app` directly. Binding the port
+// here causes EADDRINUSE when multiple suites import this module in parallel,
+// so skip listening in the test environment.
+if (process.env.NODE_ENV !== 'test') {
 server.listen(PORT, async () => {
   console.log(`
     🚀 CensusChat Backend Server Started
@@ -98,6 +102,7 @@ server.listen(PORT, async () => {
     console.warn('⚠️ Server will continue with limited MCP functionality');
   }
 });
+}
 
 // Graceful shutdown with MCP services and DuckDB pool cleanup
 const gracefulShutdown = async (signal: string) => {

@@ -10,19 +10,13 @@ import {
   GeographicParams,
   RiskFactorParams,
   FacilityParams,
-  QueryRequest,
-  QueryResult,
-  AnalysisResult,
-  RiskAnalysis,
-  AdequacyMetrics
+  QueryRequest
 } from '../modules/healthcare_analytics/types/HealthcareAnalyticsTypes';
 import {
-  MCPResponseFormatter,
   MCPErrorCode,
   createHealthcareResponse,
   createErrorResponse,
-  MCPResponseEnvelope,
-  HealthcareMCPResponse
+  MCPResponseEnvelope
 } from '../utils/mcpResponseFormatter';
 
 // MCP Protocol Version
@@ -527,7 +521,7 @@ export class MCPHealthcareService {
       try {
         const testParams = this.generateTestParameters(toolName);
         const result = await this.executeTool(toolName, testParams);
-        toolHealth[toolName] = result.success;
+        toolHealth[toolName] = result.status.success;
       } catch (error) {
         toolHealth[toolName] = false;
       }

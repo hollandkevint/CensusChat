@@ -59,7 +59,13 @@ export class FallbackService {
       return CensusApiErrorType.RATE_LIMIT_EXCEEDED;
     }
 
-    if (statusCode === 401 || statusCode === 403 || lowerMessage.includes('authentication')) {
+    if (
+      statusCode === 401 ||
+      statusCode === 403 ||
+      lowerMessage.includes('authentication') ||
+      lowerMessage.includes('unauthorized') ||
+      lowerMessage.includes('forbidden')
+    ) {
       return CensusApiErrorType.AUTHENTICATION_FAILED;
     }
 
@@ -88,7 +94,7 @@ export class FallbackService {
   static determineFallbackStrategy(
     errorType: CensusApiErrorType,
     hasCachedData: boolean,
-    query: CensusQuery
+    _query: CensusQuery
   ): FallbackStrategy {
     switch (errorType) {
       case CensusApiErrorType.RATE_LIMIT_EXCEEDED:
@@ -166,7 +172,7 @@ export class FallbackService {
   ): FallbackResponse {
     // Transform cached Census API response to expected format
     const [headers, ...rows] = cachedData.data;
-    const transformedData = rows.map((row, idx) => {
+    const transformedData = rows.map((row) => {
       const record: any = {};
       headers.forEach((header, headerIdx) => {
         record[header] = row[headerIdx];
@@ -226,7 +232,7 @@ export class FallbackService {
    * Create simplified response with helpful information
    */
   private static createSimplifiedResponse(
-    query: CensusQuery,
+    _query: CensusQuery,
     queryTime: number,
     errorType: CensusApiErrorType,
     originalError: Error | string
@@ -253,7 +259,7 @@ export class FallbackService {
    * Create error response
    */
   private static createErrorResponse(
-    query: CensusQuery,
+    _query: CensusQuery,
     queryTime: number,
     errorType: CensusApiErrorType,
     originalError: Error | string

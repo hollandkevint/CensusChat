@@ -118,9 +118,11 @@ export class MCPAuthService {
       iat: Math.floor(Date.now() / 1000)
     };
 
-    return jwt.sign(payload, authConfig.jwtSecret, {
-      expiresIn: authConfig.jwtExpirationTime
-    });
+    const signOptions: jwt.SignOptions = {
+      expiresIn: authConfig.jwtExpirationTime as jwt.SignOptions['expiresIn']
+    };
+
+    return jwt.sign(payload, authConfig.jwtSecret, signOptions);
   }
 
   static verifyJWT(token: string): MCPAuthUser | null {
@@ -342,4 +344,4 @@ export const authorizeMCPTool = (requiredPermission?: string) => {
 // Initialize the service
 MCPAuthService.initializeService();
 
-export { MCPAuthService, authConfig };
+export { authConfig };

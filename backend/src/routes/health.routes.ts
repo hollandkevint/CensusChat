@@ -12,7 +12,7 @@ const router = Router();
  * @desc Health check endpoint
  * @access Public
  */
-router.get('/', (req: Request, res: Response) => {
+router.get('/', (_req: Request, res: Response) => {
   try {
     const healthStatus = {
       status: 'healthy',
@@ -42,7 +42,7 @@ router.get('/', (req: Request, res: Response) => {
  * @desc Demo data status endpoint
  * @access Public
  */
-router.get('/demo', (req: Request, res: Response) => {
+router.get('/demo', (_req: Request, res: Response) => {
   try {
     const dataDir = path.join(process.cwd(), 'data');
     const demoStatusPath = path.join(dataDir, 'demo-status.json');
@@ -72,7 +72,7 @@ router.get('/demo', (req: Request, res: Response) => {
  * @desc Export service health check
  * @access Public
  */
-router.get('/export', (req: Request, res: Response) => {
+router.get('/export', (_req: Request, res: Response) => {
   try {
     const tempDir = path.join(process.cwd(), 'temp', 'exports');
     const isWritable = fs.existsSync(tempDir) && fs.statSync(tempDir).isDirectory();
@@ -106,7 +106,7 @@ router.get('/export', (req: Request, res: Response) => {
  * @desc MCP services health and monitoring endpoint
  * @access Public
  */
-router.get('/mcp', async (req: Request, res: Response) => {
+router.get('/mcp', async (_req: Request, res: Response) => {
   try {
     const monitoring = getMCPMonitoring();
     const mcpServer = getMCPServerService();
@@ -149,7 +149,7 @@ router.get('/mcp', async (req: Request, res: Response) => {
  * @desc Prometheus-format MCP metrics endpoint
  * @access Public
  */
-router.get('/mcp/metrics', (req: Request, res: Response) => {
+router.get('/mcp/metrics', (_req: Request, res: Response) => {
   try {
     const monitoring = getMCPMonitoring();
     const metrics = monitoring.exportMetrics();

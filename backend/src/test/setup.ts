@@ -14,6 +14,11 @@ process.env.REDIS_PORT = '6379';
 process.env.DUCKDB_PATH = ':memory:';
 process.env.DUCKDB_MEMORY = 'true';
 process.env.CENSUS_API_URL = 'https://api.census.gov';
+// Force the Census service into hermetic mock mode for tests. Set before the
+// app/dotenv loads so dotenv.config() (which does not override existing vars)
+// cannot leak a real key from .env into the test process.
+process.env.CENSUS_API_KEY = '';
+process.env.USE_LIVE_CENSUS_API = 'false';
 process.env.PORT = '3001';
 process.env.CORS_ORIGIN = 'http://localhost:3000';
 

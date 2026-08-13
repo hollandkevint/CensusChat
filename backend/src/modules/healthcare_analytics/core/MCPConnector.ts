@@ -10,8 +10,7 @@ import {
   RiskAnalysis,
   RiskFactorParams,
   AdequacyMetrics,
-  FacilityParams,
-  QueryTranslationPattern
+  FacilityParams
 } from '../types/HealthcareAnalyticsTypes';
 
 import { getMCPServerService } from '../../../services/mcpServerService';
@@ -131,7 +130,7 @@ export class MCPConnector {
 
     // Register with MCP server if available
     try {
-      const mcpServer = getMCPServerService();
+      getMCPServerService();
       // The MCP server will handle the tool registration through its existing mechanism
       console.log(`✅ External MCP tool registered: ${toolName}`);
     } catch (error) {

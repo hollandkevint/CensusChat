@@ -11,7 +11,7 @@ const router = Router();
  * @desc Test Census API connectivity and authentication
  * @access Public
  */
-router.get('/test-connection', async (req: Request, res: Response) => {
+router.get('/test-connection', async (_req: Request, res: Response) => {
   try {
     const serviceStatus = censusApiService.getServiceStatus();
     const authResult = await censusApiService.testAuthentication();
@@ -47,7 +47,7 @@ router.get('/test-connection', async (req: Request, res: Response) => {
  * @desc Get available test queries from knowledge base
  * @access Public
  */
-router.get('/test-queries', async (req: Request, res: Response) => {
+router.get('/test-queries', async (_req: Request, res: Response) => {
   try {
     const testQueries = await censusApiService.getTestQueries();
     const geographicLevels = await censusApiService.getGeographicLevels();
@@ -171,7 +171,7 @@ router.get('/acs5/block-group', async (req: Request, res: Response) => {
  * @desc Load initial test data into DuckDB
  * @access Public
  */
-router.post('/load-test-data', async (req: Request, res: Response) => {
+router.post('/load-test-data', async (_req: Request, res: Response) => {
   try {
     console.log('Starting Census test data loading...');
     const result = await censusDataLoader.loadAllTestData();
@@ -202,7 +202,7 @@ router.post('/load-test-data', async (req: Request, res: Response) => {
  * @desc Get statistics about stored Census data
  * @access Public
  */
-router.get('/data/stats', async (req: Request, res: Response) => {
+router.get('/data/stats', async (_req: Request, res: Response) => {
   try {
     const geographyStats = await censusDataModel.getGeographyLevelStats();
     
@@ -362,7 +362,7 @@ router.get('/counties/:state', async (req: Request, res: Response) => {
  * @desc Get cache statistics
  * @access Public
  */
-router.get('/cache/stats', async (req: Request, res: Response) => {
+router.get('/cache/stats', async (_req: Request, res: Response) => {
   try {
     const stats = await getCacheStats();
 
@@ -414,7 +414,7 @@ router.post('/cache/invalidate', async (req: Request, res: Response) => {
  * @desc Clean expired cache entries
  * @access Public
  */
-router.post('/cache/clean', async (req: Request, res: Response) => {
+router.post('/cache/clean', async (_req: Request, res: Response) => {
   try {
     const cleanedCount = await cleanExpiredCache();
 

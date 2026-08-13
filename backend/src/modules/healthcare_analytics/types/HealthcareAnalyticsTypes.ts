@@ -4,7 +4,7 @@
  */
 
 export interface QueryTranslationPattern {
-  intent: 'healthcare_analytics' | 'demographics' | 'economic_indicators';
+  intent: 'healthcare_analytics' | 'demographics' | 'economic_indicators' | string;
   entities: {
     geography: string[];
     metrics: string[];
@@ -69,11 +69,12 @@ export interface AdequacyMetrics {
 }
 
 export interface StandardizedDataFormat {
-  source: string;
-  version: string;
-  timestamp: Date;
+  source?: string;
+  version?: string;
+  timestamp?: Date;
   data: Record<string, any>[];
-  schema: Record<string, string>;
+  schema?: Record<string, string>;
+  metadata?: Record<string, any>;
 }
 
 export interface QueryRequest {
@@ -92,6 +93,7 @@ export interface QueryResult {
     recordCount: number;
     queryPattern: string;
     confidenceLevel: number;
+    dataFreshness?: Record<string, unknown>;
   };
   error?: string;
 }
@@ -119,7 +121,7 @@ export interface MCPHealthcareTools {
 }
 
 export interface PublicDatasetAdapter {
-  source: 'census_bureau' | 'cms' | 'cdc' | 'bls';
+  source: 'census_bureau' | 'cms' | 'cms_gov' | 'cdc' | 'bls';
   name: string;
   version: string;
   connect(): Promise<void>;
@@ -127,6 +129,7 @@ export interface PublicDatasetAdapter {
   transformResults(rawData: any[]): Promise<StandardizedDataFormat>;
   healthCheck(): Promise<boolean>;
   disconnect(): Promise<void>;
+  getSupportedFeatures?(): string[];
 }
 
 export interface FederatedQueryOptions {
@@ -181,11 +184,19 @@ export interface DataSourceMetadata {
 }
 
 export interface PerformanceMetrics {
-  queryId: string;
-  executionTime: number;
-  dataSourcesUsed: string[];
-  recordsProcessed: number;
-  cacheHit: boolean;
-  errors: string[];
-  timestamp: Date;
+  cacheStats: {
+    size: number;
+    maxSize: number;
+    hitRatio: number;
+  };
+  avgExecutionTime: number;
+  totalQueries: number;
+  sub2sCompliance: number;
+  performanceProfiles: Array<{
+    pattern: string;
+    avgExecutionTime: number;
+    hitRate: number;
+    lastOptimized: Date;
+    optimizations: any[];
+  }>;
 }

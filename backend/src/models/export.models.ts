@@ -1,3 +1,5 @@
+import { Alignment } from 'exceljs';
+
 export interface ExportRequest {
   queryId: string;
   format: 'excel' | 'csv';
@@ -60,7 +62,7 @@ export interface ExcelFormatting {
   };
   dataStyle: {
     font: { size: number };
-    alignment: { horizontal: string; vertical: string };
+    alignment: Partial<Alignment>;
   };
   numberFormat: string;
 }

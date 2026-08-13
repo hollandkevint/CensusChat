@@ -257,6 +257,25 @@ export class CensusDataModel {
   }
 
   /**
+   * Read census variable metadata, optionally filtered by variable name
+   */
+  async getCensusVariables(variableNames?: string[]): Promise<CensusVariable[]> {
+    await this.ensureInitialized();
+    if (!this.connection) throw new Error('Database not initialized');
+
+    let sql = 'SELECT variable_name, label, concept, table_id, universe, variable_type FROM census_variables';
+
+    if (variableNames?.length) {
+      sql += ` WHERE variable_name IN ('${variableNames.join("','")}')`;
+    }
+
+    sql += ' ORDER BY variable_name';
+
+    const reader = await this.connection.runAndReadAll(sql);
+    return reader.getRowObjects() as unknown as CensusVariable[];
+  }
+
+  /**
    * Query census data with filters
    */
   async queryCensusData(filters: {
@@ -299,7 +318,7 @@ export class CensusDataModel {
     }
 
     const reader = await this.connection.runAndReadAll(sql);
-    return reader.getRowObjects() as CensusDataRecord[];
+    return reader.getRowObjects() as unknown as CensusDataRecord[];
   }
 
   /**

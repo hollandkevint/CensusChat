@@ -9,7 +9,7 @@
  */
 
 import axios from 'axios';
-import * as duckdb from 'duckdb';
+import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import * as fs from 'fs';
 import * as path from 'path';
 import dotenv from 'dotenv';
@@ -19,7 +19,7 @@ dotenv.config();
 
 const CENSUS_API_KEY = process.env.CENSUS_API_KEY;
 const CENSUS_API_BASE = 'https://api.census.gov/data';
-const YEAR = 2023;
+const YEAR = 2024;
 const DB_PATH = path.join(__dirname, '../data/census.duckdb');
 const PROGRESS_FILE = path.join(__dirname, '../data/tract-progress.json');
 
@@ -298,9 +298,8 @@ function saveProgress(progress: LoadProgress): void {
   fs.writeFileSync(PROGRESS_FILE, JSON.stringify(progress, null, 2));
 }
 
-function createTable(db: duckdb.Database): Promise<void> {
-  return new Promise((resolve, reject) => {
-    db.run(`
+async function createTable(conn: DuckDBConnection): Promise<void> {
+  await conn.run(`
       CREATE TABLE IF NOT EXISTS tract_data (
         -- Geographic (11-digit GEOID)
         state_fips VARCHAR(2),
@@ -335,17 +334,11 @@ function createTable(db: duckdb.Database): Promise<void> {
         children_with_2_parents_pct DOUBLE, children_single_parent_pct DOUBLE,
         single_person_households_pct DOUBLE, seniors_living_alone_pct DOUBLE, grandparents_responsible_pct DOUBLE
       )
-    `, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
+    `);
 }
 
-function insertTracts(db: duckdb.Database, tracts: TractData[]): Promise<void> {
-  return new Promise((resolve, reject) => {
+async function insertTracts(conn: DuckDBConnection, tracts: TractData[]): Promise<void> {
     if (tracts.length === 0) {
-      resolve();
       return;
     }
 
@@ -375,13 +368,11 @@ function insertTracts(db: duckdb.Database, tracts: TractData[]): Promise<void> {
         `${t.seniors_living_alone_pct},${t.grandparents_responsible_pct})`;
     }).join(',\n');
 
+    // ON CONFLICT DO NOTHING is a within-run resume guard: the fresh-start clear
+    // in loadTractData() (gated on progress-file absence) handles vintage refresh.
     const sql = `INSERT INTO tract_data VALUES ${values} ON CONFLICT (geoid) DO NOTHING`;
 
-    db.run(sql, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
+    await conn.run(sql);
 }
 
 async function loadTractData(): Promise<void> {
@@ -392,14 +383,23 @@ async function loadTractData(): Promise<void> {
     throw new Error('CENSUS_API_KEY not configured');
   }
 
+  const isFreshRun = !fs.existsSync(PROGRESS_FILE);
   const progress = loadProgress();
   console.log(`📊 Progress: ${progress.completedStates.length}/${STATES.length} states\n`);
 
-  const db = new duckdb.Database(DB_PATH);
+  const instance = await DuckDBInstance.create(DB_PATH);
+  const conn = await instance.connect();
 
   try {
-    await createTable(db);
+    await createTable(conn);
     console.log('✅ Tract table ready\n');
+
+    // Fresh vintage refresh: clear existing rows so new values land. Gated on
+    // progress-file absence so a resumed run keeps already-loaded states.
+    if (isFreshRun) {
+      await conn.run('DELETE FROM tract_data');
+      console.log('🧹 Fresh run — cleared existing tract_data\n');
+    }
 
     const statesToProcess = STATES.filter(s => !progress.completedStates.includes(s.fips));
     console.log(`🔄 Processing ${statesToProcess.length} states...\n`);
@@ -414,7 +414,7 @@ async function loadTractData(): Promise<void> {
           const batchSize = 500;
           for (let i = 0; i < tracts.length; i += batchSize) {
             const batch = tracts.slice(i, i + batchSize);
-            await insertTracts(db, batch);
+            await insertTracts(conn, batch);
           }
         }
 
@@ -431,14 +431,14 @@ async function loadTractData(): Promise<void> {
     console.log('\n✅ Tract load complete!');
     console.log(`   Total: ${progress.totalTracts} tracts\n`);
 
-    db.close();
+    conn.closeSync();
     if (progress.completedStates.length === STATES.length) {
       fs.unlinkSync(PROGRESS_FILE);
     }
 
   } catch (error) {
     console.error('❌ Load failed:', error);
-    db.close();
+    conn.closeSync();
     throw error;
   }
 }
