@@ -69,9 +69,16 @@ export const RATE_LIMIT_PRESETS = {
  */
 export function createRateLimit(rateLimitConfig: RateLimitConfig) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    // If Redis is not available, allow request to proceed
+    // If Redis is not available, allow request to proceed but still surface the
+    // configured rate-limit headers so clients get consistent limit metadata.
     if (!redisAvailable) {
       console.warn('Redis not available, skipping rate limiting');
+      res.set({
+        'X-RateLimit-Limit': rateLimitConfig.maxRequests.toString(),
+        'X-RateLimit-Remaining': rateLimitConfig.maxRequests.toString(),
+        'X-RateLimit-Reset': (Date.now() + rateLimitConfig.windowMs).toString(),
+        'X-RateLimit-Window': rateLimitConfig.windowMs.toString()
+      });
       next();
       return;
     }

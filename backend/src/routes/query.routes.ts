@@ -109,10 +109,12 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
     }
     console.log('✅ Input validation passed');
 
-    console.log('⏱️ Setting up 30-second timeout...');
-    // Set timeout for 30 seconds to allow MCP validation and Anthropic API to complete
+    // Timeout budget (default 30s) allows MCP validation and Anthropic API to
+    // complete. Overridable via QUERY_TIMEOUT_MS for testing and tuning.
+    const timeoutMs = parseInt(process.env.QUERY_TIMEOUT_MS || '30000', 10);
+    console.log(`⏱️ Setting up ${timeoutMs}ms timeout...`);
     const timeout = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Query processing timeout')), 30000);
+      setTimeout(() => reject(new Error('Query processing timeout')), timeoutMs);
     });
     console.log('✅ Timeout configured');
 

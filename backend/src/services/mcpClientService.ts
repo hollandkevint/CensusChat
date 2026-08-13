@@ -245,7 +245,11 @@ export class MCPClientService extends EventEmitter {
   async listAvailableTools(client?: string): Promise<Record<string, any>> {
     const tools: Record<string, any> = {};
 
-    const clientsToCheck = client ? [client] : Array.from(this.connectedClients);
+    // Only list tools for connected clients. A specific client that is not
+    // connected yields no entry (rather than a phantom empty-tools record).
+    const clientsToCheck = client
+      ? (this.connectedClients.has(client) ? [client] : [])
+      : Array.from(this.connectedClients);
 
     for (const clientName of clientsToCheck) {
       try {
@@ -351,9 +355,12 @@ export class MCPClientService extends EventEmitter {
 
       const firstClient = Array.from(this.connectedClients)[0];
 
-      // Try to list tools as a health check
-      const tools = await this.listAvailableTools(firstClient);
-      return tools[firstClient] !== undefined;
+      // Probe the connection directly. Unlike listAvailableTools (which
+      // deliberately falls back to a static tool list on error), a failed
+      // probe here must surface as unhealthy.
+      const pool = getDuckDBPool();
+      await pool.query(`SELECT mcp_list_tools('${firstClient}') as tools`);
+      return true;
 
     } catch (error) {
       console.error('❌ MCP Client health check failed:', error);

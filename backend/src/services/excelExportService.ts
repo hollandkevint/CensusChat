@@ -20,6 +20,7 @@ export class ExcelExportService {
   private static readonly MAX_MEMORY_USAGE = 500 * 1024 * 1024; // 500MB
   private static readonly CHUNK_SIZE = 1000; // Process 1000 rows at a time
   private static progressMap = new Map<string, ExportProgress>();
+  private static exportFileMap = new Map<string, { filePath: string; filename: string }>();
 
   constructor() {
     // Ensure temp directory exists
@@ -78,6 +79,11 @@ export class ExcelExportService {
         progress: 100,
         currentStep: 'Export completed successfully'
       });
+
+      // Record where this export was written so it can be retrieved by id.
+      // The filename does not embed the exportId, so a persistent mapping is
+      // required for getExportFile to locate the file.
+      ExcelExportService.exportFileMap.set(exportId, { filePath, filename });
 
       // Schedule file cleanup after 1 hour
       this.scheduleFileCleanup(filePath, 60 * 60 * 1000);
@@ -178,7 +184,15 @@ export class ExcelExportService {
     filePath: string,
     exportId: string
   ): Promise<number> {
-    const workbook = new stream.xlsx.WorkbookWriter({
+    // Load exceljs at call time rather than via the module-level import.
+    // The streaming WorkbookWriter pipes through archiver's bundled
+    // readable-stream; when the module registry is reset between tests
+    // (jest.resetModules in the global test setup) the eagerly-imported
+    // writer ends up with mismatched stream internals and commit() throws
+    // "Cannot read properties of undefined (reading 'objectMode')". Requiring
+    // exceljs fresh here keeps the stream module graph internally consistent.
+    const { stream: excelStream } = await import('exceljs');
+    const workbook = new excelStream.xlsx.WorkbookWriter({
       filename: filePath,
       useStyles: true,
       useSharedStrings: true
@@ -242,9 +256,9 @@ export class ExcelExportService {
       return;
     }
 
-    // Get headers from first row
-    const headers = Object.keys(data[0]);
-    
+    // Derive headers from the first usable row (tolerating null/undefined rows)
+    const headers = this.getHeaders(data);
+
     // Add headers
     headers.forEach((header, index) => {
       worksheet.getCell(1, index + 1).value = header;
@@ -256,7 +270,8 @@ export class ExcelExportService {
     // Add data rows
     data.forEach((row, rowIndex) => {
       headers.forEach((header, colIndex) => {
-        worksheet.getCell(rowIndex + 2, colIndex + 1).value = row[header];
+        worksheet.getCell(rowIndex + 2, colIndex + 1).value =
+          row != null ? row[header] : undefined;
       });
 
       // Update progress periodically
@@ -300,9 +315,9 @@ export class ExcelExportService {
       return;
     }
 
-    // Get headers from first row
-    const headers = Object.keys(data[0]);
-    
+    // Derive headers from the first usable row (tolerating null/undefined rows)
+    const headers = this.getHeaders(data);
+
     // Add headers
     headers.forEach((header, index) => {
       worksheet.getCell(1, index + 1).value = header;
@@ -317,11 +332,12 @@ export class ExcelExportService {
 
     for (let i = 0; i < totalRows; i += chunkSize) {
       const chunk = data.slice(i, Math.min(i + chunkSize, totalRows));
-      
+
       chunk.forEach((row, chunkIndex) => {
         const rowIndex = i + chunkIndex;
         headers.forEach((header, colIndex) => {
-          worksheet.getCell(rowIndex + 2, colIndex + 1).value = row[header];
+          worksheet.getCell(rowIndex + 2, colIndex + 1).value =
+            row != null ? row[header] : undefined;
         });
       });
 
@@ -361,10 +377,10 @@ export class ExcelExportService {
     // This would typically come from a Census variable metadata service
     // For now, we'll create basic definitions from the data structure
     const variables: VariableDefinition[] = [];
-    
+
     if (queryResult.data.length > 0) {
-      const headers = Object.keys(queryResult.data[0]);
-      
+      const headers = this.getHeaders(queryResult.data);
+
       headers.forEach(header => {
         variables.push({
           code: header,
@@ -386,10 +402,17 @@ export class ExcelExportService {
       .replace(/\b\w/g, l => l.toUpperCase());
   }
 
+  private getHeaders(data: any[]): string[] {
+    const sample = data.find(row => row !== null && typeof row === 'object');
+    return sample ? Object.keys(sample) : [];
+  }
+
   private inferDataType(data: any[], column: string): string {
     if (data.length === 0) return 'Unknown';
-    
-    const firstValue = data[0][column];
+
+    const sampleRow = data.find(row => row !== null && typeof row === 'object');
+    if (!sampleRow) return 'Unknown';
+    const firstValue = sampleRow[column];
     if (typeof firstValue === 'number') return 'Numeric';
     if (typeof firstValue === 'string') {
       // Check if it's a numeric string
@@ -485,34 +508,26 @@ export class ExcelExportService {
 
   async getExportFile(exportId: string): Promise<{ filePath: string; filename: string } | null> {
     const progress = ExcelExportService.progressMap.get(exportId);
-    
+
     if (!progress || progress.status !== 'completed') {
       return null;
     }
 
-    // Find the file in temp directory
-    const files = fs.readdirSync(ExcelExportService.TEMP_DIR);
-    const exportFile = files.find(file => file.includes(exportId) || 
-      ExcelExportService.progressMap.get(exportId)?.currentStep.includes(file));
+    const exportFile = ExcelExportService.exportFileMap.get(exportId);
 
-    if (!exportFile) {
-      return null;
-    }
-
-    const filePath = path.join(ExcelExportService.TEMP_DIR, exportFile);
-    
-    if (!fs.existsSync(filePath)) {
+    if (!exportFile || !fs.existsSync(exportFile.filePath)) {
       return null;
     }
 
     return {
-      filePath,
-      filename: exportFile
+      filePath: exportFile.filePath,
+      filename: exportFile.filename
     };
   }
 
   static clearProgress(exportId: string): void {
     ExcelExportService.progressMap.delete(exportId);
+    ExcelExportService.exportFileMap.delete(exportId);
   }
 }
 
