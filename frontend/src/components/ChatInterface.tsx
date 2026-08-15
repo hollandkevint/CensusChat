@@ -2,13 +2,14 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { queryApi, QueryApiError } from '../lib/api/queryApi';
-import { ChatMessage } from '../types/query.types';
+import { ChatMessage, QueryDataRow, QueryResponse } from '../types/query.types';
+import { ExportError, ExportResponse } from '../types/export.types';
 import { ExportButton } from './ExportButton';
 import { DataRefreshButton } from './DataRefreshButton';
 import { AppBridge, DrillDownParams } from './AppBridge';
 
 interface ChatInterfaceProps {
-  onQuery?: (query: string) => Promise<any>;
+  onQuery?: (query: string) => Promise<QueryResponse>;
 }
 
 export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
@@ -48,7 +49,7 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
           setUIResources(resourceMap);
           console.log(`[ChatInterface] Loaded ${resources.length} UI resources`);
         }
-      } catch (error) {
+      } catch {
         console.warn('[ChatInterface] UI resources not available, falling back to static tables');
       }
     }
@@ -145,12 +146,12 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
     }
   };
 
-  const handleExportSuccess = (response: any) => {
+  const handleExportSuccess = (response: ExportResponse) => {
     console.log('Export completed successfully:', response);
     // Could show a success toast notification here
   };
 
-  const handleExportError = (error: any) => {
+  const handleExportError = (error: ExportError) => {
     console.error('Export failed:', error);
     // Could show an error toast notification here
   };
@@ -235,7 +236,7 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
     }
   }, []);
 
-  const renderDataTable = (data: any[]) => {
+  const renderDataTable = (data: QueryDataRow[]) => {
     if (!data || data.length === 0) return null;
 
     const columns = Object.keys(data[0]);
