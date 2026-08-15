@@ -79,6 +79,9 @@ npm run test -- --coverage
 
 # Frontend tests (from frontend/)
 npm run test
+
+# End-to-end tests (from frontend/) — Playwright, backend API mocked
+npm run test:e2e
 ```
 
 ### Code Quality

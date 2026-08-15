@@ -4,7 +4,7 @@
 
 *Transform 6-week $50K demographic consulting into 6-second $297/month queries*
 
-**[📊 Foundation Data](docs/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[🧭 Strategy & Roadmap](STRATEGY.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
+**[📊 Foundation Data](docs/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
 
 ---
 
@@ -171,8 +171,7 @@ Open http://localhost:3000 and start querying.
 - [🔗 MCP Implementation](docs/MCP_IMPLEMENTATION_SUMMARY.md)
 - [🧪 Testing Guide](docs/TESTING_GUIDE.md)
 
-### **Strategy & Deployment**
-- [🧭 Strategy & Roadmap](STRATEGY.md) — priorities, API currency, and the Railway consolidation plan (incl. Supabase → Railway migration playbook)
+### **Deployment**
 - [🚀 Railway Deployment](docs/guides/RAILWAY_DEPLOYMENT.md)
 - [🔒 Security Policy](SECURITY.md)
 
@@ -201,6 +200,7 @@ Open http://localhost:3000 and start querying.
 
 ### **For Developers**
 - Write quality TypeScript with comprehensive test coverage
+- CI runs lint, typecheck, unit tests, Playwright e2e (`cd frontend && npm run test:e2e`), and Docker builds on every push
 - Maintain sub-2s query response times
 - Follow privacy-first security practices (no PHI stored, audit logging, encryption at rest)
 - Run `npm run secret-scan` before committing
