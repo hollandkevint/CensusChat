@@ -229,8 +229,8 @@ export class DataLoadingOrchestrator extends EventEmitter {
         this.workerPool.submitJob(job);
       }
       
-      // Wait for some jobs to complete before continuing
-      await this.sleep(2000);
+      // Wait briefly for jobs to complete before continuing
+      await this.sleep(500);
     }
     
     // Wait for all active jobs in this phase to complete
@@ -320,7 +320,7 @@ export class DataLoadingOrchestrator extends EventEmitter {
       recordsPerSecond: this.calculateRecordsPerSecond(),
       apiCallsUsed: this.apiCallsUsed,
       apiCallsRemaining: this.config.apiRateLimit.dailyLimit - this.apiCallsUsed,
-      status: this.isRunning ? (this.isPaused ? 'paused' : 'loading') : 'idle',
+      status: this.isPaused ? 'paused' : (this.isRunning ? 'loading' : 'idle'),
       errors: Array.from(this.failedJobs.values())
     };
     
@@ -373,7 +373,19 @@ export class DataLoadingOrchestrator extends EventEmitter {
           job.retryCount++;
           job.status = 'pending';
           console.log(`🔄 Retrying job ${jobId} (attempt ${job.retryCount}/${job.maxRetries})`);
-          this.queueManager.addJob(job);
+          this.activeJobs.delete(jobId);
+
+          // The queue may still hold this job (marked running) - reset it to
+          // pending so it can be picked up again; otherwise re-add it
+          const queuedJob = this.queueManager.getJob(jobId);
+          if (queuedJob) {
+            queuedJob.retryCount = job.retryCount;
+            queuedJob.status = 'pending';
+          } else {
+            Promise.resolve(this.queueManager.addJob(job)).catch(err =>
+              console.warn(`⚠️ Failed to re-queue job ${jobId} for retry:`, err)
+            );
+          }
         } else {
           this.activeJobs.delete(jobId);
           this.failedJobs.set(jobId, error);
@@ -411,8 +423,8 @@ export class DataLoadingOrchestrator extends EventEmitter {
   }
   
   private estimateCompletion(): Date {
-    const progress = this.getProgress();
-    const remainingJobs = progress.totalJobs - progress.completedJobs;
+    const totalJobs = this.queueManager.getTotalJobCount();
+    const remainingJobs = totalJobs - this.completedJobs.size;
     const recordsPerSecond = this.calculateRecordsPerSecond();
     
     if (recordsPerSecond === 0 || remainingJobs === 0) {

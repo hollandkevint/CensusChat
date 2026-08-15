@@ -205,9 +205,29 @@ describe('POST /api/v1/queries', () => {
   });
 
   describe('DuckDB Pool Integration', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       // Set environment variable to enable production DuckDB
       process.env.USE_PRODUCTION_DUCKDB = 'true';
+
+      // Seed the in-memory DuckDB pool with the county_data table
+      const pool = getDuckDBPool();
+      await pool.initialize();
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS county_data (
+          county_name VARCHAR,
+          state_name VARCHAR,
+          population BIGINT,
+          median_income BIGINT,
+          poverty_rate DOUBLE
+        )
+      `);
+      await pool.query('DELETE FROM county_data');
+      await pool.query(`
+        INSERT INTO county_data (county_name, state_name, population, median_income, poverty_rate)
+        VALUES
+          ('Miami-Dade', 'Florida', 2716940, 52800, 15.8),
+          ('Broward', 'Florida', 1944375, 59734, 12.4)
+      `);
     });
 
     afterEach(() => {
@@ -224,7 +244,7 @@ describe('POST /api/v1/queries', () => {
           outputFormat: 'table',
           confidence: 0.95
         },
-        sqlQuery: 'SELECT * FROM demographics WHERE state = ?',
+        sqlQuery: "SELECT county_name, state_name, population, median_income, poverty_rate FROM county_data WHERE state_name = 'Florida'",
         explanation: 'Florida demographics query',
         suggestedRefinements: []
       });
@@ -237,8 +257,8 @@ describe('POST /api/v1/queries', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toHaveLength(2); // Mock returns 2 records
-      expect(response.body.metadata.dataSource).toBe('DuckDB Production Healthcare Demographics');
+      expect(response.body.data).toHaveLength(2); // Seeded table has 2 records
+      expect(response.body.metadata.dataSource).toBe('DuckDB Production (MCP Validated)');
       expect(response.body.metadata.usedDuckDB).toBe(true);
     });
 
@@ -285,7 +305,7 @@ describe('POST /api/v1/queries', () => {
           outputFormat: 'table',
           confidence: 0.9
         },
-        sqlQuery: 'SELECT * FROM demographics',
+        sqlQuery: 'SELECT county_name, state_name, population FROM county_data',
         explanation: 'Concurrent query',
         suggestedRefinements: []
       });

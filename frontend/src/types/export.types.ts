@@ -1,3 +1,12 @@
+import type { QueryDataRow } from './query.types';
+
+// Shape of the query result payload accepted by the export APIs
+export interface ExportQueryResult {
+  success: boolean;
+  data: QueryDataRow[];
+  metadata?: Record<string, unknown>;
+}
+
 export interface ExportRequest {
   queryId: string;
   format: 'excel' | 'csv';
@@ -7,7 +16,7 @@ export interface ExportRequest {
     maxRows: number;
     customFilename?: string;
   };
-  queryResult: any;
+  queryResult: ExportQueryResult;
   queryText?: string;
 }
 
@@ -33,13 +42,16 @@ export interface ExportProgress {
   error?: string;
 }
 
+// Well-known export error codes (the API may also return other string codes)
+export type ExportErrorCode = 'MEMORY_OVERFLOW' | 'TIMEOUT' | 'FILE_SYSTEM_ERROR' | 'NETWORK_ERROR' | 'FORMAT_ERROR' | 'NO_DATA' | 'DATASET_TOO_LARGE';
+
 export interface ExportError extends Error {
-  code: 'MEMORY_OVERFLOW' | 'TIMEOUT' | 'FILE_SYSTEM_ERROR' | 'NETWORK_ERROR' | 'FORMAT_ERROR' | 'NO_DATA' | 'DATASET_TOO_LARGE';
-  details?: any;
+  code: string;
+  details?: unknown;
 }
 
 export interface ExportButtonProps {
-  queryResult: any;
+  queryResult: ExportQueryResult;
   queryText?: string;
   onExportStart?: () => void;
   onExportComplete?: (response: ExportResponse) => void;

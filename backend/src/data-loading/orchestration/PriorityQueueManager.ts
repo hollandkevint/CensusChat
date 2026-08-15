@@ -56,8 +56,8 @@ export class PriorityQueueManager extends EventEmitter {
       throw new Error(`Job ${job.id} already exists in queue`);
     }
 
-    // Add to main queue
-    this.jobQueue.set(job.id, job);
+    // Add to main queue (newly queued jobs always start out pending)
+    this.jobQueue.set(job.id, { ...job, status: 'pending' });
     this.queueStartTimes.set(job.id, new Date());
 
     // Add to priority index

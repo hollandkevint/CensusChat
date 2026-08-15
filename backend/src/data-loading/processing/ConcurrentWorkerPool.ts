@@ -8,7 +8,7 @@ import {
   WorkerTask 
 } from '../utils/LoadingTypes';
 import { censusApiService } from '../../services/censusApiService';
-import { CensusData } from '../../models/CensusData';
+import { CensusDataModel } from '../../models/CensusData';
 
 export interface WorkerStats {
   id: string;
@@ -316,6 +316,18 @@ export class ConcurrentWorkerPool extends EventEmitter {
           }
           break;
           
+        case 'metro':
+          censusData = await censusApiService.executeQuery({
+            dataset: 'acs/acs5',
+            year: '2022',
+            variables: ['NAME', ...variables],
+            geography: {
+              for: 'metropolitan statistical area/micropolitan statistical area:*'
+            }
+          });
+          apiCalls = 1;
+          break;
+
         case 'zcta':
           censusData = await censusApiService.getACS5ZipData('*', variables);
           apiCalls = 1;
@@ -344,11 +356,15 @@ export class ConcurrentWorkerPool extends EventEmitter {
         // Transform and load data into DuckDB
         console.log(`💾 Worker ${workerId} loading ${censusData.data.length} records to database`);
         
-        const censusDataModel = new CensusData();
-        await censusDataModel.init();
+        const censusDataModel = new CensusDataModel();
         
         // Transform the data format
         const transformedData = this.transformCensusData(censusData, job);
+
+        if (transformedData.length === 0) {
+          // Header-only/empty payload - nothing to load
+          recordsSkipped = job.estimatedRecords;
+        }
         
         // Batch insert the data
         const batchSize = this.config.database.batchInsertSize;
@@ -381,26 +397,8 @@ export class ConcurrentWorkerPool extends EventEmitter {
       };
 
     } catch (error) {
-      const duration = Date.now() - startTime;
-      
-      return {
-        jobId: job.id,
-        success: false,
-        recordsLoaded,
-        recordsSkipped,
-        recordsErrored: job.estimatedRecords,
-        duration,
-        apiCalls,
-        metadata: {
-          geography: job.geography,
-          variables: job.variables,
-          dataQuality: {
-            completeness: 0,
-            accuracy: 0,
-            consistency: 0
-          }
-        }
-      };
+      // Propagate the original error so the failure handler can report it
+      throw error;
     }
   }
 

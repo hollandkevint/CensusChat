@@ -25,7 +25,9 @@ export interface CensusApiResponse {
 }
 
 export class CensusBureauAdapter extends BasePublicDatasetAdapter implements PublicDatasetAdapter {
-  readonly source = 'census_bureau';
+  readonly source = 'census_bureau' as const;
+  readonly name = 'Census Bureau Adapter';
+  readonly version = '1.0.0';
   private config: Required<CensusBureauConfig>;
   private apiKey?: string;
 
@@ -58,7 +60,7 @@ export class CensusBureauAdapter extends BasePublicDatasetAdapter implements Pub
 
       const response = await fetch(testUrl, {
         method: 'GET',
-        timeout: this.config.timeout,
+        signal: AbortSignal.timeout(this.config.timeout),
         headers: {
           'User-Agent': 'CensusChat-HealthcareAnalytics/1.0',
           'Accept': 'application/json'
@@ -247,7 +249,7 @@ export class CensusBureauAdapter extends BasePublicDatasetAdapter implements Pub
       try {
         const response = await fetch(url, {
           method: 'GET',
-          timeout: this.config.timeout,
+          signal: AbortSignal.timeout(this.config.timeout),
           headers: {
             'User-Agent': 'CensusChat-HealthcareAnalytics/1.0',
             'Accept': 'application/json'
@@ -266,7 +268,7 @@ export class CensusBureauAdapter extends BasePublicDatasetAdapter implements Pub
         }
 
         const rawData = await response.json();
-        return this.parseCensusResponse(rawData);
+        return this.parseCensusResponse(rawData as any[]);
 
       } catch (error) {
         console.warn(`⚠️ Census query attempt ${attempt} failed:`, error);

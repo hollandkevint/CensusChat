@@ -69,11 +69,12 @@ export interface AdequacyMetrics {
 }
 
 export interface StandardizedDataFormat {
-  source: string;
-  version: string;
-  timestamp: Date;
+  source?: string;
+  version?: string;
+  timestamp?: Date;
   data: Record<string, any>[];
-  schema: Record<string, string>;
+  schema?: Record<string, string>;
+  metadata?: Record<string, any>;
 }
 
 export interface QueryRequest {
@@ -92,6 +93,7 @@ export interface QueryResult {
     recordCount: number;
     queryPattern: string;
     confidenceLevel: number;
+    dataFreshness?: Record<string, any>;
   };
   error?: string;
 }
@@ -127,6 +129,7 @@ export interface PublicDatasetAdapter {
   transformResults(rawData: any[]): Promise<StandardizedDataFormat>;
   healthCheck(): Promise<boolean>;
   disconnect(): Promise<void>;
+  getSupportedFeatures?(): string[];
 }
 
 export interface FederatedQueryOptions {
@@ -181,11 +184,21 @@ export interface DataSourceMetadata {
 }
 
 export interface PerformanceMetrics {
-  queryId: string;
-  executionTime: number;
-  dataSourcesUsed: string[];
-  recordsProcessed: number;
-  cacheHit: boolean;
-  errors: string[];
-  timestamp: Date;
+  queryId?: string;
+  executionTime?: number;
+  dataSourcesUsed?: string[];
+  recordsProcessed?: number;
+  cacheHit?: boolean;
+  errors?: string[];
+  timestamp?: Date;
+  cacheStats?: {
+    size: number;
+    maxSize: number;
+    hitRatio: number;
+    [key: string]: any;
+  };
+  avgExecutionTime?: number;
+  totalQueries?: number;
+  sub2sCompliance?: number;
+  performanceProfiles?: Array<Record<string, any>>;
 }

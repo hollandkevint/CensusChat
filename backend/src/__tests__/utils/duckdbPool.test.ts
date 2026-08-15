@@ -19,7 +19,9 @@ const mockFromCache = jest.fn().mockResolvedValue({
 // Mock @duckdb/node-api
 jest.mock('@duckdb/node-api', () => ({
   DuckDBInstance: {
-    fromCache: jest.fn().mockImplementation((...args: any[]) => mockFromCache(...args))
+    fromCache: jest.fn().mockImplementation((...args: any[]) => mockFromCache(...args)),
+    // In-memory pools use create() instead of the process-wide cache
+    create: jest.fn().mockImplementation((...args: any[]) => mockFromCache(...args))
   }
 }));
 
@@ -93,7 +95,16 @@ describe('DuckDBPool', () => {
     });
 
     it('should call DuckDBInstance.fromCache with correct config', async () => {
-      await pool.initialize();
+      const filePool = new DuckDBPool({
+        minConnections: 1,
+        maxConnections: 3,
+        connectionTimeout: 1000,
+        memoryLimit: '1GB',
+        threads: 2,
+        dbPath: '/tmp/test-census.duckdb'
+      });
+      await filePool.initialize();
+      await filePool.close();
 
       expect(mockFromCache).toHaveBeenCalledWith(
         expect.any(String),

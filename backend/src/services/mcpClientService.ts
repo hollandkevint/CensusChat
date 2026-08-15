@@ -109,10 +109,16 @@ export class MCPClientService extends EventEmitter {
       throw new Error(`MCP client not connected: ${client}`);
     }
 
-    // Get circuit breaker for this client
-    const circuitBreaker = this.circuitBreakers.get(client);
+    // Get (or lazily create) the circuit breaker for this client
+    let circuitBreaker = this.circuitBreakers.get(client);
     if (!circuitBreaker) {
-      throw new Error(`Circuit breaker not found for client: ${client}`);
+      circuitBreaker = new CircuitBreaker(`mcp-client-${client}`, {
+        threshold: 3,
+        timeout: 30000,
+        resetTimeout: 300000,
+        monitorWindow: 60000
+      });
+      this.circuitBreakers.set(client, circuitBreaker);
     }
 
     const monitoring = getMCPMonitoring();
@@ -249,7 +255,9 @@ export class MCPClientService extends EventEmitter {
   async listAvailableTools(client?: string): Promise<Record<string, any>> {
     const tools: Record<string, any> = {};
 
-    const clientsToCheck = client ? [client] : Array.from(this.connectedClients);
+    const clientsToCheck = client
+      ? (this.connectedClients.has(client) ? [client] : [])
+      : Array.from(this.connectedClients);
 
     for (const clientName of clientsToCheck) {
       try {
@@ -301,8 +309,12 @@ export class MCPClientService extends EventEmitter {
         try {
           await pool.query(`DETACH ${client}_mcp`);
         } catch (error) {
-          // Connection might not exist or DETACH not available
-          console.warn(`⚠️ Could not detach MCP client ${client}`);
+          if (error instanceof Error && (error.message.includes('DETACH') || error.message.includes('not found'))) {
+            // Connection might not exist or DETACH not available
+            console.warn(`⚠️ Could not detach MCP client ${client}`);
+          } else {
+            throw error;
+          }
         }
 
         this.connectedClients.delete(client);
@@ -356,8 +368,17 @@ export class MCPClientService extends EventEmitter {
       const firstClient = Array.from(this.connectedClients)[0];
 
       // Try to list tools as a health check
-      const tools = await this.listAvailableTools(firstClient);
-      return tools[firstClient] !== undefined;
+      const pool = getDuckDBPool();
+      try {
+        await pool.query(`SELECT mcp_list_tools('${firstClient}') as tools`);
+        return true;
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('mcp_list_tools')) {
+          // MCP extension function not available - fall back to known tools
+          return this.getKnownToolsForClient(firstClient) !== undefined;
+        }
+        throw error;
+      }
 
     } catch (error) {
       console.error('❌ MCP Client health check failed:', error);

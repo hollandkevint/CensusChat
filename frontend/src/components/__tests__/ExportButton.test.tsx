@@ -2,11 +2,10 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ExportButton } from '../ExportButton';
-import * as exportApi from '../../lib/api/exportApi';
+import { useExport } from '../../hooks/useExport';
 
 // Mock the export API
 jest.mock('../../lib/api/exportApi');
-const mockExportApi = exportApi as jest.Mocked<typeof exportApi>;
 
 // Mock the useExport hook
 jest.mock('../../hooks/useExport', () => ({
@@ -20,6 +19,8 @@ jest.mock('../../hooks/useExport', () => ({
     cancelExport: jest.fn()
   }))
 }));
+
+const mockUseExport = useExport as jest.Mock;
 
 describe('ExportButton', () => {
   const mockQueryResult = {
@@ -98,7 +99,6 @@ describe('ExportButton', () => {
   });
 
   it('shows exporting state when isExporting is true', () => {
-    const mockUseExport = require('../../hooks/useExport').useExport;
     mockUseExport.mockReturnValue({
       isExporting: true,
       progress: null,
@@ -116,7 +116,6 @@ describe('ExportButton', () => {
 
   it('calls exportToExcel when Excel option is selected', async () => {
     const mockExportToExcel = jest.fn();
-    const mockUseExport = require('../../hooks/useExport').useExport;
     mockUseExport.mockReturnValue({
       isExporting: false,
       progress: null,
@@ -146,7 +145,6 @@ describe('ExportButton', () => {
 
   it('calls exportToCSV when CSV option is selected', async () => {
     const mockExportToCSV = jest.fn();
-    const mockUseExport = require('../../hooks/useExport').useExport;
     mockUseExport.mockReturnValue({
       isExporting: false,
       progress: null,
@@ -176,7 +174,6 @@ describe('ExportButton', () => {
   it('calls onExportStart callback when export is initiated', async () => {
     const mockOnExportStart = jest.fn();
     const mockExportToExcel = jest.fn();
-    const mockUseExport = require('../../hooks/useExport').useExport;
     mockUseExport.mockReturnValue({
       isExporting: false,
       progress: null,
@@ -207,7 +204,6 @@ describe('ExportButton', () => {
       name: 'ExportError'
     };
 
-    const mockUseExport = require('../../hooks/useExport').useExport;
     mockUseExport.mockReturnValue({
       isExporting: false,
       progress: null,
@@ -231,7 +227,6 @@ describe('ExportButton', () => {
       name: 'ExportError'
     };
 
-    const mockUseExport = require('../../hooks/useExport').useExport;
     mockUseExport.mockReturnValue({
       isExporting: false,
       progress: null,
@@ -254,7 +249,6 @@ describe('ExportButton', () => {
       name: 'ExportError'
     };
 
-    const mockUseExport = require('../../hooks/useExport').useExport;
     mockUseExport.mockReturnValue({
       isExporting: false,
       progress: null,

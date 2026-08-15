@@ -284,7 +284,7 @@ export async function getCacheStats(): Promise<{
       const pipeline = redis.pipeline();
       keys.forEach(key => {
         pipeline.ttl(key);
-        pipeline.memory('usage', key);
+        pipeline.memory('USAGE', key);
       });
 
       const results = await pipeline.exec();

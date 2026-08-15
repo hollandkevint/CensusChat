@@ -14,7 +14,7 @@ async function testDataLoadingComponents() {
     const config = configurationManager.getConfiguration();
     console.log('✅ Configuration manager loaded successfully');
     console.log('   - Max concurrent jobs:', config.maxConcurrentJobs);
-    console.log('   - API rate limit:', config.apiRateLimit.perSecond);
+    console.log('   - API rate limit (daily):', config.apiRateLimit.dailyLimit);
 
     console.log('\n2. Testing priority definitions...');
     const { LOADING_PHASES } = await import('../data-loading/utils/PriorityDefinitions');

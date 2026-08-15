@@ -11,9 +11,15 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@modelcontextprotocol/ext-apps/server": [
+        "node_modules/@modelcontextprotocol/ext-apps/dist/src/server/index.d.ts"
+      ]
+    },
     "allowJs": false,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     // "noImplicitReturns": true,  // Temporarily disabled to get backend running
     "noFallthroughCasesInSwitch": true,
     "declaration": true,

@@ -9,6 +9,7 @@ import { AddressInfo } from 'net';
 import { mcpTransportRouter } from '../../mcp/mcpRoutes';
 import { MCPHttpClient } from '../../mcp/mcpClient';
 import { getSessionManager, McpSessionManager } from '../../mcp/mcpSessionManager';
+import { getDuckDBPool, closeDuckDBPool } from '../../utils/duckdbPool';
 
 describe('MCP HTTP Transport Integration', () => {
   let app: Application;
@@ -29,6 +30,26 @@ describe('MCP HTTP Transport Integration', () => {
     baseUrl = `http://localhost:${address.port}`;
 
     sessionManager = getSessionManager();
+
+    // Seed the in-memory DuckDB with the county_data table the tools query
+    const pool = getDuckDBPool();
+    await pool.initialize();
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS county_data (
+        county_name VARCHAR,
+        state_name VARCHAR,
+        population BIGINT,
+        median_income BIGINT,
+        poverty_rate DOUBLE
+      )
+    `);
+    await pool.query(`
+      INSERT INTO county_data (county_name, state_name, population, median_income, poverty_rate)
+      VALUES
+        ('Miami-Dade', 'Florida', 2716940, 52800, 15.1),
+        ('Broward', 'Florida', 1944375, 59734, 12.4),
+        ('Los Angeles', 'California', 10014009, 71358, 13.2)
+    `);
   });
 
   beforeEach(() => {
@@ -51,6 +72,8 @@ describe('MCP HTTP Transport Integration', () => {
         else resolve();
       });
     });
+
+    await closeDuckDBPool();
   });
 
   describe('Session Management', () => {

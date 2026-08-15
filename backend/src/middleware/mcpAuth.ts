@@ -119,7 +119,7 @@ export class MCPAuthService {
     };
 
     return jwt.sign(payload, authConfig.jwtSecret, {
-      expiresIn: authConfig.jwtExpirationTime
+      expiresIn: authConfig.jwtExpirationTime as jwt.SignOptions['expiresIn']
     });
   }
 
@@ -342,4 +342,4 @@ export const authorizeMCPTool = (requiredPermission?: string) => {
 // Initialize the service
 MCPAuthService.initializeService();
 
-export { MCPAuthService, authConfig };
+export { authConfig };

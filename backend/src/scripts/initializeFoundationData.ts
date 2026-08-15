@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { DataLoadingOrchestrator } from '../data-loading/orchestration/DataLoadingOrchestrator';
-import { LoadingConfiguration } from '../data-loading/utils/LoadingConfiguration';
+import { configurationManager } from '../data-loading/utils/LoadingConfiguration';
 
 // Load environment variables
 dotenv.config();
@@ -15,7 +15,7 @@ async function initializeFoundationData() {
     console.log(`📊 API Key Status: ${hasApiKey ? 'Configured' : 'Not configured (using limits)'}`);
 
     // Initialize the loading configuration
-    const config = new LoadingConfiguration();
+    const config = configurationManager.getConfiguration();
     console.log(`🔧 Configuration loaded for ${config.apiRateLimit.dailyLimit} calls/day`);
 
     // Initialize the orchestrator

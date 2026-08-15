@@ -135,3 +135,11 @@ private/
 *.private
 config/production.json
 config/staging.json
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/playwright/.cache/
+
+# Internal working docs (strategy, session notes) — not for the public repo
+internal/

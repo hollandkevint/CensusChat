@@ -200,6 +200,7 @@ Open http://localhost:3000 and start querying.
 
 ### **For Developers**
 - Write quality TypeScript with comprehensive test coverage
+- CI runs lint, typecheck, unit tests, Playwright e2e (`cd frontend && npm run test:e2e`), and Docker builds on every push
 - Maintain sub-2s query response times
 - Follow privacy-first security practices (no PHI stored, audit logging, encryption at rest)
 - Run `npm run secret-scan` before committing

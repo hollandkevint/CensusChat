@@ -20,6 +20,7 @@ export class ExcelExportService {
   private static readonly MAX_MEMORY_USAGE = 500 * 1024 * 1024; // 500MB
   private static readonly CHUNK_SIZE = 1000; // Process 1000 rows at a time
   private static progressMap = new Map<string, ExportProgress>();
+  private static exportFiles = new Map<string, { filePath: string; filename: string }>();
 
   constructor() {
     // Ensure temp directory exists
@@ -51,6 +52,12 @@ export class ExcelExportService {
       // Validate request and data
       this.validateExportRequest(request, queryResult);
 
+      // Drop null/undefined rows so malformed data cannot break worksheet generation
+      queryResult = {
+        ...queryResult,
+        data: (queryResult.data || []).filter(row => row !== null && row !== undefined)
+      };
+
       // Generate filename
       const filename = ExcelFormattingUtils.generateFilename(
         this.getQueryType(queryResult),
@@ -78,6 +85,9 @@ export class ExcelExportService {
         progress: 100,
         currentStep: 'Export completed successfully'
       });
+
+      // Track the generated file for retrieval by export ID
+      ExcelExportService.exportFiles.set(exportId, { filePath, filename });
 
       // Schedule file cleanup after 1 hour
       this.scheduleFileCleanup(filePath, 60 * 60 * 1000);
@@ -484,6 +494,12 @@ export class ExcelExportService {
   }
 
   async getExportFile(exportId: string): Promise<{ filePath: string; filename: string } | null> {
+    // Prefer the tracked file mapping
+    const tracked = ExcelExportService.exportFiles.get(exportId);
+    if (tracked && fs.existsSync(tracked.filePath)) {
+      return tracked;
+    }
+
     const progress = ExcelExportService.progressMap.get(exportId);
     
     if (!progress || progress.status !== 'completed') {

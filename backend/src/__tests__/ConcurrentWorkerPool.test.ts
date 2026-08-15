@@ -2,16 +2,17 @@ import { ConcurrentWorkerPool } from '../data-loading/processing/ConcurrentWorke
 import { createTestConfig, createTestJob, wait, CallTracker } from '../test/helpers/testUtils';
 import { mockCensusApiService, mockStateResponse } from '../test/fixtures/censusApiResponses';
 import { LoadingJob } from '../data-loading/utils/LoadingTypes';
+import { CensusDataModel } from '../models/CensusData';
 
 // Mock dependencies
-jest.mock('../services/censusApiService', () => ({
-  censusApiService: mockCensusApiService
-}));
+jest.mock('../services/censusApiService', () => {
+  const { mockCensusApiService } = require('../test/fixtures/censusApiResponses');
+  return { censusApiService: mockCensusApiService };
+});
 
 jest.mock('../models/CensusData', () => {
   return {
-    CensusData: jest.fn(() => ({
-      init: jest.fn().mockResolvedValue(undefined),
+    CensusDataModel: jest.fn(() => ({
       insertCensusData: jest.fn().mockResolvedValue(undefined)
     }))
   };
@@ -35,9 +36,9 @@ describe('ConcurrentWorkerPool', () => {
     mockCensusApiService.setFailure(false);
     mockCensusApiService.setDelay(0);
     
-    // Mock successful API responses
-    jest.spyOn(mockCensusApiService, 'getACS5StateData')
-      .mockResolvedValue(mockStateResponse);
+    // Spy on API calls while keeping the mock service's behavior
+    // (including its configurable failure modes) intact
+    jest.spyOn(mockCensusApiService, 'getACS5StateData');
   });
 
   afterEach(async () => {
@@ -446,10 +447,9 @@ describe('ConcurrentWorkerPool', () => {
         variables: ['B01003_001E']
       });
 
-      const MockCensusData = require('../models/CensusData').CensusData;
+      const MockCensusData = CensusDataModel as unknown as jest.Mock;
       const mockInsert = jest.fn();
       MockCensusData.mockImplementation(() => ({
-        init: jest.fn().mockResolvedValue(undefined),
         insertCensusData: mockInsert
       }));
 
@@ -503,10 +503,9 @@ describe('ConcurrentWorkerPool', () => {
         variables: ['B01003_001E']
       });
 
-      const MockCensusData = require('../models/CensusData').CensusData;
+      const MockCensusData = CensusDataModel as unknown as jest.Mock;
       const mockInsert = jest.fn();
       MockCensusData.mockImplementation(() => ({
-        init: jest.fn().mockResolvedValue(undefined),
         insertCensusData: mockInsert
       }));
 

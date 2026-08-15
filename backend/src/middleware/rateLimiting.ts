@@ -7,7 +7,6 @@ const redis = new Redis({
   host: config.database.redis.host,
   port: config.database.redis.port,
   password: config.database.redis.password,
-  retryDelayOnFailover: 100,
   maxRetriesPerRequest: 3,
   lazyConnect: true,
   connectTimeout: 2000,
@@ -66,13 +65,35 @@ export const RATE_LIMIT_PRESETS = {
 };
 
 /**
+ * Set default rate limit headers when Redis is unavailable
+ */
+function setFallbackRateLimitHeaders(res: Response, rateLimitConfig: RateLimitConfig): void {
+  if (!res.headersSent) {
+    res.set({
+      'X-RateLimit-Limit': rateLimitConfig.maxRequests.toString(),
+      'X-RateLimit-Remaining': rateLimitConfig.maxRequests.toString(),
+      'X-RateLimit-Reset': (Date.now() + rateLimitConfig.windowMs).toString(),
+      'X-RateLimit-Window': rateLimitConfig.windowMs.toString()
+    });
+  }
+}
+
+/**
  * Creates a rate limiting middleware
  */
 export function createRateLimit(rateLimitConfig: RateLimitConfig) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    // If Redis is not available, allow request to proceed
+    // Explicit opt-out (used by the test environment) - allow through with headers
+    if (process.env.DISABLE_RATE_LIMITING === 'true') {
+      setFallbackRateLimitHeaders(res, rateLimitConfig);
+      next();
+      return;
+    }
+
+    // If Redis is not available, allow request to proceed (still expose headers)
     if (!redisAvailable) {
       console.warn('Redis not available, skipping rate limiting');
+      setFallbackRateLimitHeaders(res, rateLimitConfig);
       next();
       return;
     }
@@ -141,6 +162,7 @@ export function createRateLimit(rateLimitConfig: RateLimitConfig) {
       console.warn('Rate limiting error, allowing request to proceed:', error instanceof Error ? error.message : 'Unknown error');
       // If Redis is down, allow request to proceed but log error
       redisAvailable = false;
+      setFallbackRateLimitHeaders(res, rateLimitConfig);
       next();
     }
   };
@@ -273,7 +295,12 @@ export async function getAllRateLimitStatus(): Promise<{
   type: 'census' | 'query' | 'user' | 'unknown';
 }[]> {
   try {
-    const keys = await redis.keys('rate_limit:*', 'census:*', 'query:*');
+    const keyGroups = await Promise.all([
+      redis.keys('rate_limit:*'),
+      redis.keys('census:*'),
+      redis.keys('query:*')
+    ]);
+    const keys = keyGroups.flat();
     if (keys.length === 0) return [];
 
     const pipeline = redis.pipeline();

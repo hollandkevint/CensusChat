@@ -307,6 +307,51 @@ export class CensusApiService {
   }
 
   /**
+   * Get ACS 5-Year data for all states
+   */
+  async getACS5StateData(variables?: string[]): Promise<CensusApiResponse> {
+    const defaultVariables = [
+      'NAME',
+      'B01003_001E', // Total Population (Estimate)
+      'B01003_001M'  // Total Population (Margin of Error)
+    ];
+
+    const query: CensusQuery = {
+      dataset: 'acs/acs5',
+      year: '2022',
+      variables: variables || defaultVariables,
+      geography: {
+        for: 'state:*'
+      }
+    };
+
+    return this.executeQuery(query);
+  }
+
+  /**
+   * Get ACS 5-Year data for counties in a state ('*' for all states)
+   */
+  async getACS5CountyData(state: string = '*', variables?: string[]): Promise<CensusApiResponse> {
+    const defaultVariables = [
+      'NAME',
+      'B01003_001E', // Total Population (Estimate)
+      'B01003_001M'  // Total Population (Margin of Error)
+    ];
+
+    const query: CensusQuery = {
+      dataset: 'acs/acs5',
+      year: '2022',
+      variables: variables || defaultVariables,
+      geography: {
+        for: 'county:*',
+        in: `state:${state}`
+      }
+    };
+
+    return this.executeQuery(query);
+  }
+
+  /**
    * Get ACS 5-Year data for ZIP Code Tabulation Areas
    */
   async getACS5ZipData(state: string = '06', variables?: string[]): Promise<CensusApiResponse> {
@@ -451,9 +496,10 @@ export class CensusApiService {
    * Get rate limit information
    */
   getRateLimitInfo(): { hasKey: boolean, dailyLimit: string, liveApiEnabled: boolean, hourlyLimit: number } {
+    const apiKey = process.env.CENSUS_API_KEY || this.apiKey;
     return {
-      hasKey: !!this.apiKey,
-      dailyLimit: this.apiKey ? 'Unlimited' : '500 queries per day',
+      hasKey: !!apiKey,
+      dailyLimit: apiKey ? 'Unlimited' : '500 queries per day',
       liveApiEnabled: this.useLiveApi,
       hourlyLimit: config.rateLimits.census.requestsPerHour
     };

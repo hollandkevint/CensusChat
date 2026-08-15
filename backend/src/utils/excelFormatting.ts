@@ -55,6 +55,9 @@ export class ExcelFormattingUtils {
   }
 
   static autoSizeColumns(worksheet: Worksheet): void {
+    if (!worksheet.columns) {
+      return;
+    }
     worksheet.columns.forEach((column) => {
       let maxLength = 0;
       
