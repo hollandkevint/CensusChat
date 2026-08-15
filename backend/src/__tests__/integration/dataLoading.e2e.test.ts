@@ -3,14 +3,14 @@ import { mockCensusApiService, mockDataScenarios } from '../../test/fixtures/cen
 import { createTestConfig, createTestGeography, wait, TestAssertions } from '../../test/helpers/testUtils';
 
 // Mock all external dependencies for controlled testing
-jest.mock('../../services/censusApiService', () => ({
-  censusApiService: mockCensusApiService
-}));
+jest.mock('../../services/censusApiService', () => {
+  const { mockCensusApiService } = require('../../test/fixtures/censusApiResponses');
+  return { censusApiService: mockCensusApiService };
+});
 
 jest.mock('../../models/CensusData', () => {
   return {
-    CensusData: jest.fn(() => ({
-      init: jest.fn().mockResolvedValue(undefined),
+    CensusDataModel: jest.fn(() => ({
       insertCensusData: jest.fn().mockResolvedValue(undefined)
     }))
   };

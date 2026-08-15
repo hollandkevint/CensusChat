@@ -130,7 +130,9 @@ class DataFreshnessTracker {
 
     // Determine overall status
     let overallStatus: DataFreshnessReport['overallStatus'] = 'fresh';
-    if (summary.errorDatasets > 0) {
+    if (summary.errorDatasets > 0 && summary.staleDatasets > 0) {
+      overallStatus = 'mixed';
+    } else if (summary.errorDatasets > 0) {
       overallStatus = 'error';
     } else if (summary.staleDatasets > 0 && summary.freshDatasets > 0) {
       overallStatus = 'mixed';

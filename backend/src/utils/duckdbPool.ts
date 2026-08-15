@@ -33,6 +33,7 @@ export class DuckDBPool extends EventEmitter {
   }> = [];
   private isInitialized: boolean = false;
   private isClosing: boolean = false;
+  private initializePromise: Promise<void> | null = null;
 
   constructor(config: Partial<DuckDBPoolConfig> = {}) {
     super();
@@ -47,7 +48,10 @@ export class DuckDBPool extends EventEmitter {
       ...config
     };
 
-    this.dbPath = config.dbPath || path.join(process.cwd(), 'data', 'census.duckdb');
+    this.dbPath =
+      config.dbPath ||
+      process.env.DUCKDB_PATH ||
+      path.join(process.cwd(), 'data', 'census.duckdb');
 
     // Read encryption key from config or environment variable
     // If set, the database file must already be encrypted
@@ -66,6 +70,18 @@ export class DuckDBPool extends EventEmitter {
       return;
     }
 
+    // Guard against concurrent initialization creating multiple instances
+    if (this.initializePromise) {
+      return this.initializePromise;
+    }
+
+    this.initializePromise = this.doInitialize().finally(() => {
+      this.initializePromise = null;
+    });
+    return this.initializePromise;
+  }
+
+  private async doInitialize(): Promise<void> {
     console.log('Initializing DuckDB connection pool...');
 
     try {
@@ -73,6 +89,13 @@ export class DuckDBPool extends EventEmitter {
         // For encrypted databases, use in-memory instance and ATTACH encrypted file
         // This is the recommended pattern from DuckDB encryption documentation
         console.log('Using encrypted database mode...');
+        this.instance = await DuckDBInstance.create(':memory:', {
+          memory_limit: this.config.memoryLimit || '4GB',
+          threads: String(this.config.threads || 4),
+        });
+      } else if (this.dbPath === ':memory:') {
+        // In-memory databases must not share the process-wide cache -
+        // each pool gets its own private database (important for tests)
         this.instance = await DuckDBInstance.create(':memory:', {
           memory_limit: this.config.memoryLimit || '4GB',
           threads: String(this.config.threads || 4),
@@ -327,6 +350,19 @@ export class DuckDBPool extends EventEmitter {
       idleConnections: this.connections.length - this.activeConnections.size,
       waitingRequests: this.waitingQueue.length
     };
+  }
+
+  // Validate that MCP extension support is available
+  async validateMCPExtension(): Promise<boolean> {
+    try {
+      const result = await this.query(
+        "SELECT extension_name FROM duckdb_extensions() WHERE extension_name = 'mcp' AND loaded"
+      );
+      return result.length > 0;
+    } catch (error) {
+      console.error('MCP extension validation failed:', error);
+      return false;
+    }
   }
 
   // Health check for monitoring

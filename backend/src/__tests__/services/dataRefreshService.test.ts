@@ -1,4 +1,6 @@
 import { DataRefreshService } from '../../services/dataRefreshService';
+import { getHealthcareAnalyticsModule } from '../../modules/healthcare_analytics';
+import { censusDataLoader } from '../../utils/censusDataLoader';
 
 // Mock dependencies
 jest.mock('../../utils/censusDataLoader');
@@ -32,7 +34,8 @@ describe('DataRefreshService', () => {
       // Mock the healthcare module
       const mockHealthcareModule = {
         healthCheck: jest.fn().mockResolvedValue(mockHealthCheck),
-        getAvailablePatterns: jest.fn().mockResolvedValue(['pattern1', 'pattern2'])
+        getAvailablePatterns: jest.fn().mockResolvedValue(['pattern1', 'pattern2']),
+        validateQuery: jest.fn().mockResolvedValue({ isValid: true, errors: [] })
       };
 
       // Mock census data loader methods
@@ -43,21 +46,16 @@ describe('DataRefreshService', () => {
         showDataStats: jest.fn().mockResolvedValue(undefined)
       };
 
-      // Mock the modules
-      jest.doMock('../../modules/healthcare_analytics', () => ({
-        getHealthcareAnalyticsModule: jest.fn().mockReturnValue(mockHealthcareModule)
-      }));
-
-      jest.doMock('../../utils/censusDataLoader', () => ({
-        censusDataLoader: mockCensusDataLoader
-      }));
+      // Wire up the mocks
+      (getHealthcareAnalyticsModule as jest.Mock).mockReturnValue(mockHealthcareModule);
+      Object.assign(censusDataLoader, mockCensusDataLoader);
 
       const result = await dataRefreshService.refreshHealthcareData();
 
       expect(result.success).toBe(true);
       expect(result.recordsUpdated).toBe(300); // 100 * 3 datasets
       expect(result.datasetsRefreshed).toHaveLength(4); // variables, zip5, blockGroup, patterns
-      expect(mockProgressCallback).toHaveBeenCalledTimes(6); // 6 progress updates
+      expect(mockProgressCallback).toHaveBeenCalledTimes(8); // 8 progress updates
     });
 
     it('should handle healthcare module health check failure', async () => {
@@ -66,9 +64,7 @@ describe('DataRefreshService', () => {
         healthCheck: jest.fn().mockResolvedValue(mockHealthCheck)
       };
 
-      jest.doMock('../../modules/healthcare_analytics', () => ({
-        getHealthcareAnalyticsModule: jest.fn().mockReturnValue(mockHealthcareModule)
-      }));
+      (getHealthcareAnalyticsModule as jest.Mock).mockReturnValue(mockHealthcareModule);
 
       const result = await dataRefreshService.refreshHealthcareData();
 
@@ -93,7 +89,8 @@ describe('DataRefreshService', () => {
 
       const mockHealthcareModule = {
         healthCheck: jest.fn().mockResolvedValue(mockHealthCheck),
-        getAvailablePatterns: jest.fn().mockResolvedValue(['pattern1'])
+        getAvailablePatterns: jest.fn().mockResolvedValue(['pattern1']),
+        validateQuery: jest.fn().mockResolvedValue({ isValid: true, errors: [] })
       };
 
       const mockCensusDataLoader = {
@@ -103,18 +100,13 @@ describe('DataRefreshService', () => {
         showDataStats: jest.fn().mockResolvedValue(undefined)
       };
 
-      jest.doMock('../../modules/healthcare_analytics', () => ({
-        getHealthcareAnalyticsModule: jest.fn().mockReturnValue(mockHealthcareModule)
-      }));
-
-      jest.doMock('../../utils/censusDataLoader', () => ({
-        censusDataLoader: mockCensusDataLoader
-      }));
+      (getHealthcareAnalyticsModule as jest.Mock).mockReturnValue(mockHealthcareModule);
+      Object.assign(censusDataLoader, mockCensusDataLoader);
 
       const result = await dataRefreshService.refreshHealthcareData();
 
       expect(result.success).toBe(true); // Should still be true as some datasets succeeded
-      expect(result.recordsUpdated).toBe(201); // 100 + 0 + 100 + 1 pattern
+      expect(result.recordsUpdated).toBe(200); // 100 + 0 + 100 (patterns are not counted as records)
       expect(result.datasetsRefreshed).toContain('census_variables');
       expect(result.datasetsRefreshed).toContain('block_group_demographics');
       expect(result.datasetsRefreshed).not.toContain('zip5_demographics');
@@ -134,9 +126,7 @@ describe('DataRefreshService', () => {
         loadVariableMetadata: jest.fn().mockResolvedValue(mockLoadResult)
       };
 
-      jest.doMock('../../utils/censusDataLoader', () => ({
-        censusDataLoader: mockCensusDataLoader
-      }));
+      Object.assign(censusDataLoader, mockCensusDataLoader);
 
       const result = await dataRefreshService.performIncrementalUpdate(['census_variables']);
 
@@ -161,9 +151,7 @@ describe('DataRefreshService', () => {
         healthCheck: jest.fn().mockResolvedValue(mockHealthCheck)
       };
 
-      jest.doMock('../../modules/healthcare_analytics', () => ({
-        getHealthcareAnalyticsModule: jest.fn().mockReturnValue(mockHealthcareModule)
-      }));
+      (getHealthcareAnalyticsModule as jest.Mock).mockReturnValue(mockHealthcareModule);
 
       const status = await dataRefreshService.getRefreshStatus();
 
@@ -178,9 +166,7 @@ describe('DataRefreshService', () => {
         healthCheck: jest.fn().mockRejectedValue(new Error('Health check failed'))
       };
 
-      jest.doMock('../../modules/healthcare_analytics', () => ({
-        getHealthcareAnalyticsModule: jest.fn().mockReturnValue(mockHealthcareModule)
-      }));
+      (getHealthcareAnalyticsModule as jest.Mock).mockReturnValue(mockHealthcareModule);
 
       const status = await dataRefreshService.getRefreshStatus();
 

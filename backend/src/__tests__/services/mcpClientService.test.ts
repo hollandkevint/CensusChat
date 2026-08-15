@@ -72,21 +72,20 @@ describe('MCPClientService', () => {
     });
 
     it('should handle no enabled clients', async () => {
-      // Mock configuration with no enabled clients
-      jest.doMock('../../config/mcpConfig', () => ({
-        mcpClientConfigs: {
-          census_api: { enabled: false },
-          medicare_api: { enabled: false }
-        }
-      }));
+      // Temporarily disable all clients in the mocked configuration
+      const { mcpClientConfigs } = require('../../config/mcpConfig');
+      const originalEnabled = mcpClientConfigs.census_api.enabled;
+      mcpClientConfigs.census_api.enabled = false;
 
       const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      await mcpClient.initialize();
-
-      expect(logSpy).toHaveBeenCalledWith('ℹ️ No external MCP clients configured');
-
-      logSpy.mockRestore();
+      try {
+        await mcpClient.initialize();
+        expect(logSpy).toHaveBeenCalledWith('ℹ️ No external MCP clients configured');
+      } finally {
+        mcpClientConfigs.census_api.enabled = originalEnabled;
+        logSpy.mockRestore();
+      }
     });
 
     it('should handle connection failures gracefully', async () => {

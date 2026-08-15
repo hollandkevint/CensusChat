@@ -24,7 +24,7 @@ export const setupRoutes = (app: Express) => {
   // app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/queries', queryRoutes);
   // app.use('/api/v1/users', userRoutes);
-  // app.use('/api/v1/census', censusRoutes);
+  app.use('/api/v1/census', censusRoutes);
   // app.use('/api/v1/data-loading', dataLoadingRoutes);
   app.use('/api/v1/export', exportRoutes);
   app.use('/api/v1/mcp', mcpRoutes);

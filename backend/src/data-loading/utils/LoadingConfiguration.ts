@@ -1,6 +1,8 @@
 import { LoadingConfiguration, GeographyLevel } from './LoadingTypes';
 import { config } from '../../config';
 
+export { LoadingConfiguration } from './LoadingTypes';
+
 export const DEFAULT_LOADING_CONFIG: LoadingConfiguration = {
   maxConcurrentJobs: 3, // Parallel processing limit
   maxRetries: 3,

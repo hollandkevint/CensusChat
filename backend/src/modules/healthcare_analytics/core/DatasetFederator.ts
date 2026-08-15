@@ -314,7 +314,7 @@ export class DatasetFederator {
         const health = await adapter.healthCheck();
         metadata.push({
           source: adapter.source,
-          available: health.healthy,
+          available: health,
           lastUpdated: new Date(),
           capabilities: adapter.getSupportedFeatures?.() || [],
           description: `Public dataset adapter for ${sourceName}`
@@ -339,7 +339,7 @@ export class DatasetFederator {
     for (const [sourceName, adapter] of this.adapters) {
       try {
         const health = await adapter.healthCheck();
-        adapterHealth[sourceName] = health.healthy;
+        adapterHealth[sourceName] = health;
       } catch (error) {
         adapterHealth[sourceName] = false;
       }

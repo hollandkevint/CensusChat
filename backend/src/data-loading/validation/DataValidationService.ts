@@ -79,8 +79,12 @@ export class DataValidationService {
   private validateRecord(record: any, geography: string): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
 
-    // Check required fields
-    for (const field of this.rules.requiredFields) {
+    // Check required fields (name is only required when the geography's rules require it)
+    const geographyRules = this.rules.geographyRules[geography];
+    const requiredFields = this.rules.requiredFields.filter(field =>
+      field !== 'name' || !geographyRules || geographyRules.requiredFields.includes('name')
+    );
+    for (const field of requiredFields) {
       if (!record[field] || record[field] === null || record[field] === '') {
         issues.push({
           type: 'missing_data',
@@ -171,7 +175,7 @@ export class DataValidationService {
   private getDefaultValidationRules(): ValidationRules {
     return {
       requiredFields: ['dataset', 'year', 'geography_level', 'geography_code', 'name'],
-      numericFields: [], // Would be populated based on variable types
+      numericFields: ['var_b01003_001e', 'var_b25001_001e', 'var_b19013_001e'],
       geographyRules: {
         state: {
           codeFormat: /^\d{2}$/,
@@ -192,9 +196,9 @@ export class DataValidationService {
         }
       },
       dataRanges: {
-        var_b01003_001e: { min: 0, max: 10000000 }, // Total population
-        var_b25001_001e: { min: 0, max: 5000000 },  // Housing units
-        var_b19013_001e: { min: 0, max: 500000 }    // Median household income
+        var_b01003_001e: { min: 0, max: 100000000 }, // Total population
+        var_b25001_001e: { min: 0, max: 20000000 },  // Housing units
+        var_b19013_001e: { min: 0, max: 500000 }     // Median household income
       }
     };
   }

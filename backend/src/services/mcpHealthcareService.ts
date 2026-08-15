@@ -38,6 +38,8 @@ export interface MCPToolDefinition {
     properties: Record<string, any>;
     required: string[];
   };
+  inputSchema?: Record<string, any>;
+  requiredPermission?: string;
   handler: (params: any) => Promise<MCPToolResponse>;
 }
 
@@ -516,6 +518,22 @@ export class MCPHealthcareService {
     return Array.from(this.tools.values());
   }
 
+  getProtocolInfo(): { protocol: string; version: string; capabilities: MCPHealthcareCapabilities } {
+    return {
+      protocol: 'mcp-healthcare',
+      version: MCP_HEALTHCARE_PROTOCOL_VERSION,
+      capabilities: this.getCapabilities()
+    };
+  }
+
+  async getHealthStatus(): Promise<{ healthy: boolean; tools: Record<string, boolean>; version: string }> {
+    return this.healthCheck();
+  }
+
+  getAvailableTools(): Map<string, MCPToolDefinition> {
+    return this.tools;
+  }
+
   async healthCheck(): Promise<{ healthy: boolean; tools: Record<string, boolean>; version: string }> {
     const toolHealth: Record<string, boolean> = {};
 
@@ -527,7 +545,7 @@ export class MCPHealthcareService {
       try {
         const testParams = this.generateTestParameters(toolName);
         const result = await this.executeTool(toolName, testParams);
-        toolHealth[toolName] = result.success;
+        toolHealth[toolName] = result.status.success;
       } catch (error) {
         toolHealth[toolName] = false;
       }

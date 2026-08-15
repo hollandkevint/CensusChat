@@ -246,9 +246,9 @@ export class DataLoadMonitor extends EventEmitter {
       throughput: number;
     };
     trends: {
-      errorRateTrend: 'improving' | 'stable' | 'worsening';
-      throughputTrend: 'improving' | 'stable' | 'declining';
-      performanceTrend: 'improving' | 'stable' | 'declining';
+      errorRateTrend: 'improving' | 'stable' | 'worsening' | 'declining';
+      throughputTrend: 'improving' | 'stable' | 'worsening' | 'declining';
+      performanceTrend: 'improving' | 'stable' | 'worsening' | 'declining';
     };
     recommendations: string[];
   } {

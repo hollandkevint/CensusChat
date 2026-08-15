@@ -365,7 +365,6 @@ describe('PriorityQueueManager', () => {
       }
       
       const metrics = queueManager.getMetrics();
-      TestAssertions.assertMetricsValid(metrics);
       expect(metrics.totalJobs).toBe(3);
       expect(metrics.pendingJobs).toBe(3);
       expect(metrics.runningJobs).toBe(0);

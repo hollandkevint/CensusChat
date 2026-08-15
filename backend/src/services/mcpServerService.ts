@@ -45,6 +45,12 @@ export class MCPServerService extends EventEmitter {
         await pool.initialize();
       }
 
+      // Verify the MCP extension is available before starting the server
+      const mcpExtensionAvailable = await pool.validateMCPExtension();
+      if (!mcpExtensionAvailable) {
+        throw new Error('MCP extension not available in DuckDB');
+      }
+
       // Start MCP server
       await this.startMCPServer();
 

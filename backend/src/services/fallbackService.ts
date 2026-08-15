@@ -59,7 +59,7 @@ export class FallbackService {
       return CensusApiErrorType.RATE_LIMIT_EXCEEDED;
     }
 
-    if (statusCode === 401 || statusCode === 403 || lowerMessage.includes('authentication')) {
+    if (statusCode === 401 || statusCode === 403 || lowerMessage.includes('authentication') || lowerMessage.includes('unauthorized') || lowerMessage.includes('forbidden')) {
       return CensusApiErrorType.AUTHENTICATION_FAILED;
     }
 

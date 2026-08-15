@@ -11,19 +11,27 @@ const router = Router();
  */
 router.post('/start', async (req: Request, res: Response) => {
   try {
-    const { phases } = req.body;
-    
+    const { phases } = req.body || {};
+
     console.log('🚀 Starting data loading via API...');
-    
-    // Start the loading process (don't await to return immediately)
-    dataLoadingOrchestrator.startPriorityLoading(phases)
+
+    // Start the loading process (don't await completion, but surface immediate failures)
+    const loadingPromise = dataLoadingOrchestrator.startPriorityLoading(phases);
+    loadingPromise
       .then(() => {
         console.log('✅ Data loading completed successfully');
       })
       .catch((error) => {
         console.error('❌ Data loading failed:', error);
       });
-    
+
+    // If the loading promise rejects immediately (e.g. already in progress),
+    // report the error instead of a success response
+    await Promise.race([
+      loadingPromise,
+      new Promise<void>(resolve => setImmediate(resolve))
+    ]);
+
     res.json({ 
       success: true, 
       message: 'Data loading started successfully',
@@ -407,7 +415,7 @@ router.get('/analytics', async (req: Request, res: Response) => {
             ((progress.apiCallsUsed / (progress.apiCallsUsed + progress.apiCallsRemaining)) * 100).toFixed(2) + '%' : '0%'
         },
         systemHealth: {
-          status: context.activeJobs.length > 0 ? 'loading' : 'idle',
+          status: progress.status,
           activeJobs: context.activeJobs.length,
           queueDepth: context.queueDepth,
           recentErrors: progress.errors.slice(-5) // Latest 5 errors

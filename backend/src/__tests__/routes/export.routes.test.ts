@@ -3,7 +3,7 @@ import express from 'express';
 import { exportRoutes } from '../../routes/export.routes';
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use('/api/v1/export', exportRoutes);
 
 describe('Export Routes', () => {

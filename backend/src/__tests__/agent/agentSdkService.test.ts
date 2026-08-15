@@ -36,7 +36,7 @@ describe("agentSdkService", () => {
       expect(result).toEqual({
         censuschat: {
           type: "http",
-          url: "http://localhost:3001/mcp",
+          url: `${process.env.MCP_SERVER_URL || "http://localhost:3001"}/mcp`,
           headers: {
             "Content-Type": "application/json",
           },

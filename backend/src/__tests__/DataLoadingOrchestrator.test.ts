@@ -6,10 +6,21 @@ import { mockCensusApiService } from '../test/fixtures/censusApiResponses';
 jest.mock('../data-loading/orchestration/PriorityQueueManager');
 jest.mock('../data-loading/processing/ConcurrentWorkerPool');
 jest.mock('../data-loading/monitoring/DataLoadMonitor');
-jest.mock('../data-loading/utils/LoadingConfiguration');
-jest.mock('../services/censusApiService', () => ({
-  censusApiService: mockCensusApiService
-}));
+jest.mock('../data-loading/utils/LoadingConfiguration', () => {
+  const { createTestConfig } = require('../test/helpers/testUtils');
+  return {
+    configurationManager: {
+      getConfiguration: jest.fn(() => createTestConfig()),
+      updateConfiguration: jest.fn(),
+      shouldPauseLoading: jest.fn(() => false),
+      getApiCallBudget: jest.fn(() => ({ available: 400, reserved: 50, total: 500 }))
+    }
+  };
+});
+jest.mock('../services/censusApiService', () => {
+  const { mockCensusApiService } = require('../test/fixtures/censusApiResponses');
+  return { censusApiService: mockCensusApiService };
+});
 
 describe('DataLoadingOrchestrator', () => {
   let orchestrator: DataLoadingOrchestrator;
@@ -111,8 +122,9 @@ describe('DataLoadingOrchestrator', () => {
 
   describe('Priority Loading', () => {
     test('should start priority loading successfully', async () => {
-      mockQueueManager.hasJobsForPhase.mockReturnValue(false); // No jobs to process
-      
+      mockQueueManager.hasJobsForPhase.mockReturnValue(true); // Keep the phase active
+      mockQueueManager.getNextJobs.mockResolvedValue([]);
+
       const startPromise = orchestrator.startPriorityLoading();
       
       // Wait a bit for initialization

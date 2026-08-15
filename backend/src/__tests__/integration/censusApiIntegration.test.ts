@@ -3,6 +3,7 @@ import { app } from '../../index';
 import { censusApiService } from '../../services/censusApiService';
 import { FallbackService, CensusApiErrorType } from '../../services/fallbackService';
 import { getCacheStats, invalidateCache } from '../../services/cacheService';
+import { anthropicService } from '../../services/anthropicService';
 
 describe('Census API Integration Tests', () => {
   beforeEach(async () => {
@@ -137,16 +138,22 @@ describe('Census API Integration Tests', () => {
       expect(response.body.data).toBeDefined();
       expect(Array.isArray(response.body.data)).toBe(true);
       expect(response.body.metadata).toBeDefined();
-      expect(response.body.metadata.dataSource).toContain('Mock Data');
-      expect(response.body.metadata.usedLiveApi).toBe(false);
+      expect(response.body.metadata.dataSource).toContain('Mock');
+      expect(response.body.metadata.usedDuckDB).toBe(false);
     });
 
     it('should provide error details and suggestions for invalid queries', async () => {
+      const analyzeSpy = jest
+        .spyOn(anthropicService, 'analyzeQuery')
+        .mockRejectedValueOnce(new Error('Unable to parse query'));
+
       const response = await request(app)
         .post('/api/v1/queries')
         .send({
           query: 'gibberish query that makes no sense'
         });
+
+      analyzeSpy.mockRestore();
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);

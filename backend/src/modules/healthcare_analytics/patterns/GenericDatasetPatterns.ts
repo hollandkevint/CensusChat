@@ -480,7 +480,7 @@ export class GenericDatasetPatterns {
     const sqlPattern = this.buildSQLFromPattern(selectedPattern, geography, timeframe);
 
     return {
-      intent: selectedPattern.intent,
+      intent: selectedPattern.intent as QueryTranslationPattern['intent'],
       entities: {
         geography,
         metrics: selectedPattern.metrics,

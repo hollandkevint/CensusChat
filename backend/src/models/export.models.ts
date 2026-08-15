@@ -60,7 +60,7 @@ export interface ExcelFormatting {
   };
   dataStyle: {
     font: { size: number };
-    alignment: { horizontal: string; vertical: string };
+    alignment: { horizontal: 'left' | 'right' | 'center' | 'fill' | 'justify' | 'centerContinuous' | 'distributed'; vertical: 'top' | 'middle' | 'bottom' | 'distributed' | 'justify' };
   };
   numberFormat: string;
 }

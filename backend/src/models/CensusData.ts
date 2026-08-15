@@ -299,7 +299,23 @@ export class CensusDataModel {
     }
 
     const reader = await this.connection.runAndReadAll(sql);
-    return reader.getRowObjects() as CensusDataRecord[];
+    return reader.getRowObjects() as unknown as CensusDataRecord[];
+  }
+
+  /**
+   * Get census variable metadata by variable names
+   */
+  async getCensusVariables(variableNames: string[]): Promise<CensusVariable[]> {
+    await this.ensureInitialized();
+    if (!this.connection) throw new Error('Database not initialized');
+
+    if (variableNames.length === 0) return [];
+
+    const nameList = variableNames.map(name => `'${name.replace(/'/g, "''")}'`).join(', ');
+    const reader = await this.connection.runAndReadAll(
+      `SELECT * FROM census_variables WHERE variable_name IN (${nameList})`
+    );
+    return reader.getRowObjects() as unknown as CensusVariable[];
   }
 
   /**

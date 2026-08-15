@@ -60,7 +60,7 @@ export class HealthcareAnalyticsTools {
         }
       }
 
-      const executionTime = Date.now() - startTime;
+      const executionTime = Math.max(1, Date.now() - startTime);
 
       return {
         success: true,
@@ -74,7 +74,7 @@ export class HealthcareAnalyticsTools {
       };
 
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = Math.max(1, Date.now() - startTime);
 
       return {
         success: false,
@@ -120,35 +120,30 @@ export class HealthcareAnalyticsTools {
     parameters: any,
     mcpClient: any
   ): Promise<any[]> {
-    try {
-      // Get Medicare Advantage penetration data from external source
-      const maData = await mcpClient.callTool({
-        client: 'medicare_api',
-        tool: 'get_ma_penetration',
-        parameters: {
-          geography: parameters.geography_type,
-          year: parameters.year || new Date().getFullYear()
-        }
-      });
+    // Get Medicare Advantage penetration data from external source
+    // (errors propagate so the caller can fall back to internal data)
+    const maData = await mcpClient.callTool({
+      client: 'medicare_api',
+      tool: 'get_ma_penetration',
+      parameters: {
+        geography: parameters.geography_type,
+        year: parameters.year || new Date().getFullYear()
+      }
+    });
 
-      // Merge internal and external data
-      return internalData.map(row => {
-        const maRecord = maData.find((ma: any) =>
-          ma.county === row.county && ma.state === row.state
-        );
+    // Merge internal and external data
+    return internalData.map(row => {
+      const maRecord = maData.find((ma: any) =>
+        ma.county === row.county && ma.state === row.state
+      );
 
-        return {
-          ...row,
-          ma_enrollment_estimate: maRecord?.ma_enrollment_estimate || 0,
-          ma_penetration_rate: maRecord?.ma_penetration_rate || 0,
-          data_sources: ['CensusChat', 'Medicare API']
-        };
-      });
-
-    } catch (error) {
-      console.warn('⚠️ Failed to enrich Medicare data:', error);
-      return internalData;
-    }
+      return {
+        ...row,
+        ma_enrollment_estimate: maRecord?.ma_enrollment_estimate || 0,
+        ma_penetration_rate: maRecord?.ma_penetration_rate || 0,
+        data_sources: ['CensusChat', 'Medicare API']
+      };
+    });
   }
 
   private static async enrichPopulationHealthData(
@@ -156,35 +151,30 @@ export class HealthcareAnalyticsTools {
     parameters: any,
     mcpClient: any
   ): Promise<any[]> {
-    try {
-      // Get additional demographic data from Census API
-      const censusData = await mcpClient.callTool({
-        client: 'census_api',
-        tool: 'get_demographics',
-        parameters: {
-          geography_type: parameters.geography_type,
-          geography_codes: parameters.geography_codes
-        }
-      });
+    // Get additional demographic data from Census API
+    // (errors propagate so the caller can fall back to internal data)
+    const censusData = await mcpClient.callTool({
+      client: 'census_api',
+      tool: 'get_demographics',
+      parameters: {
+        geography_type: parameters.geography_type,
+        geography_codes: parameters.geography_codes
+      }
+    });
 
-      // Merge with census data for additional health context
-      return internalData.map(row => {
-        const censusRecord = censusData.find((census: any) =>
-          census.county === row.county && census.state === row.state
-        );
+    // Merge with census data for additional health context
+    return internalData.map(row => {
+      const censusRecord = censusData.find((census: any) =>
+        census.county === row.county && census.state === row.state
+      );
 
-        return {
-          ...row,
-          external_population_total: censusRecord?.population_total || row.population_total,
-          external_median_income: censusRecord?.median_household_income || row.median_household_income,
-          data_sources: ['CensusChat', 'Census API']
-        };
-      });
-
-    } catch (error) {
-      console.warn('⚠️ Failed to enrich population health data:', error);
-      return internalData;
-    }
+      return {
+        ...row,
+        external_population_total: censusRecord?.population_total || row.population_total,
+        external_median_income: censusRecord?.median_household_income || row.median_household_income,
+        data_sources: ['CensusChat', 'Census API']
+      };
+    });
   }
 
   private static async enrichFacilityData(

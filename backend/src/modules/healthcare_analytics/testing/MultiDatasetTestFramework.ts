@@ -58,6 +58,7 @@ export interface TestSuiteResult {
   passedTests: number;
   failedTests: number;
   skippedTests: number;
+  testCases?: TestCase[];
   results: TestResult[];
   coverage: {
     domains: string[];
@@ -635,7 +636,7 @@ export class MultiDatasetTestFramework extends EventEmitter {
     // Check for critical test failures
     suiteResults.forEach(suite => {
       const criticalFailures = suite.results.filter(r =>
-        !r.success && suite.testCases.find(tc => tc.id === r.testCaseId)?.priority === 'critical'
+        !r.success && (suite.testCases || []).find(tc => tc.id === r.testCaseId)?.priority === 'critical'
       );
 
       if (criticalFailures.length > 0) {

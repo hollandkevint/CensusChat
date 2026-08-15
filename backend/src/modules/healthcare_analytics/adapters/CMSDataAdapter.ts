@@ -27,7 +27,9 @@ export interface CMSApiResponse {
 }
 
 export class CMSDataAdapter extends BasePublicDatasetAdapter implements PublicDatasetAdapter {
-  readonly source = 'cms_gov';
+  readonly source = 'cms' as const;
+  readonly name = 'CMS Data Adapter';
+  readonly version = '1.0.0';
   private config: Required<CMSDataConfig>;
 
   constructor(config: CMSDataConfig = {}) {
@@ -56,7 +58,7 @@ export class CMSDataAdapter extends BasePublicDatasetAdapter implements PublicDa
 
       const response = await fetch(testUrl, {
         method: 'GET',
-        timeout: this.config.timeout,
+        signal: AbortSignal.timeout(this.config.timeout),
         headers: {
           'User-Agent': 'CensusChat-HealthcareAnalytics/1.0',
           'Accept': 'application/json'
@@ -252,7 +254,7 @@ export class CMSDataAdapter extends BasePublicDatasetAdapter implements PublicDa
       try {
         const response = await fetch(url, {
           method: 'POST',
-          timeout: this.config.timeout,
+          signal: AbortSignal.timeout(this.config.timeout),
           headers: {
             'User-Agent': 'CensusChat-HealthcareAnalytics/1.0',
             'Accept': 'application/json',
@@ -271,7 +273,7 @@ export class CMSDataAdapter extends BasePublicDatasetAdapter implements PublicDa
           throw new Error(`CMS API error: ${response.status} ${response.statusText}`);
         }
 
-        const result: CMSApiResponse = await response.json();
+        const result = await response.json() as CMSApiResponse;
         return result.results || [];
 
       } catch (error) {
