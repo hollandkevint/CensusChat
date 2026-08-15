@@ -4,7 +4,7 @@
 
 *Transform 6-week $50K demographic consulting into 6-second $297/month queries*
 
-**[📊 Foundation Data](docs/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
+**[📊 Foundation Data](docs/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[🧭 Strategy & Roadmap](STRATEGY.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
 
 ---
 
@@ -171,7 +171,8 @@ Open http://localhost:3000 and start querying.
 - [🔗 MCP Implementation](docs/MCP_IMPLEMENTATION_SUMMARY.md)
 - [🧪 Testing Guide](docs/TESTING_GUIDE.md)
 
-### **Deployment**
+### **Strategy & Deployment**
+- [🧭 Strategy & Roadmap](STRATEGY.md) — priorities, API currency, and the Railway consolidation plan (incl. Supabase → Railway migration playbook)
 - [🚀 Railway Deployment](docs/guides/RAILWAY_DEPLOYMENT.md)
 - [🔒 Security Policy](SECURITY.md)
 
