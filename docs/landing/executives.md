@@ -10,7 +10,7 @@
 
 **CensusChat Solution:**
 - 💰 Fixed-price analysis, scoped and quoted before work starts
-- ⚡ 23 minutes for complete analysis
+- ⚡ Ask in plain English, get Excel-ready results back
 - 🔄 Refine the question and re-run within the same engagement
 - 📊 Excel-ready data with metadata
 
@@ -24,22 +24,27 @@
 
 We do not publish a savings figure against the estimate above. A savings figure needs two prices, and the analysis price is set per engagement.
 
-**Your Time Savings:**
-- Traditional: **6 weeks** per analysis
-- CensusChat: **23 minutes** per analysis
+---
+
+## What the Data Covers
+
+- **3,144 US counties** with demographics
+- **239,741 census block groups**, each with 84 ACS variables
+- Age distributions (including Medicare-eligible 65+), income, education, housing, healthcare access, and technology adoption
 
 ---
 
-## Success Stories
+## What the Platform Does
 
-### Regional Health System (2.8B Revenue)
-*"Used to take our analytics team 2 weeks to pull Medicare Advantage market data. Now I get it in seconds and can focus on strategy instead of waiting."*
-**— Sarah L., VP Strategy**
+- **Natural language to SQL** via Claude Sonnet 4 and the Model Context Protocol
+- **Parallel queries**: "Compare Tampa Bay vs Phoenix" runs both at once
+- **Excel and PDF export** with statistical metadata attached
+- **Interactive results**: sortable tables, filterable data, drill-down navigation
+- **SQL injection protection**: table and column allowlists, row limits, dangerous-pattern blocking
+- **Audit compliance**: every query logged
+- **Privacy-first architecture**: encryption at rest, no PHI stored
 
-**Impact:**
-- Reduced decision cycle from 6 weeks to 2 hours
-- Enabled real-time market opportunity analysis
-- Supported $150M facility expansion decision
+Speed target: sub-2-second query responses. The API enforces a 30-second request timeout, which covers MCP validation and the Anthropic API round trip.
 
 ---
 
@@ -57,6 +62,6 @@ We do not publish a savings figure against the estimate above. A savings figure 
 
 ---
 
-**About the Builder:** Kevin Holland has 10+ years healthcare data experience, working with 2M+ member Medicare Advantage plans and $2.8B health systems. 
+**About the Builder:** Kevin Holland has 10+ years of healthcare data experience.
 
 **[Read Kevin's Full Story →](../about/)**

@@ -1,23 +1,20 @@
 # CensusChat: GitHub Pages Landing
 ## Healthcare Demographics Made Simple
 
-**Kevin Holland is transforming healthcare data analysis from weeks to seconds.**
+**Natural language queries over US Census demographics, built for healthcare strategy teams.**
 
 ---
 
 ### Choose Your Path:
 
 **🏥 Healthcare Executive?**  
-[See ROI Calculator & Case Studies →](https://hollandkevint.github.io/CensusChat/about/#market-opportunity-i-pursuing)
+[See What CensusChat Covers →](https://hollandkevint.github.io/CensusChat/landing/executives)
 
 **👩‍💻 Technical Team?**  
 [View Architecture & Code →](README.md)
 
 **🚀 Building Your Own Product?**  
 [Follow Kevin's Journey →](https://hollandkevint.github.io/CensusChat/about/#my-solopreneur-strategy)
-
-**📊 Need Demographics Now?**  
-[Try CensusChat Demo →](https://censuschat.com/demo)
 
 ---
 

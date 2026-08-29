@@ -2,7 +2,7 @@
 
 **Natural language interface to US Census data for healthcare strategy teams**
 
-*Ask US Census data a question in plain English. Get an Excel-ready answer in seconds.*
+*Query 3,144 US counties and 239,741 census block groups in plain English. Get an Excel-ready answer back.*
 
 **[📊 Foundation Data](docs/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
 
@@ -42,7 +42,7 @@
 
 ## 🎯 **The Problem**
 
-Healthcare strategy teams wait weeks and pay tens of thousands of dollars for demographic analysis that CensusChat delivers in **seconds**.
+Healthcare strategy teams wait weeks and pay tens of thousands of dollars for demographic analysis. CensusChat answers the same questions from ACS data.
 
 *The **6-week, $50K** consulting baseline used throughout this README is an estimate drawn from the maintainer's own experience buying and delivering this work. It is not a published benchmark.*
 
@@ -94,8 +94,9 @@ const stack = {
 };
 ```
 
-### **Performance Metrics**
-- **Sub-2 Second Queries** with MCP validation
+### **Performance Targets**
+- **Sub-2 second query responses** — the target contributors maintain, not a measured guarantee
+- **30-second request timeout** enforced in `backend/src/routes/query.routes.ts`, covering MCP validation and the Anthropic API round trip
 - **Parallel Execution** for comparison queries
 - **Comprehensive test suites** with CI on every push
 - **Privacy-first architecture** with encryption, audit logging, and no PHI stored
@@ -192,8 +193,8 @@ Open http://localhost:3000 and start querying.
 
 **Our Solution:**
 - **Fixed-price analysis** instead of an estimated $50K consulting project
-- **~300x speed improvement**: 6 weeks → seconds
 - **Unlimited iterations** with conversational follow-up
+- **Excel-ready output** with query metadata attached
 
 ---
 
@@ -211,7 +212,7 @@ There is no subscription to buy. CensusChat has no billing, no signup, and no se
 ### **For Developers**
 - Write quality TypeScript with comprehensive test coverage
 - CI runs lint, typecheck, unit tests, Playwright e2e (`cd frontend && npm run test:e2e`), and Docker builds on every push
-- Maintain sub-2s query response times
+- Maintain the sub-2s query response-time target
 - Follow privacy-first security practices (no PHI stored, audit logging, encryption at rest)
 - Run `npm run secret-scan` before committing
 
@@ -219,7 +220,7 @@ There is no subscription to buy. CensusChat has no billing, no signup, and no se
 
 **⭐ Star this repository if CensusChat helps your healthcare data work**
 
-*Transforming healthcare demographic analysis from weeks to seconds*
+*US Census demographics, queried in plain English*
 
 ---
 

@@ -15,23 +15,24 @@ You've been asked to "just pull some Census data" and discovered:
 
 ## Technical Architecture Deep Dive
 
-### MCP + Claude Integration (Industry First)
+### MCP + Claude Integration
 ```typescript
 // Natural language → SQL validation → Census API
 const pipeline = {
   step1: "Claude Sonnet 4 translates to SQL",
   step2: "MCP validates query for security + performance", 
-  step3: "Census API retrieves validated data",
-  step4: "Statistical confidence intervals calculated",
-  step5: "Excel-ready results with metadata"
+  step3: "DuckDB executes the query against pre-loaded ACS data",
+  step4: "Results formatted with query metadata",
+  step5: "Excel-ready results, exportable to Excel/CSV/PDF"
 };
 ```
 
-### Performance Engineering Results
-- **Sub-2 Second Queries**: 95th percentile on 11M+ records
-- **80%+ Cache Hit Rate**: Redis-powered demographic data caching
-- **89% Test Coverage**: Comprehensive containerized test suite
-- **ARM64 Compatible**: Optimized for Apple Silicon development
+### Engineering Targets and Constraints
+- **Sub-2 Second Queries**: the response-time target contributors maintain
+- **30-Second Request Timeout**: enforced in `backend/src/routes/query.routes.ts`, covering MCP validation and the Anthropic API round trip
+- **1,000-Row Query Limit**: enforced by the SQL validation layer
+- **Redis Caching**: demographic query results cached via `backend/src/services/cacheService.ts`
+- **ARM64 Compatible**: builds on Apple Silicon
 
 ### Service Virtualization (Complete API Mocking)
 ```bash
@@ -39,32 +40,29 @@ const pipeline = {
 ./test-runner.sh
 
 # Results: WireMock Census API + PostgreSQL + Redis + DuckDB
-✅ Realistic API responses with variability
-✅ Performance simulation under load
-✅ Complete offline development capability
+✅ WireMock Census API fixtures
+✅ Offline development against seeded data
 ```
 
 ---
 
 ## Why This Matters for Your Stack
 
-**Enterprise Integration:**
-- RESTful API with GraphQL planned
-- Webhook support for real-time updates  
-- Tableau/Power BI connectors in roadmap
-- HIPAA-ready architecture from day one
+**Integration:**
+- RESTful API over Express 5
+- MCP HTTP transport for external clients (Claude Desktop, Postman)
+- Excel, CSV, and PDF export endpoints
+- Privacy-first architecture: no PHI stored, audit logging, encryption at rest
 
 **Developer Experience:**
 - TypeScript throughout (strict mode)
-- Docker Compose for instant setup
-- Comprehensive API documentation
-- Active community support
+- Docker Compose for local setup
+- Jest + Supertest backend suite, Playwright e2e on the frontend
 
-**Scalability Proven:**
-- Kubernetes-ready containerization
-- Horizontal scaling tested
-- Multi-tenant architecture designed
-- 99.9% uptime SLA capability
+**Containerization:**
+- Docker Compose stack: backend, frontend, PostgreSQL, Redis
+- Dockerfiles build in CI on every push
+- Next.js standalone output for a slim frontend image
 
 ---
 
@@ -73,14 +71,10 @@ const pipeline = {
 **Repository:** [github.com/hollandkevint/CensusChat](https://github.com/hollandkevint/CensusChat)
 
 **Key Technical Docs:**
-- [Testing Infrastructure](../docs/TESTING_INFRASTRUCTURE.md) - Docker setup and CI/CD
-- [API Integration Guide](../docs/API_INTEGRATION_GUIDE.md) - MCP layer architecture  
+- [API Integration Guide](../docs/API_INTEGRATION_GUIDE.md) - MCP layer architecture
 - [Frontend Architecture](../docs/FRONTEND_ARCHITECTURE.md) - Next.js 15 + React 19
 
-**Live Performance Metrics:**
-- [Test Results](https://github.com/hollandkevint/CensusChat/actions) - 89% success rate
-- [Coverage Report](../backend/coverage/) - Comprehensive test coverage
-- [API Benchmarks](../docs/SUCCESS_METRICS.md) - Response time analysis
+**CI:** [GitHub Actions](https://github.com/hollandkevint/CensusChat/actions) runs lint, typecheck, unit tests, Playwright e2e, and Docker builds on every push.
 
 ---
 
@@ -88,11 +82,11 @@ const pipeline = {
 
 **I'm Kevin Holland** - 10+ years healthcare data engineering, frustrated by Census API complexity.
 
-**Technical Background:**
-- Node.js + TypeScript + PostgreSQL + Redis + DuckDB
-- MCP integration pioneer (healthcare first implementation)
-- Docker containerization and Kubernetes deployment
-- Healthcare compliance (HIPAA) and enterprise security
+**This stack:**
+- Node.js 20 + TypeScript + Express 5
+- PostgreSQL 15 + Redis 7 + DuckDB 1.4.3
+- Claude Sonnet 4 + Agent SDK + MCP SDK
+- Next.js 15 + React 19 + Tailwind CSS 4
 
 **[🔧 Fork the Code →](https://github.com/hollandkevint/CensusChat)**  
 **[💬 Technical Discussion →](https://github.com/hollandkevint/CensusChat/discussions)**  
