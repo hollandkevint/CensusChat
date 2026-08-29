@@ -2,8 +2,8 @@
  * Typed access to the committed county snapshot.
  *
  * SERVER-ONLY. The snapshot is ~2 MB; importing this module from a file
- * carrying 'use client' ships all of it to the browser. Slug helpers that a
- * client component needs live in `countySlug.ts`, which imports no data.
+ * carrying 'use client' ships all of it to the browser. Every consumer today
+ * is a server component; keep it that way.
  */
 
 import data from '@/data/counties.json';
@@ -103,35 +103,37 @@ export function getCounty(stateSlug: string, countySlug: string): County | undef
   return byRoute.get(`${stateSlug}/${countySlug}`);
 }
 
-export function getCountyByFips(fips: string): County | undefined {
-  return byFips.get(fips);
-}
-
 export function getStateOf(county: County): StateRow | undefined {
   return snapshot.states[county.stateFips];
 }
 
+function resolve(fipsList: string[]): County[] {
+  return fipsList.map((f) => byFips.get(f)).filter((c): c is County => c !== undefined);
+}
+
 /** Counties nationally closest in senior population. Precomputed by the generator. */
 export function getPeers(county: County): County[] {
-  return county.peerFips.map((f) => byFips.get(f)).filter((c): c is County => c !== undefined);
+  return resolve(county.peerFips);
 }
 
 /** Same-state counties closest in total population -- not the whole state. */
 export function getStateNeighbors(county: County): County[] {
-  return county.stateNeighborFips
-    .map((f) => byFips.get(f))
-    .filter((c): c is County => c !== undefined);
+  return resolve(county.stateNeighborFips);
 }
 
-/** Every state, with its county count, for the index page. */
+/** Every state with its counties, both alphabetical, for the index page. */
 export function getStateGroups(): Array<{ state: StateRow; counties: County[] }> {
+  const grouped = new Map<string, County[]>();
+  for (const c of counties) {
+    const group = grouped.get(c.stateFips);
+    if (group) group.push(c);
+    else grouped.set(c.stateFips, [c]);
+  }
   return Object.values(snapshot.states)
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((state) => ({
       state,
-      counties: counties
-        .filter((c) => c.stateFips === state.fips)
-        .sort((a, b) => a.name.localeCompare(b.name)),
+      counties: (grouped.get(state.fips) ?? []).sort((a, b) => a.name.localeCompare(b.name)),
     }));
 }
 

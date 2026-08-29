@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
+  countyHref,
   getAllCounties,
   getCounty,
   getPeers,
@@ -66,7 +67,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return {
     title: `${county.name}, ${county.stateName} — Healthcare Demographics | CensusChat`,
     description,
-    alternates: { canonical: `/counties/${county.stateSlug}/${county.slug}` },
+    alternates: { canonical: countyHref(county) },
     openGraph: { title: `${county.name}, ${county.stateName} healthcare demographics`, description },
   };
 }
@@ -225,6 +226,14 @@ export default async function CountyPage({ params }: { params: Params }) {
             metricFor={(c) => formatMetric(c.metrics.population, 'count')}
           />
         </section>
+        <p className="mt-4 text-sm">
+          <Link
+            href={`/counties#${county.stateSlug}`}
+            className="text-blue-700 hover:underline dark:text-blue-400"
+          >
+            All counties in {county.stateName} →
+          </Link>
+        </p>
 
         {/* Chat CTA ------------------------------------------------------ */}
         <section className="mt-10 rounded-lg border border-blue-200 bg-blue-50 p-5 dark:border-blue-900 dark:bg-blue-950">

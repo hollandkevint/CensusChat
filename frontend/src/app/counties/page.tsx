@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getStateGroups, snapshotMeta } from '@/lib/counties';
+import { countyHref, getStateGroups, snapshotMeta } from '@/lib/counties';
 import { formatMetric } from '@/lib/formatMetric';
 
 export const metadata: Metadata = {
@@ -48,7 +48,7 @@ export default function CountiesIndex() {
                 {counties.map((c) => (
                   <li key={c.fips}>
                     <Link
-                      href={`/counties/${c.stateSlug}/${c.slug}`}
+                      href={countyHref(c)}
                       className="text-blue-700 hover:underline dark:text-blue-400"
                     >
                       {c.name}

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import {
+  countyHref,
   getMetricMeta,
   type County,
   type CountyMetrics,
@@ -163,7 +164,7 @@ export function CountyLinkList({
         {counties.map((c) => (
           <li key={c.fips} className="flex justify-between gap-4">
             <Link
-              href={`/counties/${c.stateSlug}/${c.slug}`}
+              href={countyHref(c)}
               className="text-blue-700 hover:underline dark:text-blue-400"
             >
               {c.name}, {c.stateName}

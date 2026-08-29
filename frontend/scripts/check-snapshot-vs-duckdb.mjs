@@ -14,9 +14,8 @@
  * Copy the .duckdb file alone (no .wal) to a scratch path and point this
  * script at the copy.
  *
- * Requires @duckdb/node-api, which lives in the backend workspace:
- *   node --experimental-default-type=module \
- *     -e "..." # or run from a directory that resolves backend/node_modules
+ * @duckdb/node-api lives in the backend workspace, so point NODE_PATH at it:
+ *   NODE_PATH=../backend/node_modules node scripts/check-snapshot-vs-duckdb.mjs <db>
  */
 
 import { readFileSync } from 'node:fs';

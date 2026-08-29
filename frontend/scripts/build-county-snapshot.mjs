@@ -130,8 +130,11 @@ function coerce(raw) {
   return n;
 }
 
+// Decompose accents first, or "Doña Ana County" slugs to "do-a-ana-county".
 function slugify(name) {
   return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '');
@@ -149,7 +152,7 @@ async function getJson(url, what) {
 }
 
 /** Gate (a): every code's published label must match what we think it is. */
-async function assertLabels(key) {
+async function assertLabels() {
   const failures = [];
   for (const endpoint of ['profile', 'subject']) {
     const url = `https://api.census.gov/data/${VINTAGE_YEAR}/acs/acs5/${endpoint}/variables.json`;
@@ -166,7 +169,6 @@ async function assertLabels(key) {
         );
       }
     }
-    void key;
   }
   if (failures.length) {
     die(`Variable label mismatch (${failures.length}):\n  - ${failures.join('\n  - ')}`);
@@ -210,8 +212,8 @@ function assertNationalRanges(us) {
 
 function rankDescending(counties, field) {
   const ordered = counties
-    .filter((c) => c[field] !== null)
-    .sort((a, b) => b[field] - a[field]);
+    .filter((c) => c.metrics[field] !== null)
+    .sort((a, b) => b.metrics[field] - a.metrics[field]);
   ordered.forEach((c, i) => {
     c.ranks[field] = i + 1;
   });
@@ -272,7 +274,7 @@ async function main() {
   }
 
   console.log(`[build-county-snapshot] ${VINTAGE_LABEL}`);
-  await assertLabels(key);
+  await assertLabels();
 
   const [profCounty, subjCounty, profState, subjState, profUs, subjUs] = await Promise.all([
     fetchRows('profile', 'county:*', key),
@@ -361,17 +363,8 @@ async function main() {
   }
   console.log(`  slug gate: ${counties.length} unique routes`);
 
-  // Ranks are computed over the metrics object but stored flat.
-  for (const c of counties) {
-    c.population = c.metrics.population;
-    c.age65PlusPct = c.metrics.age65PlusPct;
-  }
   const rankedPop = rankDescending(counties, 'population');
   const ranked65 = rankDescending(counties, 'age65PlusPct');
-  for (const c of counties) {
-    delete c.population;
-    delete c.age65PlusPct;
-  }
 
   attachPeers(counties);
   attachStateNeighbors(counties);
