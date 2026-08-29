@@ -89,7 +89,7 @@ Metric: Click-through rate to email composition
 README.md:
 Version A: "I built a natural language interface to US Census data"
 Version B: "Turn 6-week demographic consulting into 6-second queries"
-Version C: "Stop wasting $50K on demographic analysis"
+Version C: "Stop waiting weeks for demographic analysis"
 Metric: Time on page, scroll depth, CTA clicks
 ```
 
@@ -97,7 +97,7 @@ Metric: Time on page, scroll depth, CTA clicks
 ```
 GITHUB_PAGE.md:
 Version A: Technical expertise focus (MCP + Claude innovation)
-Version B: Business results focus (89% test success, $50K savings)
+Version B: Business results focus (89% test success, savings against an estimated $50K consulting engagement)
 Version C: Personal journey focus (solopreneur building-in-public)
 Metric: Email signups, LinkedIn connections, demo requests
 ```
