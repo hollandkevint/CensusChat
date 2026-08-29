@@ -2,7 +2,7 @@
 
 **Natural language interface to US Census data for healthcare strategy teams**
 
-*Transform 6-week $50K demographic consulting into 6-second $297/month queries*
+*Ask US Census data a question in plain English. Get an Excel-ready answer in seconds.*
 
 **[📊 Foundation Data](docs/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
 
@@ -41,7 +41,9 @@
 
 ## 🎯 **The Problem**
 
-Healthcare strategy teams wait **6+ weeks** and pay **$50K+** for demographic analysis that CensusChat delivers in **seconds** for **$297/month**.
+Healthcare strategy teams wait weeks and pay tens of thousands of dollars for demographic analysis that CensusChat delivers in **seconds**.
+
+*The **6-week, $50K** consulting baseline used throughout this README is an estimate drawn from the maintainer's own experience buying and delivering this work. It is not a published benchmark.*
 
 ```typescript
 "Compare Medicare eligible seniors in Tampa Bay vs Phoenix with income over $75K"
@@ -187,7 +189,7 @@ Open http://localhost:3000 and start querying.
 - **30,000+** senior care facilities planning expansion
 
 **Our Solution:**
-- **~200x cost reduction**: $50K project → $297/month
+- **Fixed-price analysis** instead of an estimated $50K consulting project
 - **~300x speed improvement**: 6 weeks → seconds
 - **Unlimited iterations** with conversational follow-up
 
@@ -196,7 +198,13 @@ Open http://localhost:3000 and start querying.
 ## 🚀 **Get Involved**
 
 ### **For Healthcare Teams**
-**[📧 Request Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
+
+There is no subscription to buy. CensusChat has no billing, no signup, and no self-serve plan. Two things are real today:
+
+1. **A delivered analysis.** Describe the question. Kevin Holland runs it and sends back the Excel-ready result. Fixed price, scoped and quoted before any work starts.
+2. **Early access to the self-serve product.** Free while it is being built. You get the tool as it becomes usable, and your questions shape what ships next.
+
+**[📧 Ask for an analysis or early access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
 
 ### **For Developers**
 - Write quality TypeScript with comprehensive test coverage
