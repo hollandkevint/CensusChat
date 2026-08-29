@@ -11,7 +11,7 @@
 **CensusChat Solution:**
 - 💰 Fixed-price analysis, scoped and quoted before work starts
 - ⚡ 23 minutes for complete analysis
-- 🔄 Unlimited real-time iterations  
+- 🔄 Refine the question and re-run within the same engagement
 - 📊 Excel-ready data with metadata
 
 ---
@@ -48,8 +48,8 @@ We do not publish a savings figure against the estimate above. A savings figure 
 **What You'll See:**
 - Live demographic analysis in real-time
 - Excel integration with your existing workflows
-- ROI analysis for your specific use cases
-- Implementation timeline (2 weeks to full deployment)
+- A scoped, fixed-price quote for your specific questions
+- How a delivered analysis works, from your question to the Excel file
 
 **How to buy:** Ask for a fixed-price analysis, or ask for free early access to the self-serve product. Both start with the same email.
 

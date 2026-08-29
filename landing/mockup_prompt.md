@@ -37,7 +37,7 @@
   - Right side: "CensusChat Advantage"
     * Timeline: 23 minutes
     * Cost: fixed price per analysis, quoted before work starts
-    * Iterations: Unlimited real-time analysis
+    * Iterations: refine and re-run within the same engagement
     * Format: Excel-ready with statistical metadata
   - Mobile: Stack sections vertically with clear visual separation
 
