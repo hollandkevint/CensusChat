@@ -8,7 +8,7 @@
 ### Choose Your Path:
 
 **🏥 Healthcare Executive?**  
-[See What CensusChat Covers →](https://hollandkevint.github.io/CensusChat/landing/executives)
+[See What CensusChat Covers →](https://hollandkevint.github.io/CensusChat/landing/executives.html)
 
 **👩‍💻 Technical Team?**  
 [View Architecture & Code →](README.md)

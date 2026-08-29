@@ -1,9 +1,15 @@
 # CensusChat User Personas
 ## Business Analysts & Healthcare Researchers
 
+> **These are hypothetical design personas, not customers.** "Sarah Mitchell" and "Dr. Rodriguez" were
+> invented to guide product decisions. They are composites, their employers do not exist, and nothing here
+> is a testimonial or a reference. Do not quote them on a public page. CensusChat has no customers: there
+> is no working auth, no signup, and no billing in this repository.
+
 ### Overview
 
-CensusChat is designed specifically for healthcare professionals who need rapid access to demographic data for strategic decision-making. Our user research identified two primary personas that represent 85% of our target market.
+CensusChat is designed for healthcare professionals who need rapid access to demographic data for
+strategic decision-making. Two design personas guide the product's decisions.
 
 ---
 
@@ -128,7 +134,7 @@ CensusChat is designed specifically for healthcare professionals who need rapid 
    - Board-ready insights and recommendations
    - Confident investment decisions
 
-**Total Time:** 23 minutes | **Total Cost:** $297/month | **Iterations:** Unlimited
+*This walkthrough is an illustrative design target for the persona above, not a measured session.*
 
 ---
 

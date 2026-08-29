@@ -11,11 +11,11 @@ CensusChat is designed as a three-layer platform that transforms US Census data 
 
 ### Core Architecture Principles
 
-1. **Performance First**: Sub-second query responses on 11M+ Census records
+1. **Performance First**: sub-2-second query response target over 3,144 counties and 239,741 block groups
 2. **Security by Design**: SQL injection prevention through query validation
 3. **Scalability**: Horizontal scaling to support growing user base
 4. **Simplicity**: Clean abstractions hiding data complexity from users
-5. **Reliability**: 99.9% uptime through redundant, monitored systems
+5. **Reliability**: redundant, monitored systems; no uptime target is committed until the service is deployed
 
 ## System Architecture
 
@@ -208,7 +208,7 @@ CensusChat is designed as a three-layer platform that transforms US Census data 
 - **Storage Growth**: 20% annual growth capacity
 
 ### Reliability Targets
-- **Uptime**: 99.9% availability (8.77 hours downtime per year)
+- **Uptime**: no availability target is committed until the service is deployed
 - **Error Rate**: <0.1% failed requests
 - **Recovery Time**: <15 minutes for service restoration
 - **Data Consistency**: 100% accuracy for Census data replication

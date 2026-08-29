@@ -5,7 +5,7 @@
 
 This roadmap outlines a strategic 3-4 week sprint to transform CensusChat from a functional prototype into a feature-complete MVP targeting healthcare business analysts and researchers. The plan prioritizes high-impact features that drive user engagement, query complexity, and conversion to premium tiers.
 
-**Target Outcome**: Production-ready SaaS with freemium model ($297/month premium)  
+**Target Outcome**: Production-ready SaaS. Pricing is not settled; today's offers are a fixed-price delivered analysis and free early access.  
 **Success Metrics**: Engagement, Query Complexity, Time-to-Insight  
 **User Focus**: Healthcare Business Analysts (Primary) + Researchers (Secondary)
 
@@ -381,7 +381,7 @@ class QueryCacheService {
 - [ ] 80%+ cache hit rate for repeated queries
 - [ ] Mobile tablet optimization (iPad, Surface)
 - [ ] Security audit with penetration testing
-- [ ] Production monitoring with 99.9% uptime
+- [ ] Production monitoring with an uptime objective set once the service is deployed
 
 ---
 
@@ -433,7 +433,7 @@ UI State: Local useState (modals, UI interactions)
 ### **Week 4 Targets**
 - Cache hit rate: 80%+
 - Mobile usability score: 90%+
-- Production readiness: 99.9% uptime SLA
+- Production readiness: an uptime objective set once the service is deployed
 
 ---
 

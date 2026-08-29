@@ -4,14 +4,14 @@
 
 *Query 3,144 US counties and 239,741 census block groups in plain English. Get an Excel-ready answer back.*
 
-**[📊 Foundation Data](docs/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
+**[📊 Foundation Data](docs/project-management/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
 
 ---
 
 ## 🎉 **v1 Shipped** (February 3, 2026)
 
 [![DuckDB 1.4](https://img.shields.io/badge/DuckDB-1.4.3-blue?style=flat-square)](docs/references/duckdb/)
-[![MCP HTTP](https://img.shields.io/badge/MCP-HTTP%20Transport-success?style=flat-square)](docs/MCP_IMPLEMENTATION_SUMMARY.md)
+[![MCP HTTP](https://img.shields.io/badge/MCP-HTTP%20Transport-success?style=flat-square)](docs/implementation/MCP_IMPLEMENTATION_SUMMARY.md)
 [![Agent SDK](https://img.shields.io/badge/Claude-Agent%20SDK-purple?style=flat-square)](backend/src/agent/)
 [![Interactive UI](https://img.shields.io/badge/UI-MCP%20Apps-orange?style=flat-square)](mcp-apps/)
 
@@ -167,14 +167,14 @@ Open http://localhost:3000 and start querying.
 ### **Getting Started**
 - [📖 Quick Start Guide](QUICK_START.md)
 - [🔑 API Key Setup](API_KEY_SETUP.md)
-- [📊 MVP Status Report](docs/MVP_STATUS.md)
+- [📊 MVP Status Report](docs/project-management/MVP_STATUS.md)
 
 ### **Technical Guides**
 - [🏗️ System Architecture](docs/architecture/01-system-architecture.md)
 - [🗄️ DuckDB Reference](docs/references/duckdb/)
-- [🔗 MCP Implementation](docs/MCP_IMPLEMENTATION_SUMMARY.md)
+- [🔗 MCP Implementation](docs/implementation/MCP_IMPLEMENTATION_SUMMARY.md)
 - [🖥️ Claude Desktop Setup (MCP stdio)](docs/guides/MCP_STDIO_SETUP.md)
-- [🧪 Testing Guide](docs/TESTING_GUIDE.md)
+- [🧪 Testing Guide](docs/testing/TESTING_GUIDE.md)
 
 ### **Deployment**
 - [🚀 Railway Deployment](docs/guides/RAILWAY_DEPLOYMENT.md)
