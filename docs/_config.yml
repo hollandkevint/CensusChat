@@ -80,5 +80,6 @@ exclude:
   # customer testimonial this repo removed everywhere else.
   # scripts/check-marketing-claims.sh verifies this entry before exempting the tree.
   - archive/
-  # header_pages names GITHUB_PAGE.md, which does not exist here.
+  # Belt and braces behind the docs/plans check in scripts/check-marketing-claims.sh:
+  # a plan renders as a live page reprinting every claim it retires.
   - plans/

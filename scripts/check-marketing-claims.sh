@@ -87,20 +87,31 @@ while IFS= read -r f; do
   {
     grep -oI "](\([^)#]*\.\(md\|html\)\)[^)]*)" "$f" 2>/dev/null | sed 's/^](//;s/)$//'
     grep -oI "]($SITE[^)\"' ]*)" "$f" 2>/dev/null | sed 's/^](//;s/)$//'
+    case "$f" in
+      *.html)
+        grep -oIE '(href|src)="[^"]*"' "$f" 2>/dev/null | sed 's/^[a-z]*="//;s/"$//'
+        grep -oIE 'url=[^"'"'"']*' "$f" 2>/dev/null | sed 's/^url=//'
+        grep -oIE "location\\.href *= *'[^']*'" "$f" 2>/dev/null | sed "s/.*= *'//;s/'$//"
+        ;;
+    esac
   } | while IFS= read -r l; do
     case "$l" in
       mailto*) continue ;;
       "$SITE"*) t=".${l#$SITE}" ;;
       http*) continue ;;
+      /CensusChat/*) t=".${l#/CensusChat}" ;;
       /*) t=".$l" ;;
       *) t="$d/$l" ;;
     esac
     case "$l" in
-      "$SITE"*) resolve_site_url "$t" || echo "DEAD LINK: $f -> $l" ;;
+      "$SITE"*|/CensusChat/*) resolve_site_url "$t" || echo "DEAD LINK: $f -> $l" ;;
       *)        resolve_repo_path "$t" || echo "DEAD LINK: $f -> $l" ;;
     esac
   done
-done < <(git ls-files '*.md' \
+# git ls-files, not a filesystem walk: it skips node_modules and build output for free.
+# Trade-off: a brand-new file is only checked once it is staged. CI checks out a full
+# tree so this is invisible there; locally, `git add` before trusting a green run.
+done < <(git ls-files '*.md' '*.html' \
           | grep -E '^(README|index|CONTRIBUTING|QUICK_START|API_KEY_SETUP|SECURITY|CLAUDE)\.md$|^(landing|docs)/' \
           | grep -v '^docs/archive/') > "$DEAD" || true
 if [ -s "$DEAD" ]; then

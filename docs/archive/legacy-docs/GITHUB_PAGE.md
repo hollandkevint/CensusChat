@@ -1,3 +1,8 @@
+---
+layout: default
+title: "CensusChat - Healthcare Demographics in Seconds"
+---
+
 > **RETIRED DRAFT — DO NOT PUBLISH OR REUSE.**
 > This page is kept only as a record of an earlier draft. It contains claims that were
 > removed from every live surface because nothing in this repository supports them:
@@ -5,13 +10,6 @@
 > record count roughly 45x the real figure, an uptime SLA for a service that is not
 > deployed, and a subscription price that cannot be charged (there is no billing
 > integration). See CONTRIBUTING.md, section "Marketing and Public Claims".
-
----
-layout: default
-title: "CensusChat - Healthcare Demographics in Seconds"
-description: "Turn 6-week reports into 6-second queries"
-permalink: /about/
----
 
 # Stop Wasting $50K on 6-Week Demographic Reports
 
