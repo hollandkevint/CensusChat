@@ -131,9 +131,12 @@ query looks like this:
 ```sql
 SELECT county_name, state_name, population, median_income
 FROM county_data
+WHERE population > 1000000
 ORDER BY median_income DESC
-LIMIT 10
 ```
+
+Filter in the `WHERE` clause rather than with `LIMIT` — see Security below for
+why.
 
 ## Security
 

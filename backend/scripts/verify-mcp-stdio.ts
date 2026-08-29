@@ -13,9 +13,12 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import path from 'path';
 
+// Filter in the WHERE clause, not with LIMIT: the validator replaces a user
+// LIMIT with the 1,000-row policy maximum rather than capping it.
 const SELECT_QUERY =
   'SELECT county_name, state_name, population, median_income ' +
-  'FROM county_data ORDER BY population DESC LIMIT 5';
+  "FROM county_data WHERE state_name = 'Florida' AND population > 900000 " +
+  'ORDER BY population DESC';
 const WRITE_QUERY = 'DELETE FROM county_data';
 
 function textOf(result: unknown): string {
