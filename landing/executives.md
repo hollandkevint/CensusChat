@@ -25,8 +25,8 @@
 We do not publish a savings figure against the estimate above. A savings figure needs two prices, and the analysis price is set per engagement.
 
 **Your Time Savings:**
-- Traditional: 4 analyses × 6 weeks = **24 weeks waiting**
-- CensusChat: 4 analyses × 23 minutes = **92 minutes total**
+- Traditional: **6 weeks** per analysis
+- CensusChat: **23 minutes** per analysis
 
 ---
 
