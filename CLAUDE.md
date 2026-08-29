@@ -293,6 +293,6 @@ redis-cli ping
 - [API Key Setup](API_KEY_SETUP.md)
 - [Quick Start Guide](QUICK_START.md)
 - [Architecture Docs](docs/architecture/)
-- [MCP Implementation](docs/MCP_IMPLEMENTATION_SUMMARY.md)
-- [Testing Guide](docs/TESTING_GUIDE.md)
+- [MCP Implementation](docs/implementation/MCP_IMPLEMENTATION_SUMMARY.md)
+- [Testing Guide](docs/testing/TESTING_GUIDE.md)
 - [Security Policy](SECURITY.md)

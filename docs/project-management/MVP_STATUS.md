@@ -9,7 +9,7 @@ CensusChat has successfully achieved a **strong technical foundation** with prod
 **Confidence Level**: VERY HIGH - Complete end-to-end system with validated SQL security layer operational
 **Timeline**: Production data loading ready (15-20 minutes)
 **Risk Level**: MINIMAL - True MCP validation layer operational, comprehensive security policies, audit logging
-**Next Action**: Load ACS production data (see [ACS Data Loading Guide](guides/ACS_DATA_LOADING.md))
+**Next Action**: Load ACS production data (see [ACS Data Loading Guide](../guides/ACS_DATA_LOADING.md))
 
 ---
 
@@ -111,7 +111,7 @@ CensusChat has successfully achieved a **strong technical foundation** with prod
 - [ ] ACS data loader script ready (all 51 states mapped)
 - [ ] DuckDB schema defined and tested
 - [ ] Timeline: 15-20 minutes to load 3,143 counties
-- [ ] Guide: [ACS Data Loading Guide](guides/ACS_DATA_LOADING.md)
+- [ ] Guide: [ACS Data Loading Guide](../guides/ACS_DATA_LOADING.md)
 
 **After Data Load**:
 - 3,143 US counties (all 50 states + DC)
@@ -280,7 +280,7 @@ CensusChat has successfully achieved a **strong technical foundation** with prod
 ### **Immediate (This Session)**
 1. ✅ **Technical integration validated** - Frontend → Backend → MCP → DuckDB operational
 2. ✅ **MCP SQL validation confirmed** - Properly connected and functional
-3. **Load ACS production data** - Follow [ACS Data Loading Guide](guides/ACS_DATA_LOADING.md)
+3. **Load ACS production data** - Follow [ACS Data Loading Guide](../guides/ACS_DATA_LOADING.md)
 4. **Verify real data queries** - Test with 3,143 counties after load complete
 
 ### **Week 1 Preparation**
@@ -304,7 +304,7 @@ CensusChat has achieved an **exceptional foundation** for feature development su
 **Strengths**: Enterprise-grade technical foundation, clear user focus, rational feature prioritization
 **Opportunities**: Production data loading ready (15-20 minutes to 3,143 counties)
 **Risks**: Timeline ambition, ~~technical integration complexity~~ (RESOLVED)
-**Recommendation**: **PROCEED** with ACS data loading - see [guides/ACS_DATA_LOADING.md](guides/ACS_DATA_LOADING.md)
+**Recommendation**: **PROCEED** with ACS data loading - see [guides/ACS_DATA_LOADING.md](../guides/ACS_DATA_LOADING.md)
 
 The project demonstrates sophisticated product thinking, technical excellence, and strategic clarity. With the core DuckDB + MCP integration complete, success probability is very high.
 
@@ -333,7 +333,7 @@ The project demonstrates sophisticated product thinking, technical excellence, a
 **Current Status**: **FULLY OPERATIONAL - READY FOR DATA LOAD** (September 30, 2025)
 **Data Coverage**: 8 mock counties for testing and development
 **Performance**: Sub-2 second response times with timeout enforcement
-**Next Step**: Load ACS production data (3,143 counties) - [See guide](guides/ACS_DATA_LOADING.md)
+**Next Step**: Load ACS production data (3,143 counties) - [See guide](../guides/ACS_DATA_LOADING.md)
 
 ---
 
@@ -384,7 +384,7 @@ The project demonstrates sophisticated product thinking, technical excellence, a
 - Full production query capability
 - Sub-100ms query performance maintained
 
-**Implementation Guide**: [docs/guides/ACS_DATA_LOADING.md](guides/ACS_DATA_LOADING.md)
+**Implementation Guide**: [docs/guides/ACS_DATA_LOADING.md](../guides/ACS_DATA_LOADING.md)
 **Timeline**: 15-20 minutes to complete data load
 
 ---
@@ -494,7 +494,7 @@ Return validated results to user
 ```
 
 **Documentation:**
-- Full implementation details: [/docs/MCP_IMPLEMENTATION_SUMMARY.md](/docs/MCP_IMPLEMENTATION_SUMMARY.md)
+- Full implementation details: [docs/implementation/MCP_IMPLEMENTATION_SUMMARY.md](../implementation/MCP_IMPLEMENTATION_SUMMARY.md)
 - Reference architecture: OMCP (OMOP Common Data Model MCP implementation)
 
 **Status:** **PRODUCTION READY** - True MCP validation layer operational with comprehensive security policies

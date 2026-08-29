@@ -71,8 +71,8 @@ const pipeline = {
 **Repository:** [github.com/hollandkevint/CensusChat](https://github.com/hollandkevint/CensusChat)
 
 **Key Technical Docs:**
-- [API Integration Guide](../docs/API_INTEGRATION_GUIDE.md) - MCP layer architecture
-- [Frontend Architecture](../docs/FRONTEND_ARCHITECTURE.md) - Next.js 15 + React 19
+- [API Integration Guide](../API_INTEGRATION_GUIDE.md) - MCP layer architecture
+- [Frontend Architecture](../FRONTEND_ARCHITECTURE.md) - Next.js 15 + React 19
 
 **CI:** [GitHub Actions](https://github.com/hollandkevint/CensusChat/actions) runs lint, typecheck, unit tests, Playwright e2e, and Docker builds on every push.
 

@@ -32,4 +32,26 @@ if grep -rInE "${EXCLUDES[@]}" "$PATTERN" "${PATHS[@]}" \
   exit 1
 fi
 
-echo "OK: no retired marketing claims found."
+# A dead link to a moved doc is how a retired claim survives: the README's top link
+# pointed at docs/MVP_STATUS.md for months while the real file, carrying "89% test
+# success rate", sat at docs/project-management/. Resolve every relative .md link in
+# the scanned surfaces. Root-absolute links (/docs/x.md) resolve from the repo root.
+dead=0
+while IFS= read -r f; do
+  d=$(dirname "$f")
+  grep -oI '](\([^)#]*\.md\)[^)]*)' "$f" 2>/dev/null | sed 's/^](//;s/)$//' | while IFS= read -r l; do
+    case "$l" in http*|mailto*) continue;; /*) t=".$l";; *) t="$d/$l";; esac
+    [ -e "$t" ] || echo "DEAD LINK: $f -> $l"
+  done
+done < <(git ls-files '*.md' \
+          | grep -E '^(README|index|CONTRIBUTING|QUICK_START|API_KEY_SETUP|SECURITY|CLAUDE)\.md$|^(landing|docs)/' \
+          | grep -v '^docs/archive/') > /tmp/ccm-dead.$$ || true
+if [ -s /tmp/ccm-dead.$$ ]; then
+  cat /tmp/ccm-dead.$$; rm -f /tmp/ccm-dead.$$
+  echo
+  echo "FAIL: broken documentation links above. Repoint them or remove the link."
+  exit 1
+fi
+rm -f /tmp/ccm-dead.$$
+
+echo "OK: no retired marketing claims found, no broken doc links."
