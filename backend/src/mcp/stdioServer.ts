@@ -42,8 +42,11 @@ function preflight(dbPath: string): void {
     [
       `[censuschat-mcp] Census database not found: ${dbPath}`,
       '',
-      'Set DUCKDB_PATH to an existing census.duckdb, or build one:',
-      '  cd backend && npm run load-blockgroups-expanded',
+      'Set DUCKDB_PATH to an existing census.duckdb.',
+      '',
+      'The loader scripts in backend/scripts/ import the legacy "duckdb" npm',
+      'package, which this repo does not install, so they fail on a clean',
+      'checkout. See the guide for the current options.',
       '',
       'See docs/guides/MCP_STDIO_SETUP.md',
       '',
@@ -54,6 +57,13 @@ function preflight(dbPath: string): void {
 
 async function main(): Promise<void> {
   preflight(resolveDbPath());
+
+  // A desktop MCP client starts this process from an arbitrary working
+  // directory, so pin the audit trail next to the install rather than letting
+  // it follow process.cwd().
+  if (!process.env.AUDIT_LOG_DIR) {
+    process.env.AUDIT_LOG_DIR = path.resolve(__dirname, '..', '..', 'logs');
+  }
 
   const server = createMcpServer('stdio');
   await server.connect(new StdioServerTransport());

@@ -15,7 +15,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { DuckDBInstance } from '@duckdb/node-api';
 import { spawn } from 'child_process';
-import { mkdtempSync, rmSync } from 'fs';
+import { mkdtempSync, readFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
 
@@ -28,6 +28,7 @@ const SPAWN_TIMEOUT_MS = 180_000;
 
 let tmpDir: string;
 let fixturePath: string;
+let auditDir: string;
 let client: Client;
 
 async function createFixture(dbPath: string): Promise<void> {
@@ -60,6 +61,7 @@ describe('MCP stdio transport', () => {
   beforeAll(async () => {
     tmpDir = mkdtempSync(path.join(tmpdir(), 'censuschat-mcp-'));
     fixturePath = path.join(tmpDir, 'fixture.duckdb');
+    auditDir = path.join(tmpDir, 'logs');
     await createFixture(fixturePath);
 
     client = new Client({ name: 'stdio-server-test', version: '1.0.0' });
@@ -68,7 +70,11 @@ describe('MCP stdio transport', () => {
         command: TS_NODE,
         args: [ENTRY_POINT],
         cwd: BACKEND_DIR,
-        env: { ...process.env, DUCKDB_PATH: fixturePath } as Record<string, string>,
+        env: {
+          ...process.env,
+          DUCKDB_PATH: fixturePath,
+          AUDIT_LOG_DIR: auditDir,
+        } as Record<string, string>,
       })
     );
   }, SPAWN_TIMEOUT_MS);
@@ -115,6 +121,55 @@ describe('MCP stdio transport', () => {
       arguments: { query: 'SELECT county_name FROM county_data' },
     });
     expect(JSON.parse(textOf(after)).data).toHaveLength(3);
+  });
+
+  it('rejects an injecting drill-down cursor without running a query', async () => {
+    // The cursor is interpolated straight into SQL that never reaches the SQL
+    // validator, so this guard is the only thing standing between a caller and
+    // arbitrary SQL. Without it the tool would run and return rows.
+    const result = await client.callTool({
+      name: 'execute_drill_down_query',
+      arguments: { countyFips: '12057', cursor: "120570001001' OR '1'='1" },
+    });
+
+    expect((result as { isError?: boolean }).isError).toBe(true);
+    const payload = JSON.parse(textOf(result));
+    expect(payload.success).toBe(false);
+    expect(payload.error).toMatch(/cursor/i);
+    expect(payload.data).toBeUndefined();
+  });
+
+  it('accepts a well-formed drill-down cursor', async () => {
+    // Guards the guard: a real 12-digit geoid must still get through, so the
+    // rejection above is the pattern check and not a blanket failure.
+    const result = await client.callTool({
+      name: 'execute_drill_down_query',
+      arguments: { countyFips: '12057', cursor: '120570001001' },
+    });
+
+    const payload = JSON.parse(textOf(result));
+    // The fixture has no block_group_data_expanded table, so the query fails at
+    // execution — past the cursor guard, which is what this asserts.
+    expect(payload.error ?? '').not.toMatch(/cursor/i);
+  });
+
+  it('writes every query to the audit log', async () => {
+    await client.callTool({
+      name: 'execute_query',
+      arguments: { query: 'SELECT county_name FROM county_data' },
+    });
+    await client.callTool({
+      name: 'execute_query',
+      arguments: { query: 'DROP TABLE county_data' },
+    });
+
+    const entries = readFileSync(path.join(auditDir, 'sql-audit.log'), 'utf-8')
+      .split('\n')
+      .filter((line) => line.trim().length > 0)
+      .map((line) => JSON.parse(line));
+
+    expect(entries.some((e) => e.success === true && e.rowCount === 3)).toBe(true);
+    expect(entries.some((e) => e.success === false && e.validationPassed === false)).toBe(true);
   });
 
   it(

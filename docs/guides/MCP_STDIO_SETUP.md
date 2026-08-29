@@ -29,8 +29,9 @@ Nine tools, all read-only against a local DuckDB file:
 | `generate_csv_report` | writes a CSV file from a result set |
 | `generate_pdf_report` | writes a PDF from a result set |
 
-Two tables: `county_data` (3,144 US counties) and `block_group_data_expanded`
-(239,741 block groups, 84 variables).
+Two tables, depending on what your database file contains: `county_data`
+(3,144 US counties) and `block_group_data_expanded` (239,741 block groups, 84
+variables). The examples in this guide use `county_data`.
 
 ## Prerequisites
 
@@ -43,15 +44,47 @@ Two tables: `county_data` (3,144 US counties) and `block_group_data_expanded`
    cd CensusChat/backend
    npm ci
    ```
-4. **A census DuckDB file.** Build it once:
-   ```bash
-   cd CensusChat/backend
-   npm run load-blockgroups-expanded
-   ```
-   This calls the Census API and takes a while. It needs `CENSUS_API_KEY` in
-   `backend/.env` — free from
-   <https://api.census.gov/data/key_signup.html>. The result is
-   `backend/data/census.duckdb`, roughly 170 MB.
+4. **A census DuckDB file at a path you can point `DUCKDB_PATH` at.** See
+   below — this is the step that takes real work.
+
+### Getting the census database
+
+**Read this before running any loader.** The loader scripts in
+`backend/scripts/` (`load-acs-data.ts`, `load-acs-blockgroup-expanded.ts`, and
+the rest) all `import * as duckdb from 'duckdb'` — the legacy DuckDB npm
+package. This repository installs `@duckdb/node-api` instead and does not
+install `duckdb`. On a clean checkout every loader therefore fails immediately:
+
+```
+Error: Cannot find module 'duckdb'
+```
+
+This is a known gap in the loaders, not something this MCP transport
+introduced, and it affects the web app equally.
+
+Your options today:
+
+- **Point `DUCKDB_PATH` at a `census.duckdb` you already have.** This is the
+  reliable path. The MCP server only reads the file; it does not care how it
+  was produced.
+- **Install the legacy package yourself, then load.** `npm install duckdb` in
+  `backend/`, then run the loaders. This is not covered by CI and the native
+  build may or may not succeed on your platform, so treat it as unverified.
+
+If you do run the loaders, note that **`npm run load-blockgroups-expanded`
+creates only `block_group_data_expanded`**. `county_data` comes from
+`npm run load-acs-data`. Run both if you want the examples in this guide to
+work:
+
+```bash
+cd CensusChat/backend
+npm run load-acs-data              # county_data (3,144 rows)
+npm run load-blockgroups-expanded  # block_group_data_expanded (239,741 rows)
+```
+
+Both call the Census API and take a while. They need `CENSUS_API_KEY` in
+`backend/.env` — free from <https://api.census.gov/data/key_signup.html>. The
+result is `backend/data/census.duckdb`, roughly 170 MB.
 
 **You do not need an `ANTHROPIC_API_KEY` for this path.** Claude Desktop is the
 model. `ANTHROPIC_API_KEY` is only for the web app, which does its own natural
@@ -156,8 +189,11 @@ The stdio transport uses the same validator as the HTTP transport
 A rejected query returns a validation error naming the rule it broke. Nothing
 is executed.
 
-`backend/logs/sql-audit.log` is written by the web app's query route, not by
-either MCP transport. MCP queries are not audit-logged today.
+- Every `execute_query` call is written to the audit log: the validated SQL,
+  the row count, the execution time, and any validation failure. The stdio
+  entry point pins the log to `backend/logs/sql-audit.log` regardless of the
+  working directory Claude Desktop starts it from. Override with
+  `AUDIT_LOG_DIR`.
 
 ## Troubleshooting
 
@@ -172,6 +208,11 @@ Read Claude Desktop's MCP log
 (`~/Library/Application Support/Claude/logs/mcp-server-censuschat.log` on
 macOS). The usual causes are a wrong absolute path in `command` or `args`, or
 `npm run build` never having been run.
+
+**`Cannot find module './stdioLogRedirect'` from the built server.**
+`tsc` is incremental. If you deleted `dist/` without also deleting
+`backend/.tsbuildinfo`, it skips re-emitting files it believes are current.
+Delete both and rebuild: `rm -rf dist .tsbuildinfo && npm run build`.
 
 **The tools do not appear.**
 Restart Claude Desktop fully. It reads the config only at startup.
