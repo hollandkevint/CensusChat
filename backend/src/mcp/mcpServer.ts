@@ -309,6 +309,28 @@ async function handleDrillDownQuery(
     };
   }
 
+  // The cursor is interpolated into the SQL below, and this query does not pass
+  // through the SQL validator. A block group geoid is exactly 12 digits, so
+  // reject anything else rather than let a caller inject SQL.
+  if (cursor !== undefined && !/^\d{12}$/.test(cursor)) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: false,
+              error: 'Invalid cursor format. Expected a 12-digit block group geoid.',
+            },
+            null,
+            2
+          ),
+        },
+      ],
+      isError: true,
+    };
+  }
+
   try {
     const pool = getDuckDBPool();
 

@@ -144,13 +144,17 @@ The stdio transport uses the same validator as the HTTP transport
   rejected before execution.
 - Table and column allowlists. A query naming an unlisted column fails
   validation.
-- A 1,000 row cap on every result.
+- A 1,000 row cap on every result. Note that the validator **replaces** your
+  `LIMIT`, it does not cap it: `LIMIT 10` returns 1,000 rows. Filter in the
+  query, or in Claude, if you want fewer.
 - Blocked patterns: SQL comments, stacked statements, and known injection
   shapes.
-- Every query is written to `backend/logs/sql-audit.log`.
 
 A rejected query returns a validation error naming the rule it broke. Nothing
 is executed.
+
+`backend/logs/sql-audit.log` is written by the web app's query route, not by
+either MCP transport. MCP queries are not audit-logged today.
 
 ## Troubleshooting
 

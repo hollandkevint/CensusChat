@@ -26,7 +26,7 @@ import { createMcpServer } from './mcpServer';
 import { closeDuckDBPool } from '../utils/duckdbPool';
 
 /** Same resolution order as DuckDBPool, so the preflight checks the real file. */
-export function resolveDbPath(): string {
+function resolveDbPath(): string {
   return process.env.DUCKDB_PATH || path.join(process.cwd(), 'data', 'census.duckdb');
 }
 
@@ -52,7 +52,7 @@ function preflight(dbPath: string): void {
   process.exit(1);
 }
 
-export async function main(): Promise<void> {
+async function main(): Promise<void> {
   preflight(resolveDbPath());
 
   const server = createMcpServer('stdio');

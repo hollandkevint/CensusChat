@@ -158,12 +158,13 @@ describe('MCP stdio transport', () => {
       // Wait for the tools/call response, which is the last stdout write.
       await new Promise<void>((resolve, reject) => {
         const deadline = setTimeout(() => reject(new Error(`no response; stdout=${stdout}`)), 60_000);
-        child.stdout.on('data', () => {
-          if (stdout.includes('"id":2')) {
-            clearTimeout(deadline);
-            resolve();
-          }
-        });
+        const check = () => {
+          if (!stdout.includes('"id":2')) return;
+          clearTimeout(deadline);
+          resolve();
+        };
+        child.stdout.on('data', check);
+        check();
       });
       child.kill();
 
@@ -191,7 +192,7 @@ describe('MCP stdio transport', () => {
 
       const code = await new Promise<number | null>((resolve) => child.on('close', resolve));
 
-      expect(code).not.toBe(0);
+      expect(code).toBe(1);
       expect(stderr).toContain(missing);
     },
     SPAWN_TIMEOUT_MS
