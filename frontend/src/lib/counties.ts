@@ -41,7 +41,7 @@ export interface County {
   slug: string;
   stateSlug: string;
   metrics: CountyMetrics;
-  ranks: { population?: number; age65PlusPct?: number };
+  ranks: { population?: number; age65PlusPct?: number; age65PlusCount?: number };
   peerFips: string[];
   stateNeighborFips: string[];
 }
@@ -72,6 +72,7 @@ export interface SnapshotMeta {
   countyCount: number;
   rankedOnPopulation: number;
   rankedOnAge65PlusPct: number;
+  rankedOnAge65PlusCount: number;
   metrics: MetricMeta[];
 }
 

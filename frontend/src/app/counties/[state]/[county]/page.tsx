@@ -29,9 +29,14 @@ import { CountyLinkList, MetricTable, StatCard } from '@/components/county/Count
  * caches the result, so every URL in the sitemap returns a full page.
  *
  * Set COUNTY_PAGE_LIMIT=0 to prerender every county, or to a small number to
- * check the template on a subset.
+ * check the template on a subset. An unset or unparseable value takes the
+ * default rather than falling through to prerendering everything.
  */
-const LIMIT = Number(process.env.COUNTY_PAGE_LIMIT ?? '500');
+const DEFAULT_LIMIT = 500;
+const parsedLimit = Number(process.env.COUNTY_PAGE_LIMIT);
+// Only an explicit, valid 0 means "prerender everything". A typo must not
+// silently opt into the ~638 MB image.
+const LIMIT = Number.isInteger(parsedLimit) && parsedLimit >= 0 ? parsedLimit : DEFAULT_LIMIT;
 
 /** Counties outside generateStaticParams render on demand rather than 404. */
 export const dynamicParams = true;
@@ -96,7 +101,7 @@ export default async function CountyPage({ params }: { params: Params }) {
   const questions = chatQuestions(county);
 
   const seniorRank = county.ranks.age65PlusPct;
-  const popRank = county.ranks.population;
+  const seniorCountRank = county.ranks.age65PlusCount;
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8 dark:bg-gray-900">
@@ -140,8 +145,8 @@ export default async function CountyPage({ params }: { params: Params }) {
               label="Residents 65 and over"
               value={formatMetric(m.age65PlusCount, 'count')}
               context={
-                popRank
-                  ? `Ranks ${ordinal(popRank)} of ${snapshotMeta.rankedOnPopulation.toLocaleString('en-US')} counties by total population`
+                seniorCountRank
+                  ? `${ordinal(seniorCountRank)} largest senior population of ${snapshotMeta.rankedOnAge65PlusCount.toLocaleString('en-US')} counties`
                   : undefined
               }
               source="DP05_0024E"

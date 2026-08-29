@@ -32,13 +32,6 @@ export function StatCard({
   );
 }
 
-const DELTA_CLASS = {
-  above: 'text-amber-700 dark:text-amber-400',
-  below: 'text-sky-700 dark:text-sky-400',
-  even: 'text-gray-500 dark:text-gray-400',
-  none: 'text-gray-400 dark:text-gray-500',
-} as const;
-
 /**
  * One metric per row, each beside its state and national value, its
  * county-to-national difference, and the ACS variable code it came from.
@@ -119,10 +112,8 @@ export function MetricTable({
                 <td className="py-2 pr-4 text-right tabular-nums text-gray-600 dark:text-gray-400">
                   {formatMetric(row.national, row.meta.unit)}
                 </td>
-                <td
-                  className={`py-2 pr-4 text-right tabular-nums ${DELTA_CLASS[row.delta.direction]}`}
-                >
-                  {row.delta.text}
+                <td className="py-2 pr-4 text-right tabular-nums text-gray-600 dark:text-gray-400">
+                  {row.delta}
                 </td>
                 <td className="py-2 font-mono text-xs text-gray-500 dark:text-gray-400">
                   {row.meta.code}

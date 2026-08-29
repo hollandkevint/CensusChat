@@ -21,7 +21,12 @@ export function formatMetric(value: number | null, unit: MetricMeta['unit']): st
 }
 
 /**
- * County-versus-national difference.
+ * County-versus-national difference, as a signed string with no valence.
+ *
+ * Deliberately not colored good/bad: "above national" is desirable for
+ * broadband and income and undesirable for uninsured and poverty, and which
+ * way a reader wants disability or limited-English to run depends on whether
+ * they are sizing need or sizing risk. The sign is the signal.
  *
  * Raw counts get no difference -- one county's senior headcount against the
  * national total is not a comparison a reader can use. Shares and dollars do.
@@ -30,17 +35,14 @@ export function formatDelta(
   value: number | null,
   reference: number | null,
   unit: MetricMeta['unit']
-): { text: string; direction: 'above' | 'below' | 'even' | 'none' } {
-  if (unit === 'count' || value === null || reference === null) {
-    return { text: MISSING, direction: 'none' };
-  }
+): string {
+  if (unit === 'count' || value === null || reference === null) return MISSING;
   const diff = value - reference;
-  const direction = diff > 0 ? 'above' : diff < 0 ? 'below' : 'even';
   const sign = diff > 0 ? '+' : diff < 0 ? '−' : '';
   const magnitude = Math.abs(diff);
-  if (unit === 'usd') return { text: `${sign}$${Math.round(magnitude).toLocaleString('en-US')}`, direction };
-  if (unit === 'years') return { text: `${sign}${magnitude.toFixed(1)}`, direction };
-  return { text: `${sign}${magnitude.toFixed(1)} pts`, direction };
+  if (unit === 'usd') return `${sign}$${Math.round(magnitude).toLocaleString('en-US')}`;
+  if (unit === 'years') return `${sign}${magnitude.toFixed(1)}`;
+  return `${sign}${magnitude.toFixed(1)} pts`;
 }
 
 /** "1st", "2nd", "3rd", "4th" ... */

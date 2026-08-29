@@ -8,6 +8,7 @@
   "countyCount": 3144,
   "rankedOnPopulation": 3144,
   "rankedOnAge65PlusPct": 3144,
+  "rankedOnAge65PlusCount": 3144,
   "metrics": [
     {
       "key": "population",

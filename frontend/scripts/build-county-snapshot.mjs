@@ -42,57 +42,57 @@ const METRICS = [
   // --- Profile endpoint -----------------------------------------------------
   { key: 'population', endpoint: 'profile', code: 'DP05_0001E',
     label: 'Total population', unit: 'count',
-    assertLabel: 'SEX AND AGE!!Total population', nationalRange: [300e6, 360e6] },
+    assertLabel: "Estimate!!SEX AND AGE!!Total population", nationalRange: [300e6, 360e6] },
   { key: 'medianAge', endpoint: 'profile', code: 'DP05_0018E',
     label: 'Median age', unit: 'years',
-    assertLabel: 'Median age (years)', nationalRange: [30, 50] },
+    assertLabel: "Estimate!!SEX AND AGE!!Total population!!Median age (years)", nationalRange: [30, 50] },
   { key: 'age65PlusCount', endpoint: 'profile', code: 'DP05_0024E',
     label: 'Population 65 and over', unit: 'count',
-    assertLabel: 'SEX AND AGE!!Total population!!65 years and over', nationalRange: [45e6, 75e6] },
+    assertLabel: "Estimate!!SEX AND AGE!!Total population!!65 years and over", nationalRange: [45e6, 75e6] },
   { key: 'age65PlusPct', endpoint: 'profile', code: 'DP05_0024PE',
     label: 'Share of population 65 and over', unit: 'percent',
-    assertLabel: 'SEX AND AGE!!Total population!!65 years and over', nationalRange: [14, 22] },
+    assertLabel: "Percent!!SEX AND AGE!!Total population!!65 years and over", nationalRange: [14, 22] },
   { key: 'medianHouseholdIncome', endpoint: 'profile', code: 'DP03_0062E',
     label: 'Median household income', unit: 'usd',
-    assertLabel: 'Median household income (dollars)', nationalRange: [50e3, 120e3] },
+    assertLabel: "Estimate!!INCOME AND BENEFITS (IN 2024 INFLATION-ADJUSTED DOLLARS)!!Total households!!Median household income (dollars)", nationalRange: [50e3, 120e3] },
   { key: 'povertyPct', endpoint: 'profile', code: 'DP03_0128PE',
     label: 'People below the poverty level', unit: 'percent',
-    assertLabel: 'BELOW THE POVERTY LEVEL!!All people', nationalRange: [8, 18] },
+    assertLabel: "Percent!!PERCENTAGE OF FAMILIES AND PEOPLE WHOSE INCOME IN THE PAST 12 MONTHS IS BELOW THE POVERTY LEVEL!!All people", nationalRange: [8, 18] },
   { key: 'bachelorsPlusPct', endpoint: 'profile', code: 'DP02_0068PE',
     label: "Bachelor's degree or higher (age 25+)", unit: 'percent',
-    assertLabel: "Bachelor's degree or higher", nationalRange: [25, 45] },
+    assertLabel: "Percent!!EDUCATIONAL ATTAINMENT!!Population 25 years and over!!Bachelor's degree or higher", nationalRange: [25, 45] },
   { key: 'broadbandPct', endpoint: 'profile', code: 'DP02_0154PE',
     label: 'Households with a broadband subscription', unit: 'percent',
-    assertLabel: 'With a broadband Internet subscription', nationalRange: [80, 98] },
+    assertLabel: "Percent!!COMPUTERS AND INTERNET USE!!Total households!!With a broadband Internet subscription", nationalRange: [80, 98] },
   { key: 'limitedEnglishPct', endpoint: 'profile', code: 'DP02_0115PE',
     label: 'Speaks English less than "very well" (age 5+)', unit: 'percent',
-    assertLabel: 'Speak English less than "very well"', nationalRange: [2, 20] },
+    assertLabel: "Percent!!LANGUAGE SPOKEN AT HOME!!Population 5 years and over!!Language other than English!!Speak English less than \"very well\"", nationalRange: [2, 20] },
   { key: 'noVehiclePct', endpoint: 'profile', code: 'DP04_0058PE',
     label: 'Occupied housing units with no vehicle', unit: 'percent',
-    assertLabel: 'No vehicles available', nationalRange: [3, 15] },
+    assertLabel: "Percent!!VEHICLES AVAILABLE!!Occupied housing units!!No vehicles available", nationalRange: [3, 15] },
 
   // --- Subject endpoint -----------------------------------------------------
   { key: 'age75PlusCount', endpoint: 'subject', code: 'S0101_C01_031E',
     label: 'Population 75 and over', unit: 'count',
-    assertLabel: 'SELECTED AGE CATEGORIES!!75 years and over', nationalRange: [15e6, 35e6] },
+    assertLabel: "Estimate!!Total!!Total population!!SELECTED AGE CATEGORIES!!75 years and over", nationalRange: [15e6, 35e6] },
   { key: 'uninsuredPct', endpoint: 'subject', code: 'S2701_C05_001E',
     label: 'Uninsured', unit: 'percent',
-    assertLabel: 'Percent Uninsured!!Civilian noninstitutionalized population', nationalRange: [4, 15] },
+    assertLabel: "Estimate!!Percent Uninsured!!Civilian noninstitutionalized population", nationalRange: [4, 15] },
   { key: 'uninsured19to64Pct', endpoint: 'subject', code: 'S2701_C05_012E',
     label: 'Uninsured, ages 19-64', unit: 'percent',
-    assertLabel: 'AGE!!19 to 64 years', nationalRange: [5, 20] },
+    assertLabel: "Estimate!!Percent Uninsured!!Civilian noninstitutionalized population!!AGE!!19 to 64 years", nationalRange: [5, 20] },
   { key: 'uninsured65PlusPct', endpoint: 'subject', code: 'S2701_C05_013E',
     label: 'Uninsured, ages 65 and over', unit: 'percent',
-    assertLabel: 'AGE!!65 years and older', nationalRange: [0.2, 4] },
+    assertLabel: "Estimate!!Percent Uninsured!!Civilian noninstitutionalized population!!AGE!!65 years and older", nationalRange: [0.2, 4] },
   { key: 'disabilityPct', endpoint: 'subject', code: 'S1810_C03_001E',
     label: 'With a disability', unit: 'percent',
-    assertLabel: 'Percent with a disability', nationalRange: [8, 18] },
+    assertLabel: "Estimate!!Percent with a disability!!Total civilian noninstitutionalized population", nationalRange: [8, 18] },
   { key: 'disability65to74Pct', endpoint: 'subject', code: 'S1810_C03_017E',
     label: 'With a disability, ages 65-74', unit: 'percent',
-    assertLabel: 'AGE!!65 to 74 years', nationalRange: [15, 35] },
+    assertLabel: "Estimate!!Percent with a disability!!Total civilian noninstitutionalized population!!AGE!!65 to 74 years", nationalRange: [15, 35] },
   { key: 'disability75PlusPct', endpoint: 'subject', code: 'S1810_C03_018E',
     label: 'With a disability, ages 75 and over', unit: 'percent',
-    assertLabel: 'AGE!!75 years and over', nationalRange: [35, 60] },
+    assertLabel: "Estimate!!Percent with a disability!!Total civilian noninstitutionalized population!!AGE!!75 years and over", nationalRange: [35, 60] },
 ];
 
 /**
@@ -102,7 +102,7 @@ const METRICS = [
 const CROSS_CHECK = {
   endpoint: 'subject',
   code: 'S0101_C01_030E',
-  assertLabel: 'SELECTED AGE CATEGORIES!!65 years and over',
+  assertLabel: "Estimate!!Total!!Total population!!SELECTED AGE CATEGORIES!!65 years and over",
   against: 'age65PlusCount',
 };
 
@@ -151,7 +151,14 @@ async function getJson(url, what) {
   }
 }
 
-/** Gate (a): every code's published label must match what we think it is. */
+/**
+ * Gate (a): every code's published label must match ours exactly.
+ *
+ * Exact, not substring: Subject-table columns share a suffix, so
+ * "AGE!!19 to 64 years" matches both S2701_C01_012E (a count) and
+ * S2701_C05_012E (a percent). The column is the axis a typo moves along, so
+ * a suffix check misses the failure this gate exists to catch.
+ */
 async function assertLabels() {
   const failures = [];
   for (const endpoint of ['profile', 'subject']) {
@@ -163,9 +170,9 @@ async function assertLabels() {
       const published = variables[m.code]?.label;
       if (!published) {
         failures.push(`${m.code}: not present in ${endpoint} variables.json`);
-      } else if (!published.includes(m.assertLabel)) {
+      } else if (published !== m.assertLabel) {
         failures.push(
-          `${m.code}: expected label to contain\n      ${JSON.stringify(m.assertLabel)}\n    but the Census Bureau publishes\n      ${JSON.stringify(published)}`
+          `${m.code}: expected label\n      ${JSON.stringify(m.assertLabel)}\n    but the Census Bureau publishes\n      ${JSON.stringify(published)}`
         );
       }
     }
@@ -365,6 +372,7 @@ async function main() {
 
   const rankedPop = rankDescending(counties, 'population');
   const ranked65 = rankDescending(counties, 'age65PlusPct');
+  const ranked65Count = rankDescending(counties, 'age65PlusCount');
 
   attachPeers(counties);
   attachStateNeighbors(counties);
@@ -389,6 +397,7 @@ async function main() {
         countyCount: counties.length,
         rankedOnPopulation: rankedPop,
         rankedOnAge65PlusPct: ranked65,
+        rankedOnAge65PlusCount: ranked65Count,
         metrics: METRICS.map(({ key: k, endpoint, code, label, unit }) => ({
           key: k,
           code,
