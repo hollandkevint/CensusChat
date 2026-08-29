@@ -34,6 +34,15 @@ export default function ChatInterface({ onQuery }: ChatInterfaceProps) {
     scrollToBottom();
   }, [messages]);
 
+  // Prefill from ?q= so county pages can hand a question over. Read from
+  // window rather than useSearchParams: the latter forces this component's
+  // route into a Suspense boundary and opts it out of static rendering.
+  // The question is prefilled, never auto-sent.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('q');
+    if (q) setInput(q);
+  }, []);
+
   // Fetch UI resources on mount for interactive rendering
   useEffect(() => {
     async function loadUIResources() {
