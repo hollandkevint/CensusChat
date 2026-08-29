@@ -4,14 +4,27 @@
 # back, add the evidence first and delete the pattern here in the same commit.
 set -euo pipefail
 
-# docs/ is not in the Jekyll exclude list, so every .md under it renders as a live page.
-# It is scanned in full; only docs/archive is exempt (historical record, not a live surface).
+# GitHub Pages builds from main:/docs, so docs/_config.yml governs the published site
+# and everything under docs/ renders unless that file excludes it.
+SITE_CONFIG=docs/_config.yml
+
 # README.md:188 carries a "~$2.8B" market-sizing estimate under an explicit
 # "Illustrative framing ... not audited market data" disclaimer (README.md:185), so the
 # bare-number pattern below would false-positive on it. It is scanned for every other
 # pattern via the second pass.
 PATHS=(index.md _config.yml landing marketing content frontend/src docs)
 EXCLUDES=(--exclude-dir=archive --exclude-dir=node_modules)
+
+# The archive exemption above is only safe while Jekyll actually excludes that tree.
+# It did not: docs/archive/legacy-docs/GITHUB_PAGE.md served the fabricated customer
+# testimonial at a live URL, indexed by jekyll-sitemap, while this script reported OK.
+# Verify the exclusion rather than asserting it in a comment.
+if ! grep -qE '^[[:space:]]*-[[:space:]]*archive/[[:space:]]*$' "$SITE_CONFIG"; then
+  echo "FAIL: $SITE_CONFIG does not exclude archive/, so docs/archive renders as live"
+  echo "      pages that jekyll-sitemap indexes -- but this script skips that tree."
+  echo "      Add '- archive/' under exclude: in $SITE_CONFIG, or stop exempting it here."
+  exit 1
+fi
 
 # ponytail: one grep -E, no per-pattern loop. Add a pattern, not a framework.
 PATTERN='Sarah L\.|2\.8B|\$150M facility|196,436|5,500% ROI|89% [Tt]est|80%\+ Cache|99\.9%|11M\+|23 minutes|6-second|delivers them in 6 seconds|~300x|~200x'
@@ -37,6 +50,7 @@ fi
 # success rate", sat at docs/project-management/. Resolve every relative .md link in
 # the scanned surfaces. Root-absolute links (/docs/x.md) resolve from the repo root.
 SITE="https://hollandkevint.github.io/CensusChat"
+DEAD=$(mktemp); trap 'rm -f "$DEAD"' EXIT
 
 # A relative link is read on GitHub as well as on Pages, so it resolves against the
 # repo tree: the file itself, or the .md source behind an .html target.
@@ -88,13 +102,12 @@ while IFS= read -r f; do
   done
 done < <(git ls-files '*.md' \
           | grep -E '^(README|index|CONTRIBUTING|QUICK_START|API_KEY_SETUP|SECURITY|CLAUDE)\.md$|^(landing|docs)/' \
-          | grep -v '^docs/archive/') > /tmp/ccm-dead.$$ || true
-if [ -s /tmp/ccm-dead.$$ ]; then
-  cat /tmp/ccm-dead.$$; rm -f /tmp/ccm-dead.$$
+          | grep -v '^docs/archive/') > "$DEAD" || true
+if [ -s "$DEAD" ]; then
+  cat "$DEAD"
   echo
   echo "FAIL: broken documentation links above. Repoint them or remove the link."
   exit 1
 fi
-rm -f /tmp/ccm-dead.$$
 
 echo "OK: no retired marketing claims found, no broken doc links."

@@ -1,6 +1,6 @@
 # GitHub Pages Configuration for CensusChat
 title: "CensusChat by Kevin Holland"
-description: "Transform healthcare demographic analysis from weeks to seconds"
+description: "Natural language queries over US Census demographics for healthcare strategy teams"
 author: "Kevin Holland"
 email: "kevin@kevintholland.com"
 url: "https://hollandkevint.github.io"
@@ -11,7 +11,6 @@ theme: minima
 
 # Navigation
 header_pages:
-  - GITHUB_PAGE.md
   - README.md
   - index.md
 
@@ -76,3 +75,10 @@ exclude:
   - "*.log"
   - .env*
   - coverage/
+  # Retired drafts. Without this they render as live pages and jekyll-sitemap
+  # submits them for indexing; legacy-docs/GITHUB_PAGE.md carries the fabricated
+  # customer testimonial this repo removed everywhere else.
+  # scripts/check-marketing-claims.sh verifies this entry before exempting the tree.
+  - archive/
+  # header_pages names GITHUB_PAGE.md, which does not exist here.
+  - plans/
