@@ -72,6 +72,11 @@ data/
 *.sqlite
 *.duckdb
 
+# Exception: the public county snapshot is generated from published ACS data
+# and must be committed -- the frontend build reads it and CI has no API key.
+!frontend/src/data/
+!frontend/src/data/*.json
+
 # Docker
 .dockerignore
 
