@@ -21,11 +21,9 @@ strategic decision-making. Two design personas guide the product's decisions.
 
 #### **Professional Profile**
 
-**Organization Context:**
-- Regional health system with 8 hospitals and 45 clinics
-- Serves 1.2M patients across Central Florida
-- Annual revenue: $2.8B
-- Currently expanding into new markets
+**Organization Context (invented):**
+- A regional health system, multi-hospital, expanding into new markets
+- Large enough that market-expansion analysis is a standing need
 
 **Role Responsibilities:**
 - Market expansion analysis and site selection
