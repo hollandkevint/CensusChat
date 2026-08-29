@@ -4,7 +4,7 @@
 # back, add the evidence first and delete the pattern here in the same commit.
 set -euo pipefail
 
-PATHS=(README.md index.md landing docs/landing marketing content frontend/src)
+PATHS=(README.md index.md _config.yml landing docs/landing marketing content frontend/src)
 
 # ponytail: one grep -E, no per-pattern loop. Add a pattern, not a framework.
 PATTERN='Sarah L\.|2\.8B Regional|\$150M facility|196,436|5,500% ROI|89% [Tt]est|80%\+ Cache|99\.9% uptime|11M\+ records|23 minutes|6-second|delivers them in 6 seconds|~300x|~200x'
