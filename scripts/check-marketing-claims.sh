@@ -36,12 +36,55 @@ fi
 # pointed at docs/MVP_STATUS.md for months while the real file, carrying "89% test
 # success rate", sat at docs/project-management/. Resolve every relative .md link in
 # the scanned surfaces. Root-absolute links (/docs/x.md) resolve from the repo root.
-dead=0
+SITE="https://hollandkevint.github.io/CensusChat"
+
+# A relative link is read on GitHub as well as on Pages, so it resolves against the
+# repo tree: the file itself, or the .md source behind an .html target.
+resolve_repo_path() {
+  t="${1%%#*}"; [ -n "$t" ] || return 0; t="${t%/}"
+  [ -e "$t" ] || [ -e "${t%.html}.md" ] || return 1
+}
+
+# A same-site absolute URL is only ever read on Pages, so it must name something
+# Jekyll actually serves. With no permalink overrides in _config.yml that is
+# "dir/" (from dir/index.md) or "page.html" (from page.md) -- never a bare
+# extensionless path. GitHub Pages does not fall back from /page to /page.html.
+resolve_site_url() {
+  t="${1%%#*}"; [ -n "$t" ] || return 0
+  case "$t" in
+    */) [ -e "${t}index.md" ] || [ -e "${t%/}.md" ] && return 0
+        echo "    (no ${t}index.md backs this directory URL)" >&2; return 1 ;;
+    *.html) [ -e "${t%.html}.md" ] || [ -e "$t" ] || return 1; return 0 ;;
+    *.*) [ -e "$t" ] || return 1; return 0 ;;
+    *)  if [ -e "${t}.md" ]; then
+          echo "    (${t}.md exists but Jekyll serves it at ${t}.html; Pages does not fall back)" >&2
+        fi
+        return 1 ;;
+  esac
+}
+
 while IFS= read -r f; do
   d=$(dirname "$f")
-  grep -oI '](\([^)#]*\.md\)[^)]*)' "$f" 2>/dev/null | sed 's/^](//;s/)$//' | while IFS= read -r l; do
-    case "$l" in http*|mailto*) continue;; /*) t=".$l";; *) t="$d/$l";; esac
-    [ -e "$t" ] || echo "DEAD LINK: $f -> $l"
+  # Two extractors. Relative links are only checked when they name a .md or .html
+  # target, because an extensionless relative link is usually an anchor or a directory.
+  # Same-site absolute URLs are checked whatever their shape: they are internal links
+  # wearing a hostname, and three /about/ links pointed at a page that has never
+  # existed precisely because a checker that skipped http* treated them as external.
+  {
+    grep -oI "](\([^)#]*\.\(md\|html\)\)[^)]*)" "$f" 2>/dev/null | sed 's/^](//;s/)$//'
+    grep -oI "]($SITE[^)\"' ]*)" "$f" 2>/dev/null | sed 's/^](//;s/)$//'
+  } | while IFS= read -r l; do
+    case "$l" in
+      mailto*) continue ;;
+      "$SITE"*) t=".${l#$SITE}" ;;
+      http*) continue ;;
+      /*) t=".$l" ;;
+      *) t="$d/$l" ;;
+    esac
+    case "$l" in
+      "$SITE"*) resolve_site_url "$t" || echo "DEAD LINK: $f -> $l" ;;
+      *)        resolve_repo_path "$t" || echo "DEAD LINK: $f -> $l" ;;
+    esac
   done
 done < <(git ls-files '*.md' \
           | grep -E '^(README|index|CONTRIBUTING|QUICK_START|API_KEY_SETUP|SECURITY|CLAUDE)\.md$|^(landing|docs)/' \

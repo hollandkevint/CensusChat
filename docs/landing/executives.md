@@ -63,5 +63,3 @@ Speed target: sub-2-second query responses. The API enforces a 30-second request
 ---
 
 **About the Builder:** Kevin Holland has 10+ years of healthcare data experience.
-
-**[Read Kevin's Full Story →](../about/)**

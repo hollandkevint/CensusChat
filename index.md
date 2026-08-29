@@ -8,13 +8,13 @@
 ### Choose Your Path:
 
 **🏥 Healthcare Executive?**  
-[See What CensusChat Covers →](https://hollandkevint.github.io/CensusChat/landing/executives.html)
+[See What CensusChat Covers →](landing/executives.html)
 
 **👩‍💻 Technical Team?**  
-[View Architecture & Code →](README.md)
+[See the Architecture →](landing/developers.html)
 
-**🚀 Building Your Own Product?**  
-[Follow Kevin's Journey →](https://hollandkevint.github.io/CensusChat/about/#my-solopreneur-strategy)
+**📖 Want the Source?**  
+[Read the README →](README.html)
 
 ---
 

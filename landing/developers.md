@@ -91,5 +91,3 @@ const pipeline = {
 **[🔧 Fork the Code →](https://github.com/hollandkevint/CensusChat)**  
 **[💬 Technical Discussion →](https://github.com/hollandkevint/CensusChat/discussions)**  
 **[📧 Architecture Questions →](mailto:kevin@kevintholland.com?subject=CensusChat%20Technical%20Discussion)**
-
-**[Read My Full Technical Journey →](https://hollandkevint.github.io/CensusChat/about/)**
