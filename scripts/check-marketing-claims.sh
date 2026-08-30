@@ -29,11 +29,13 @@ fi
 # ponytail: one grep -E, no per-pattern loop. Add a pattern, not a framework.
 PATTERN='Sarah L\.|2\.8B|\$150M facility|196,436|5,500% ROI|89% [Tt]est|80%\+ Cache|99\.9%|11M\+|23 minutes|6-second|delivers them in 6 seconds|~300x|~200x'
 
-# Plans quote the claims they retire verbatim, so a plan under docs/ renders as a live
-# page reprinting every claim this guard exists to block. Plans belong in internal/,
-# which .gitignore already excludes.
-if [ -d docs/plans ]; then
-  echo "FAIL: docs/plans/ is inside the published Jekyll tree. Move plans to internal/plans/."
+# Plans quote the claims they retire verbatim, so a published plan reprints every claim
+# this guard exists to block. Either keep plans out of the site source (internal/, which
+# .gitignore excludes) or exclude them in the site config -- but not neither.
+if [ -d docs/plans ] && ! grep -qE '^[[:space:]]*-[[:space:]]*plans/[[:space:]]*$' "$SITE_CONFIG"; then
+  echo "FAIL: docs/plans/ exists and $SITE_CONFIG does not exclude plans/, so every plan"
+  echo "      renders as a live page reprinting the claims it retires."
+  echo "      Add '- plans/' under exclude: in $SITE_CONFIG, or move plans to internal/plans/."
   exit 1
 fi
 
