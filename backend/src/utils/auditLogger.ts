@@ -27,12 +27,21 @@ class AuditLogger {
   private logFile: string;
 
   constructor() {
-    this.logDir = path.join(process.cwd(), 'logs');
+    // AUDIT_LOG_DIR lets a caller pin the location. The stdio MCP entry point
+    // sets it, because a desktop MCP client starts the server from an arbitrary
+    // working directory and process.cwd() would put the audit trail somewhere
+    // unpredictable (or somewhere unwritable).
+    this.logDir = process.env.AUDIT_LOG_DIR || path.join(process.cwd(), 'logs');
     this.logFile = path.join(this.logDir, 'sql-audit.log');
 
-    // Ensure logs directory exists
-    if (!existsSync(this.logDir)) {
-      mkdirSync(this.logDir, { recursive: true });
+    // Ensure logs directory exists. A failure here must not take down the
+    // process; logQuery reports the write failure per entry.
+    try {
+      if (!existsSync(this.logDir)) {
+        mkdirSync(this.logDir, { recursive: true });
+      }
+    } catch (error) {
+      console.error('❌ Failed to create audit log directory:', this.logDir, error);
     }
 
     console.log('📝 Audit Logger initialized:', this.logFile);

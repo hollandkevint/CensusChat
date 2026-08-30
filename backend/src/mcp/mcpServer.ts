@@ -18,6 +18,7 @@ import { getDuckDBPool } from '../utils/duckdbPool';
 import { getSQLValidator } from '../validation/sqlValidator';
 import { CENSUS_SCHEMA } from '../validation/sqlSecurityPolicies';
 import { registerDocumentTools } from './documentTools';
+import { getAuditLogger } from '../utils/auditLogger';
 
 /**
  * UI resource configuration for MCP Apps
@@ -175,12 +176,16 @@ async function handleExecuteQuery(query: string): Promise<{
     };
   }
 
+  const auditLogger = getAuditLogger();
+  const startTime = Date.now();
+
   try {
     // Step 1: Validate SQL
     const validator = getSQLValidator();
     const validationResult = await validator.validateSQL(query);
 
     if (!validationResult.valid) {
+      auditLogger.logValidationFailure(query, query, validationResult.errors || []);
       return {
         content: [
           {
@@ -203,6 +208,14 @@ async function handleExecuteQuery(query: string): Promise<{
     // Step 2: Execute validated SQL
     const pool = getDuckDBPool();
     const data = await pool.query(validationResult.sanitizedSQL!);
+
+    auditLogger.logSuccess(
+      query,
+      query,
+      validationResult.sanitizedSQL!,
+      data.length,
+      (Date.now() - startTime) / 1000
+    );
 
     // Determine if there might be more rows (based on LIMIT in query)
     const limitMatch = query.match(/\bLIMIT\s+(\d+)/i);
@@ -239,6 +252,7 @@ async function handleExecuteQuery(query: string): Promise<{
     };
   } catch (error) {
     console.error('[MCP] Query execution error:', error);
+    auditLogger.logError(query, query, error instanceof Error ? error.message : 'Unknown error');
     return {
       content: [
         {
@@ -299,6 +313,28 @@ async function handleDrillDownQuery(
             {
               success: false,
               error: 'Invalid county FIPS code format. Expected 5 digits.',
+            },
+            null,
+            2
+          ),
+        },
+      ],
+      isError: true,
+    };
+  }
+
+  // The cursor is interpolated into the SQL below, and this query does not pass
+  // through the SQL validator. A block group geoid is exactly 12 digits, so
+  // reject anything else rather than let a caller inject SQL.
+  if (cursor !== undefined && !/^\d{12}$/.test(cursor)) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              success: false,
+              error: 'Invalid cursor format. Expected a 12-digit block group geoid.',
             },
             null,
             2

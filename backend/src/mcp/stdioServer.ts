@@ -1,0 +1,86 @@
+#!/usr/bin/env node
+/**
+ * MCP Server Entry Point — stdio transport
+ *
+ * Runs the same MCP server the HTTP transport serves, over stdin/stdout, so a
+ * desktop MCP client (Claude Desktop) can talk to it without the Express app,
+ * Docker, Postgres, or Redis.
+ *
+ * Every tool, SQL validation control, and audit behavior comes from
+ * createMcpServer() unchanged. This file adds only transport and preflight.
+ *
+ * Usage:
+ *   npm run mcp:stdio                     # from source
+ *   node dist/mcp/stdioServer.js          # after npm run build
+ *
+ * See docs/guides/MCP_STDIO_SETUP.md
+ */
+
+// MUST stay first: redirects stdout logging to stderr before any module that
+// logs at import time is loaded. See stdioLogRedirect.ts.
+import './stdioLogRedirect';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { existsSync } from 'fs';
+import path from 'path';
+import { createMcpServer } from './mcpServer';
+import { closeDuckDBPool } from '../utils/duckdbPool';
+
+/** Same resolution order as DuckDBPool, so the preflight checks the real file. */
+function resolveDbPath(): string {
+  return process.env.DUCKDB_PATH || path.join(process.cwd(), 'data', 'census.duckdb');
+}
+
+/**
+ * DuckDB creates a database file when it is missing, so a wrong DUCKDB_PATH
+ * would otherwise produce a server whose every query fails with "table not
+ * found". Fail loudly at startup instead.
+ */
+function preflight(dbPath: string): void {
+  if (existsSync(dbPath)) return;
+
+  process.stderr.write(
+    [
+      `[censuschat-mcp] Census database not found: ${dbPath}`,
+      '',
+      'Set DUCKDB_PATH to an existing census.duckdb.',
+      '',
+      'The loader scripts in backend/scripts/ import the legacy "duckdb" npm',
+      'package, which this repo does not install, so they fail on a clean',
+      'checkout. See the guide for the current options.',
+      '',
+      'See docs/guides/MCP_STDIO_SETUP.md',
+      '',
+    ].join('\n')
+  );
+  process.exit(1);
+}
+
+async function main(): Promise<void> {
+  preflight(resolveDbPath());
+
+  // A desktop MCP client starts this process from an arbitrary working
+  // directory, so pin the audit trail next to the install rather than letting
+  // it follow process.cwd().
+  if (!process.env.AUDIT_LOG_DIR) {
+    process.env.AUDIT_LOG_DIR = path.resolve(__dirname, '..', '..', 'logs');
+  }
+
+  const server = createMcpServer('stdio');
+  await server.connect(new StdioServerTransport());
+
+  console.error('[censuschat-mcp] Ready on stdio');
+
+  const shutdown = async () => {
+    await closeDuckDBPool().catch(() => undefined);
+    process.exit(0);
+  };
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+}
+
+if (require.main === module) {
+  main().catch((error) => {
+    process.stderr.write(`[censuschat-mcp] Fatal: ${String(error)}\n`);
+    process.exit(1);
+  });
+}

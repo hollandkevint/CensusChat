@@ -3,10 +3,15 @@
   "version": "0.1.0",
   "description": "CensusChat backend API - Natural language interface for US Census data",
   "main": "dist/index.js",
+  "bin": {
+    "censuschat-mcp": "dist/mcp/stdioServer.js"
+  },
   "scripts": {
     "dev": "nodemon",
-    "build": "tsc",
+    "build": "tsc && npm run copy:mcp-apps",
+    "copy:mcp-apps": "mkdir -p dist/mcp/mcpApps && cp src/mcp/mcpApps/*.html dist/mcp/mcpApps/",
     "start": "node dist/index.js",
+    "mcp:stdio": "ts-node src/mcp/stdioServer.ts",
     "test": "jest",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",

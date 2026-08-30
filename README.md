@@ -19,6 +19,7 @@
 
 - **DuckDB 1.4** — New async API, MERGE statements, encryption support, query profiler
 - **MCP HTTP Transport** — External client connections (Claude Desktop, Postman)
+- **MCP stdio Transport** — Run the MCP server standalone in [Claude Desktop](docs/guides/MCP_STDIO_SETUP.md), no web app required
 - **Interactive Data Tables** — TanStack Table with sorting, filtering, pagination, drill-down
 - **Chart Visualizations** — Recharts bar/line charts with export controls
 - **Claude Agent SDK** — Zod schema validation, parallel region comparison, conversational context
@@ -171,6 +172,7 @@ Open http://localhost:3000 and start querying.
 - [🏗️ System Architecture](docs/architecture/01-system-architecture.md)
 - [🗄️ DuckDB Reference](docs/references/duckdb/)
 - [🔗 MCP Implementation](docs/MCP_IMPLEMENTATION_SUMMARY.md)
+- [🖥️ Claude Desktop Setup (MCP stdio)](docs/guides/MCP_STDIO_SETUP.md)
 - [🧪 Testing Guide](docs/TESTING_GUIDE.md)
 
 ### **Deployment**
