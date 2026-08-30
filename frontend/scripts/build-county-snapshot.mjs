@@ -54,7 +54,7 @@ const METRICS = [
     assertLabel: "Percent!!SEX AND AGE!!Total population!!65 years and over", nationalRange: [14, 22] },
   { key: 'medianHouseholdIncome', endpoint: 'profile', code: 'DP03_0062E',
     label: 'Median household income', unit: 'usd',
-    assertLabel: "Estimate!!INCOME AND BENEFITS (IN 2024 INFLATION-ADJUSTED DOLLARS)!!Total households!!Median household income (dollars)", nationalRange: [50e3, 120e3] },
+    assertLabel: `Estimate!!INCOME AND BENEFITS (IN ${VINTAGE_YEAR} INFLATION-ADJUSTED DOLLARS)!!Total households!!Median household income (dollars)`, nationalRange: [50e3, 120e3] },
   { key: 'povertyPct', endpoint: 'profile', code: 'DP03_0128PE',
     label: 'People below the poverty level', unit: 'percent',
     assertLabel: "Percent!!PERCENTAGE OF FAMILIES AND PEOPLE WHOSE INCOME IN THE PAST 12 MONTHS IS BELOW THE POVERTY LEVEL!!All people", nationalRange: [8, 18] },

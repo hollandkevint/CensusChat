@@ -33,7 +33,11 @@ import { CountyLinkList, MetricTable, StatCard } from '@/components/county/Count
  * default rather than falling through to prerendering everything.
  */
 const DEFAULT_LIMIT = 500;
-const parsedLimit = Number(process.env.COUNTY_PAGE_LIMIT);
+// Read the raw string first: Number('') is 0, not NaN, so an empty
+// COUNTY_PAGE_LIMIT= in a .env or CI file would otherwise pass the integer
+// check and take the prerender-everything branch. Empty means unset.
+const rawLimit = process.env.COUNTY_PAGE_LIMIT?.trim();
+const parsedLimit = rawLimit ? Number(rawLimit) : NaN;
 // Only an explicit, valid 0 means "prerender everything". A typo must not
 // silently opt into the ~638 MB image.
 const LIMIT = Number.isInteger(parsedLimit) && parsedLimit >= 0 ? parsedLimit : DEFAULT_LIMIT;
