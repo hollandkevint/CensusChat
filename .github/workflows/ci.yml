@@ -114,6 +114,7 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+          NEXT_PUBLIC_SITE_URL: https://censuschat.example.com
 
   # End-to-end tests (Playwright, mocked backend API)
   e2e:
@@ -178,6 +179,8 @@ jobs:
           context: ./frontend
           push: false
           tags: censuschat/frontend:test
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=https://censuschat.example.com
           cache-from: type=gha
           cache-to: type=gha,mode=max
       

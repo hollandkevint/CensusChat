@@ -1,0 +1,150 @@
+{
+  "vintage": "American Community Survey 2020-2024 5-year estimates",
+  "vintageYear": 2024,
+  "dataset": "acs/acs5 (2024)",
+  "source": "U.S. Census Bureau, American Community Survey",
+  "sourceUrl": "https://api.census.gov/data/2024/acs/acs5",
+  "generatedOn": "2026-08-30",
+  "countyCount": 3144,
+  "rankedOnPopulation": 3144,
+  "rankedOnAge65PlusPct": 3144,
+  "rankedOnAge65PlusCount": 3144,
+  "metrics": [
+    {
+      "key": "population",
+      "code": "DP05_0001E",
+      "table": "DP05",
+      "endpoint": "acs5/profile",
+      "label": "Total population",
+      "unit": "count"
+    },
+    {
+      "key": "medianAge",
+      "code": "DP05_0018E",
+      "table": "DP05",
+      "endpoint": "acs5/profile",
+      "label": "Median age",
+      "unit": "years"
+    },
+    {
+      "key": "age65PlusCount",
+      "code": "DP05_0024E",
+      "table": "DP05",
+      "endpoint": "acs5/profile",
+      "label": "Population 65 and over",
+      "unit": "count"
+    },
+    {
+      "key": "age65PlusPct",
+      "code": "DP05_0024PE",
+      "table": "DP05",
+      "endpoint": "acs5/profile",
+      "label": "Share of population 65 and over",
+      "unit": "percent"
+    },
+    {
+      "key": "medianHouseholdIncome",
+      "code": "DP03_0062E",
+      "table": "DP03",
+      "endpoint": "acs5/profile",
+      "label": "Median household income",
+      "unit": "usd"
+    },
+    {
+      "key": "povertyPct",
+      "code": "DP03_0128PE",
+      "table": "DP03",
+      "endpoint": "acs5/profile",
+      "label": "People below the poverty level",
+      "unit": "percent"
+    },
+    {
+      "key": "bachelorsPlusPct",
+      "code": "DP02_0068PE",
+      "table": "DP02",
+      "endpoint": "acs5/profile",
+      "label": "Bachelor's degree or higher (age 25+)",
+      "unit": "percent"
+    },
+    {
+      "key": "broadbandPct",
+      "code": "DP02_0154PE",
+      "table": "DP02",
+      "endpoint": "acs5/profile",
+      "label": "Households with a broadband subscription",
+      "unit": "percent"
+    },
+    {
+      "key": "limitedEnglishPct",
+      "code": "DP02_0115PE",
+      "table": "DP02",
+      "endpoint": "acs5/profile",
+      "label": "Speaks English less than \"very well\" (age 5+)",
+      "unit": "percent"
+    },
+    {
+      "key": "noVehiclePct",
+      "code": "DP04_0058PE",
+      "table": "DP04",
+      "endpoint": "acs5/profile",
+      "label": "Occupied housing units with no vehicle",
+      "unit": "percent"
+    },
+    {
+      "key": "age75PlusCount",
+      "code": "S0101_C01_031E",
+      "table": "S0101",
+      "endpoint": "acs5/subject",
+      "label": "Population 75 and over",
+      "unit": "count"
+    },
+    {
+      "key": "uninsuredPct",
+      "code": "S2701_C05_001E",
+      "table": "S2701",
+      "endpoint": "acs5/subject",
+      "label": "Uninsured",
+      "unit": "percent"
+    },
+    {
+      "key": "uninsured19to64Pct",
+      "code": "S2701_C05_012E",
+      "table": "S2701",
+      "endpoint": "acs5/subject",
+      "label": "Uninsured, ages 19-64",
+      "unit": "percent"
+    },
+    {
+      "key": "uninsured65PlusPct",
+      "code": "S2701_C05_013E",
+      "table": "S2701",
+      "endpoint": "acs5/subject",
+      "label": "Uninsured, ages 65 and over",
+      "unit": "percent"
+    },
+    {
+      "key": "disabilityPct",
+      "code": "S1810_C03_001E",
+      "table": "S1810",
+      "endpoint": "acs5/subject",
+      "label": "With a disability",
+      "unit": "percent"
+    },
+    {
+      "key": "disability65to74Pct",
+      "code": "S1810_C03_017E",
+      "table": "S1810",
+      "endpoint": "acs5/subject",
+      "label": "With a disability, ages 65-74",
+      "unit": "percent"
+    },
+    {
+      "key": "disability75PlusPct",
+      "code": "S1810_C03_018E",
+      "table": "S1810",
+      "endpoint": "acs5/subject",
+      "label": "With a disability, ages 75 and over",
+      "unit": "percent"
+    }
+  ]
+}

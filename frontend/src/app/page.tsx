@@ -1,4 +1,6 @@
+import Link from 'next/link';
 import ChatInterface from '@/components/ChatInterface';
+import { snapshotMeta } from '@/lib/counties';
 
 export default function Home() {
   return (
@@ -16,6 +18,13 @@ export default function Home() {
             <span>📊 Real Census Data</span>
             <span>🤖 AI-Powered</span>
           </div>
+          <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+            Or browse{' '}
+            <Link href="/counties" className="text-blue-700 hover:underline dark:text-blue-400">
+              healthcare demographics for all {snapshotMeta.countyCount.toLocaleString('en-US')} US counties
+            </Link>{' '}
+            — no account needed.
+          </p>
         </header>
 
         <ChatInterface />
