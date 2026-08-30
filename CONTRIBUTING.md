@@ -131,6 +131,33 @@ Examples:
 - Update inline code comments
 - Write clear PR descriptions
 
+## Marketing and Public Claims
+
+Public surfaces are `README.md`, `index.md`, `_config.yml`, `landing/`, `docs/landing/`,
+`marketing/`, `content/`, and user-visible strings in `frontend/src/`.
+
+**Every factual claim on a public surface must be checkable against a file in this repo.**
+That means a number, a percentage, a customer, an outcome, a benchmark, or a capability
+you can point at a file and line for.
+
+Concretely:
+
+- **No customers, testimonials, or customer outcomes** until a real one exists and has
+  given permission. There is no auth or billing in this repo, so there are no customers.
+- **No performance number you have not measured and committed the evidence for.**
+  If you cannot run the measurement, write the claim as a target and say it is a target.
+- **No coverage, uptime, hit-rate, or scale figure** without a committed report or a
+  configured threshold backing it.
+- **Cite the source in your PR description** for any claim you add. `README.md:37` is a
+  citation; "we discussed it" is not.
+- **If you cannot substantiate it, cut it.** Do not soften it. A vaguer version of an
+  unsupported claim is still an unsupported claim.
+
+`scripts/check-marketing-claims.sh` runs in CI and blocks a specific list of claims that
+were removed once already. It only catches strings someone thought to add, so it is a
+backstop for repeat offenders, not a substitute for the rule above. When you remove an
+unsupported claim, add its pattern to that script so it cannot come back.
+
 ## Getting Help
 
 - Join our discussions on GitHub

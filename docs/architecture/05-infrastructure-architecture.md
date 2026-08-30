@@ -690,4 +690,4 @@ Configuration Management:
     - Secret management with Sealed Secrets
 ```
 
-This comprehensive infrastructure architecture provides CensusChat with a robust, scalable, and highly available platform capable of supporting millions of users while maintaining sub-2 second query response times and 99.9% uptime requirements.
+This comprehensive infrastructure architecture provides CensusChat with a robust, scalable, and highly available platform designed to support growth while targeting sub-2-second query response times. No uptime target is committed until the service is deployed.

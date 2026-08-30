@@ -1,6 +1,9 @@
+# NOT the live GitHub Pages config. Pages builds from main:/docs, so docs/_config.yml
+# is the file that governs the published site. This one is kept only for a local
+# `jekyll serve` from the repo root. Change docs/_config.yml for anything user-facing.
 # GitHub Pages Configuration for CensusChat
 title: "CensusChat by Kevin Holland"
-description: "Transform healthcare demographic analysis from weeks to seconds"
+description: "Natural language queries over US Census demographics for healthcare strategy teams"
 author: "Kevin Holland"
 email: "kevin@kevintholland.com"
 url: "https://hollandkevint.github.io"
@@ -11,7 +14,6 @@ theme: minima
 
 # Navigation
 header_pages:
-  - GITHUB_PAGE.md
   - README.md
   - docs/index.md
 

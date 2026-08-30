@@ -2,16 +2,16 @@
 
 **Natural language interface to US Census data for healthcare strategy teams**
 
-*Ask US Census data a question in plain English. Get an Excel-ready answer in seconds.*
+*Query 3,144 US counties and 239,741 census block groups in plain English. Get an Excel-ready answer back.*
 
-**[📊 Foundation Data](docs/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
+**[📊 Foundation Data](docs/project-management/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
 
 ---
 
 ## 🎉 **v1 Shipped** (February 3, 2026)
 
 [![DuckDB 1.4](https://img.shields.io/badge/DuckDB-1.4.3-blue?style=flat-square)](docs/references/duckdb/)
-[![MCP HTTP](https://img.shields.io/badge/MCP-HTTP%20Transport-success?style=flat-square)](docs/MCP_IMPLEMENTATION_SUMMARY.md)
+[![MCP HTTP](https://img.shields.io/badge/MCP-HTTP%20Transport-success?style=flat-square)](docs/implementation/MCP_IMPLEMENTATION_SUMMARY.md)
 [![Agent SDK](https://img.shields.io/badge/Claude-Agent%20SDK-purple?style=flat-square)](backend/src/agent/)
 [![Interactive UI](https://img.shields.io/badge/UI-MCP%20Apps-orange?style=flat-square)](mcp-apps/)
 
@@ -42,7 +42,7 @@
 
 ## 🎯 **The Problem**
 
-Healthcare strategy teams wait weeks and pay tens of thousands of dollars for demographic analysis that CensusChat delivers in **seconds**.
+Healthcare strategy teams wait weeks and pay tens of thousands of dollars for demographic analysis. CensusChat answers the same questions from ACS data.
 
 *The **6-week, $50K** consulting baseline used throughout this README is an estimate drawn from the maintainer's own experience buying and delivering this work. It is not a published benchmark.*
 
@@ -94,8 +94,9 @@ const stack = {
 };
 ```
 
-### **Performance Metrics**
-- **Sub-2 Second Queries** with MCP validation
+### **Performance Targets**
+- **Sub-2 second query responses** — the target contributors maintain, not a measured guarantee
+- **30-second request timeout** enforced in `backend/src/routes/query.routes.ts`, covering MCP validation and the Anthropic API round trip
 - **Parallel Execution** for comparison queries
 - **Comprehensive test suites** with CI on every push
 - **Privacy-first architecture** with encryption, audit logging, and no PHI stored
@@ -166,14 +167,14 @@ Open http://localhost:3000 and start querying.
 ### **Getting Started**
 - [📖 Quick Start Guide](QUICK_START.md)
 - [🔑 API Key Setup](API_KEY_SETUP.md)
-- [📊 MVP Status Report](docs/MVP_STATUS.md)
+- [📊 MVP Status Report](docs/project-management/MVP_STATUS.md)
 
 ### **Technical Guides**
 - [🏗️ System Architecture](docs/architecture/01-system-architecture.md)
 - [🗄️ DuckDB Reference](docs/references/duckdb/)
-- [🔗 MCP Implementation](docs/MCP_IMPLEMENTATION_SUMMARY.md)
+- [🔗 MCP Implementation](docs/implementation/MCP_IMPLEMENTATION_SUMMARY.md)
 - [🖥️ Claude Desktop Setup (MCP stdio)](docs/guides/MCP_STDIO_SETUP.md)
-- [🧪 Testing Guide](docs/TESTING_GUIDE.md)
+- [🧪 Testing Guide](docs/testing/TESTING_GUIDE.md)
 
 ### **Deployment**
 - [🚀 Railway Deployment](docs/guides/RAILWAY_DEPLOYMENT.md)
@@ -192,8 +193,8 @@ Open http://localhost:3000 and start querying.
 
 **Our Solution:**
 - **Fixed-price analysis** instead of an estimated $50K consulting project
-- **~300x speed improvement**: 6 weeks → seconds
 - **Unlimited iterations** with conversational follow-up
+- **Excel-ready output** with query metadata attached
 
 ---
 
@@ -211,7 +212,7 @@ There is no subscription to buy. CensusChat has no billing, no signup, and no se
 ### **For Developers**
 - Write quality TypeScript with comprehensive test coverage
 - CI runs lint, typecheck, unit tests, Playwright e2e (`cd frontend && npm run test:e2e`), and Docker builds on every push
-- Maintain sub-2s query response times
+- Maintain the sub-2s query response-time target
 - Follow privacy-first security practices (no PHI stored, audit logging, encryption at rest)
 - Run `npm run secret-scan` before committing
 
@@ -219,7 +220,7 @@ There is no subscription to buy. CensusChat has no billing, no signup, and no se
 
 **⭐ Star this repository if CensusChat helps your healthcare data work**
 
-*Transforming healthcare demographic analysis from weeks to seconds*
+*US Census demographics, queried in plain English*
 
 ---
 

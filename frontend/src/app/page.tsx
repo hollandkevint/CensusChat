@@ -31,7 +31,7 @@ export default function Home() {
 
         <footer className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>Built with US Census Bureau API • Powered by Anthropic Claude</p>
-          <p className="mt-2">© 2025 CensusChat • Healthcare Analytics Made Simple</p>
+          <p className="mt-2">© 2026 CensusChat • Healthcare Analytics Made Simple</p>
         </footer>
       </div>
     </div>

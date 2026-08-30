@@ -146,55 +146,19 @@ export async function validateSQL(sql: string): Promise<ValidationResult> {
 ```
 
 ---
+### What the Validation Layer Does
 
-### Production Validation Results
+**Allowed:** `SELECT` only, against an allowlist of tables and columns, capped at 1,000 rows.
 
-**Test 1: California counties**
-- User query: "Show me 10 counties in California"
-- Generated SQL: `SELECT ... FROM county_data WHERE state_name = 'California' LIMIT 10`
-- Validation: ✅ PASS
-- Execution: 4.6 seconds
-- Results: 58 counties returned
-- Audit: Logged with timestamp + validation status
+**Blocked:** multi-statement queries, SQL comments, and any table or column outside the allowlist. A query like
+`"Show all counties; DROP TABLE county_data; --"` is caught by comment-pattern blocking before it reaches DuckDB, and
+logged as a security event.
 
-**Test 2: Population analysis**
-- User query: "Counties with population over 1 million"
-- Generated SQL: `SELECT ... FROM county_data WHERE total_population > 1000000`
-- Validation: ✅ PASS
-- Execution: 5.0 seconds
-- Results: 47 counties returned
-- Audit: Logged with timestamp + validation status
+**Audited:** every query is logged with a timestamp and its validation status to `backend/logs/sql-audit.log`.
 
-**Test 3: SQL injection attempt** (manual test)
-- User query: "Show all counties; DROP TABLE county_data; --"
-- Generated SQL: Caught by comment pattern blocking
-- Validation: ❌ BLOCKED
-- Execution: Never reached DuckDB
-- Audit: Logged as security event
-
-**Zero false negatives** on 50+ test queries.
-**Zero false positives** (legitimate queries blocked).
-
----
-
-### Performance Metrics
-
-**Response Time Breakdown:**
-- Natural language → Claude: ~1.5-2.0 sec
-- SQL validation (MCP): ~100-200ms
-- DuckDB execution: ~0.5-1.5 sec
-- JSON serialization: ~50-100ms
-- **Total: 4-5 seconds** (under 5sec timeout ✅)
-
-**Validation overhead:**
-- Added ~100-200ms per query
-- Zero impact on correctness (same results)
-- Massive security improvement (SQL injection → 0)
-
-**Resource usage:**
-- Memory: +10-15MB for SQL parser
-- CPU: Negligible (parsing is fast)
-- Disk: Async audit logging (non-blocking)
+**Timeout:** the API enforces a 30-second request timeout covering MCP validation and the Anthropic API round trip
+(`backend/src/routes/query.routes.ts`). The engineering target is sub-2-second responses; I have not published
+measured percentiles.
 
 ---
 
@@ -332,7 +296,8 @@ Also: If you're building healthcare data products with embedded OLAP, I want to 
 
 **If someone asks about DuckDB benchmarks:**
 ```
-DuckDB performance on my healthcare queries:
+DuckDB timings from one local dev run on my machine. Not a benchmark, not reproducible from this repo
+(no committed profile output) - treat as directional:
 
 SIMPLE AGGREGATION (state-level counts):
 - Dataset: 3,144 counties
@@ -352,7 +317,7 @@ WORST CASE (full table scan + sort):
 - Time: 1.2 sec cold, 450ms cached
 - Memory: ~250MB
 
-All under 2-second threshold. Scale ceiling probably ~10GB before I need sharding.
+All under the sub-2-second target. Scale ceiling probably ~10GB before I need sharding.
 ```
 
 **If someone asks about MCP implementation:**

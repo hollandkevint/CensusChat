@@ -13,7 +13,7 @@ This directory contains comprehensive software architecture diagrams and documen
 - **Backend Layer**: Microservices architecture with API gateway and core services
 - **Data Layer**: DuckDB analytics engine, Redis caching, and PostgreSQL user data
 - **External Integrations**: Census Bureau API, authentication providers, and BI tools
-- **Performance Targets**: Sub-2 second query response times, 99.9% uptime
+- **Performance Targets**: sub-2-second query response times; no uptime target is committed until the service is deployed
 - **Scalability**: Support for 1,000+ concurrent users and 10,000+ queries per hour
 
 Key Features:
@@ -43,7 +43,7 @@ Service Communication:
 **Comprehensive data layer design and processing pipeline**
 
 Data Assets:
-- **Census ACS Data**: 11M+ records, 44GB compressed, 250+ tables
+- **Census ACS Data**: 3,144 counties and 239,741 block groups loaded today, 84 ACS variables per block group
 - **Geographic Intelligence**: 220K+ areas with boundary relationships
 - **Statistical Metadata**: 10K+ variables with documentation
 
@@ -128,7 +128,7 @@ CI/CD Pipeline:
 - **Compliance Ready**: SOC 2, GDPR, and enterprise requirements
 
 ### Reliability and Availability
-- **99.9% Uptime Target**: High availability with fault tolerance
+- **High Availability**: fault tolerance; no uptime target is committed until the service is deployed
 - **Disaster Recovery**: Multi-region with <15 minute RTO
 - **Circuit Breakers**: Fault isolation and graceful degradation
 - **Automated Recovery**: Self-healing systems with monitoring
@@ -149,7 +149,7 @@ CI/CD Pipeline:
 
 ### Performance Requirements
 - **Query Response Time**: <2 seconds for 95% of queries
-- **System Uptime**: 99.9% availability (8.77 hours downtime/year)
+- **System Uptime**: no availability target is committed until the service is deployed
 - **Concurrent Users**: 1,000+ simultaneous active users
 - **Query Throughput**: 10,000+ queries per hour sustained
 - **Data Volume**: 100GB+ with 20% annual growth capacity

@@ -2,7 +2,7 @@
 
 ## Overview
 
-CensusChat's data architecture is designed to handle 11M+ Census records with sub-2 second query performance while maintaining data quality, consistency, and scalability. The architecture implements a modern lakehouse pattern combining operational and analytical workloads with intelligent caching and optimization strategies.
+CensusChat's data architecture targets sub-2-second query performance over the loaded ACS data (3,144 counties and 239,741 block groups today) while maintaining data quality, consistency, and scalability. The architecture implements a modern lakehouse pattern combining operational and analytical workloads with intelligent caching and optimization strategies.
 
 ## Data Architecture Layers
 
@@ -99,7 +99,7 @@ graph TB
 
 **Dataset Specifications**:
 - **Volume**: 44GB compressed, 250+ tables, 10,000+ variables
-- **Records**: 11M+ demographic records across all geographic levels
+- **Records**: 3,144 counties and 239,741 block groups loaded today; designed to extend to further geographic levels
 - **Coverage**: National → State → County → Metro → Tract → Block Group
 - **Temporal**: 2009-present with annual updates
 - **Quality**: 90%+ response rates, government-authoritative methodology

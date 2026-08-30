@@ -12,14 +12,14 @@
 ## 🏘️ Block Group Data (239,741 Neighborhoods)
 
 ### Essential Guides
-1. **[Quick Start](./block-group/BLOCK_GROUP_QUICKSTART.md)** - Load options (29, 43, or 68 variables)
+1. **[Quick Start](./guides/BLOCK_GROUP_QUICKSTART.md)** - Load options (29, 43, or 68 variables)
 2. **[Variable Reference](./guides/BLOCK_GROUP_VARIABLES.md)** - Complete variable documentation
-3. **[Query Examples](./block-group/BLOCK_GROUP_QUERIES_READY.md)** - Natural language queries
-4. **[Expansion Plan](./VARIABLE_EXPANSION_PLAN.md)** - Add 14-39 more SDOH variables
+3. **[Query Examples](./archive/legacy-docs/BLOCK_GROUP_QUERIES_READY.md)** - Natural language queries
+4. **[Expansion Plan](./archive/old-planning/VARIABLE_EXPANSION_PLAN.md)** - Add 14-39 more SDOH variables
 
 ### Technical Details
-- **[Implementation Guide](./block-group/BLOCK_GROUP_IMPLEMENTATION.md)** - Full technical docs
-- **[Database Merge](./block-group/DATABASE_MERGE_COMPLETE.md)** - How data was merged
+- **[Implementation Guide](./archive/legacy-docs/BLOCK_GROUP_IMPLEMENTATION.md)** - Full technical docs
+- **[Database Merge](./archive/legacy-docs/DATABASE_MERGE_COMPLETE.md)** - How data was merged
 
 ---
 
@@ -45,7 +45,7 @@
 - 👨‍👩‍👧‍👦 **Phase 3 (+8 variables)**: Family structure, social isolation
 - 🌍 **Phase 4 (+7 variables)**: Language-specific barriers
 
-**See**: [Variable Expansion Plan](./VARIABLE_EXPANSION_PLAN.md)
+**See**: [Variable Expansion Plan](./archive/old-planning/VARIABLE_EXPANSION_PLAN.md)
 
 ---
 
@@ -53,9 +53,9 @@
 
 | I want to... | Go to |
 |-------------|-------|
-| Load census data | [Block Group Quick Start](./block-group/BLOCK_GROUP_QUICKSTART.md) |
-| Query via natural language | [Query Examples](./block-group/BLOCK_GROUP_QUERIES_READY.md) |
-| Add more variables | [Expansion Plan](./VARIABLE_EXPANSION_PLAN.md) |
+| Load census data | [Block Group Quick Start](./guides/BLOCK_GROUP_QUICKSTART.md) |
+| Query via natural language | [Query Examples](./archive/legacy-docs/BLOCK_GROUP_QUERIES_READY.md) |
+| Add more variables | [Expansion Plan](./archive/old-planning/VARIABLE_EXPANSION_PLAN.md) |
 | Understand the data | [Variable Reference](./guides/BLOCK_GROUP_VARIABLES.md) |
 | Deploy to production | [Railway Deployment](./guides/RAILWAY_DEPLOYMENT.md) |
 | See current status | [Final Status](./sessions/FINAL_STATUS.md) |

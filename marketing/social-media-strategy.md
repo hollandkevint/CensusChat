@@ -63,7 +63,7 @@
 - "The Census API everyone uses wrong"
 
 **2. Behind-the-Scenes**
-- "89% test success rate isn't good enough - here's why"
+- "What I got wrong building an MCP validation layer"
 - "Building MCP + Claude integration from scratch"
 - "Revenue: $0 → $25K in 90 days"
 

@@ -33,7 +33,7 @@ CensusChat is a healthcare-focused demographic analytics platform that transform
 - **Backend**: Node.js + TypeScript + Express with PostgreSQL, Redis, and DuckDB
 - **Frontend**: Next.js 15 + React 19 + TypeScript + Tailwind CSS
 - **Integrations**: Census API service layer, Claude/Anthropic integration, MCP SQL validation
-- **Infrastructure**: Docker containerization with 89% test success rate
+- **Infrastructure**: Docker containerization with a containerized test suite in CI
 - **Target Users**: Healthcare Business Analysts (Sarah - VP Strategy) and Healthcare Researchers (Dr. Rodriguez)
 
 ### Available Documentation Analysis
@@ -88,7 +88,7 @@ The project has extensive DuckDB infrastructure, complete MCP integration, and c
 
 ### Non-Functional Requirements
 
-**NFR1**: Changes must maintain existing 89% test success rate and leverage existing DuckDB connection pooling for optimal performance.
+**NFR1**: Changes must keep the CI test suite green and use the existing DuckDB connection pooling.
 
 **NFR2**: MCP SQL validation response time shall remain under 2 seconds using existing timeout implementation.
 
@@ -180,7 +180,7 @@ Based on your MVP Status analysis:
 **Testing Integration Strategy**:
 
 - Extend existing Jest test suite with integration tests for new API connections
-- Maintain 89% test success rate target through comprehensive test coverage of new features
+- Keep the CI test suite green through test coverage of new features
 - Use existing Docker environment for end-to-end testing of integrated components
 
 ### Code Organization and Standards

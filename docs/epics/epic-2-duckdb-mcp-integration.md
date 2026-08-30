@@ -15,13 +15,13 @@ Transform CensusChat from a mock-data demonstration system into a production hea
 ### Key Outcomes
 - **Real Data Credibility**: Replace mock healthcare data with live Census demographics
 - **Market Differentiation**: Advanced MCP integration unique in healthcare analytics market
-- **Revenue Enablement**: Production system ready for paying customers ($297/month premium tier)
+- **Revenue Enablement**: production system ready to deliver fixed-price analyses
 - **Compliance Ready**: Healthcare-specific patterns support HIPAA and regulatory requirements
 
 ### Success Metrics
 - **Query Performance**: Sub-2 second response times maintained
 - **Data Accuracy**: 100% real Census data (no mock fallback)
-- **System Reliability**: 99.9% uptime with connection pooling
+- **System Reliability**: connection pooling; no uptime target is committed until the service is deployed
 - **MCP Integration**: Full bidirectional MCP client/server capability
 - **Healthcare Analytics**: 10+ production healthcare SQL patterns operational
 

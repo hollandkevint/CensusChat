@@ -79,6 +79,17 @@ jobs:
       - name: Build
         run: npm run build
 
+  # Marketing claim guard
+  claims:
+    name: Marketing Claims
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check public surfaces for unsubstantiated claims
+        run: bash scripts/check-marketing-claims.sh
+
   # Frontend CI
   frontend:
     name: Frontend CI

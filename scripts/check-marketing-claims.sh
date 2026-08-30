@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+# Fails if a retired, unsubstantiated marketing claim reappears on a public surface.
+# Each pattern was removed because no file in this repo supports it. If you want one
+# back, add the evidence first and delete the pattern here in the same commit.
+set -euo pipefail
+
+# GitHub Pages builds from main:/docs, so docs/_config.yml governs the published site
+# and everything under docs/ renders unless that file excludes it.
+SITE_CONFIG=docs/_config.yml
+
+# README.md:188 carries a "~$2.8B" market-sizing estimate under an explicit
+# "Illustrative framing ... not audited market data" disclaimer (README.md:185), so the
+# bare-number pattern below would false-positive on it. It is scanned for every other
+# pattern via the second pass.
+PATHS=(index.md _config.yml landing marketing content frontend/src docs)
+EXCLUDES=(--exclude-dir=archive --exclude-dir=node_modules)
+
+# The archive exemption above is only safe while Jekyll actually excludes that tree.
+# It did not: docs/archive/legacy-docs/GITHUB_PAGE.md served the fabricated customer
+# testimonial at a live URL, indexed by jekyll-sitemap, while this script reported OK.
+# Verify the exclusion rather than asserting it in a comment.
+if ! grep -qE '^[[:space:]]*-[[:space:]]*archive/[[:space:]]*$' "$SITE_CONFIG"; then
+  echo "FAIL: $SITE_CONFIG does not exclude archive/, so docs/archive renders as live"
+  echo "      pages that jekyll-sitemap indexes -- but this script skips that tree."
+  echo "      Add '- archive/' under exclude: in $SITE_CONFIG, or stop exempting it here."
+  exit 1
+fi
+
+# ponytail: one grep -E, no per-pattern loop. Add a pattern, not a framework.
+PATTERN='Sarah L\.|2\.8B|\$150M facility|196,436|5,500% ROI|89% [Tt]est|80%\+ Cache|99\.9%|11M\+|23 minutes|6-second|delivers them in 6 seconds|~300x|~200x'
+
+# Plans quote the claims they retire verbatim, so a published plan reprints every claim
+# this guard exists to block. Either keep plans out of the site source (internal/, which
+# .gitignore excludes) or exclude them in the site config -- but not neither.
+if [ -d docs/plans ] && ! grep -qE '^[[:space:]]*-[[:space:]]*plans/[[:space:]]*$' "$SITE_CONFIG"; then
+  echo "FAIL: docs/plans/ exists and $SITE_CONFIG does not exclude plans/, so every plan"
+  echo "      renders as a live page reprinting the claims it retires."
+  echo "      Add '- plans/' under exclude: in $SITE_CONFIG, or move plans to internal/plans/."
+  exit 1
+fi
+
+# README.md is scanned separately, skipping only its disclaimered market-sizing line.
+if grep -rInE "${EXCLUDES[@]}" "$PATTERN" "${PATHS[@]}" \
+   || grep -nE "$PATTERN" README.md | grep -v 'estimated annual spend on demographic consulting'; then
+  echo
+  echo "FAIL: a retired marketing claim reappeared above. See CONTRIBUTING.md, section 'Marketing and Public Claims'"
+  exit 1
+fi
+
+# A dead link to a moved doc is how a retired claim survives: the README's top link
+# pointed at docs/MVP_STATUS.md for months while the real file, carrying "89% test
+# success rate", sat at docs/project-management/. Resolve every relative .md link in
+# the scanned surfaces. Root-absolute links (/docs/x.md) resolve from the repo root.
+SITE="https://hollandkevint.github.io/CensusChat"
+DEAD=$(mktemp); trap 'rm -f "$DEAD"' EXIT
+
+# A relative link is read on GitHub as well as on Pages, so it resolves against the
+# repo tree: the file itself, or the .md source behind an .html target.
+resolve_repo_path() {
+  t="${1%%#*}"; [ -n "$t" ] || return 0; t="${t%/}"
+  [ -e "$t" ] || [ -e "${t%.html}.md" ] || return 1
+}
+
+# A same-site absolute URL is only ever read on Pages, so it must name something
+# Jekyll actually serves. With no permalink overrides in _config.yml that is
+# "dir/" (from dir/index.md) or "page.html" (from page.md) -- never a bare
+# extensionless path. GitHub Pages does not fall back from /page to /page.html.
+resolve_site_url() {
+  t="${1%%#*}"; [ -n "$t" ] || return 0
+  case "$t" in
+    */) [ -e "${t}index.md" ] || [ -e "${t%/}.md" ] && return 0
+        echo "    (no ${t}index.md backs this directory URL)" >&2; return 1 ;;
+    *.html) [ -e "${t%.html}.md" ] || [ -e "$t" ] || return 1; return 0 ;;
+    *.*) [ -e "$t" ] || return 1; return 0 ;;
+    *)  if [ -e "${t}.md" ]; then
+          echo "    (${t}.md exists but Jekyll serves it at ${t}.html; Pages does not fall back)" >&2
+        fi
+        return 1 ;;
+  esac
+}
+
+while IFS= read -r f; do
+  d=$(dirname "$f")
+  # Two extractors. Relative links are only checked when they name a .md or .html
+  # target, because an extensionless relative link is usually an anchor or a directory.
+  # Same-site absolute URLs are checked whatever their shape: they are internal links
+  # wearing a hostname, and three /about/ links pointed at a page that has never
+  # existed precisely because a checker that skipped http* treated them as external.
+  {
+    grep -oI "](\([^)#]*\.\(md\|html\)\)[^)]*)" "$f" 2>/dev/null | sed 's/^](//;s/)$//'
+    grep -oI "]($SITE[^)\"' ]*)" "$f" 2>/dev/null | sed 's/^](//;s/)$//'
+    case "$f" in
+      *.html)
+        grep -oIE '(href|src)="[^"]*"' "$f" 2>/dev/null | sed 's/^[a-z]*="//;s/"$//'
+        grep -oIE 'url=[^"'"'"']*' "$f" 2>/dev/null | sed 's/^url=//'
+        grep -oIE "location\\.href *= *'[^']*'" "$f" 2>/dev/null | sed "s/.*= *'//;s/'$//"
+        ;;
+    esac
+  } | while IFS= read -r l; do
+    case "$l" in
+      mailto*) continue ;;
+      "$SITE"*) t=".${l#$SITE}" ;;
+      http*) continue ;;
+      /CensusChat/*) t=".${l#/CensusChat}" ;;
+      /*) t=".$l" ;;
+      *) t="$d/$l" ;;
+    esac
+    case "$l" in
+      "$SITE"*|/CensusChat/*) resolve_site_url "$t" || echo "DEAD LINK: $f -> $l" ;;
+      *)        resolve_repo_path "$t" || echo "DEAD LINK: $f -> $l" ;;
+    esac
+  done
+# git ls-files, not a filesystem walk: it skips node_modules and build output for free.
+# Trade-off: a brand-new file is only checked once it is staged. CI checks out a full
+# tree so this is invisible there; locally, `git add` before trusting a green run.
+done < <(git ls-files '*.md' '*.html' \
+          | grep -E '^(README|index|CONTRIBUTING|QUICK_START|API_KEY_SETUP|SECURITY|CLAUDE)\.md$|^(landing|docs)/' \
+          | grep -v '^docs/archive/') > "$DEAD" || true
+if [ -s "$DEAD" ]; then
+  cat "$DEAD"
+  echo
+  echo "FAIL: broken documentation links above. Repoint them or remove the link."
+  exit 1
+fi
+
+echo "OK: no retired marketing claims found, no broken doc links."

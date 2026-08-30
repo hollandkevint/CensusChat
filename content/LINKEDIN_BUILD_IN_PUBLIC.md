@@ -233,7 +233,7 @@ And if you're in healthcare strategy and spend >$10K/year on demographic consult
 "28,295 lines of TypeScript. 6 weeks. One developer. Claude Code as my pair programmer. What shipping a production SaaS with AI actually looks like."
 
 **Hook Option 4 (Problem-first):**
-"Healthcare teams pay $50,000 for demographic reports that take 6 weeks. I built a SaaS that delivers them in 6 seconds. Tech stack: DuckDB + Claude + MCP."
+"Healthcare teams wait weeks for demographic reports. I built a natural-language interface over 239,741 census block groups. Tech stack: DuckDB + Claude + MCP."
 
 ---
 

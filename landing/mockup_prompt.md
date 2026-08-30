@@ -1,9 +1,9 @@
 ---
   ## PROJECT CONTEXT
   Create a professional healthcare SaaS landing page for CensusChat - a natural language interface to US Census data targeting healthcare
-  strategy teams. This is a B2B conversion-focused landing page that transforms expensive demographic consulting (an estimated $50K and 6 weeks) into instant
-  AI-powered queries (23 minutes). CensusChat has no subscription to sell: the two offers are a fixed-price delivered analysis, scoped and quoted before work
-  starts, and free early access to the self-serve product while it is built.
+  strategy teams. This is a B2B conversion-focused landing page that replaces expensive demographic consulting (an estimated $50K and 6 weeks)
+  with natural-language queries over US Census data. CensusChat has no subscription to sell: the two offers are a fixed-price delivered analysis,
+  scoped and quoted before work starts, and free early access to the self-serve product while it is built.
 
   **Tech Stack**: HTML5, CSS3 (or Tailwind CSS), vanilla JavaScript
   **Target Audience**: Healthcare business analysts, strategy teams, executives at health systems and Medicare Advantage plans
@@ -18,12 +18,12 @@
 
   ### 1. Hero Section (Above the fold)
   - Create a compelling headline: "Stop Waiting Weeks for a Demographic Report"
-  - Add subtitle: "Ask US Census data a question in plain English. Get an Excel-ready answer in seconds."
+  - Add subtitle: "Ask 3,144 counties and 239,741 block groups a question in plain English. Get an Excel-ready answer back."
   - Include 3 prominent CTA buttons:
     * Primary: "Get Free Early Access" (green background)
     * Secondary: "Schedule Demo" (blue outline)
     * Tertiary: "View Repository" (gray outline)
-  - Add trust badges: "89% Test Coverage", "MCP + Claude AI", "Healthcare Demographics"
+  - Add trust badges: "84 ACS Variables", "MCP + Claude AI", "Excel & PDF Export"
   - Mobile: Stack vertically, large headline text
   - Desktop: Center-aligned, maximum width 800px
 
@@ -35,55 +35,45 @@
     * Iterations: 1-2 (expensive to change)
     * Format: PDF reports (manual Excel entry)
   - Right side: "CensusChat Advantage"
-    * Timeline: 23 minutes
+    * Coverage: 3,144 counties and 239,741 block groups, 84 ACS variables each
     * Cost: fixed price per analysis, quoted before work starts
     * Iterations: refine and re-run within the same engagement
     * Format: Excel-ready with statistical metadata
   - Mobile: Stack sections vertically with clear visual separation
 
-  ### 3. Social Proof Section
-  - Feature testimonial with professional styling:
-    * Quote: "Used to take our analytics team 2 weeks to pull Medicare Advantage market data. Now I get it in seconds and can focus on strategy
-   instead of waiting."
-    * Attribution: "Sarah L., VP Strategy, Regional Health System (2.8B revenue)"
-  - Add impact metrics in a 3-column grid:
-    * "6 weeks → 2 hours" decision cycle
-    * "$150M facility expansion" supported
-    * "Analytics team refocused" on strategy vs. data hunting
-
-  ### 4. "How It Works" Process Section
+  ### 3. "How It Works" Process Section
   - Create a 3-step visual process flow:
     * Step 1: "Ask in Plain English" with example query
-    * Step 2: "AI-Powered Processing" showing Claude + MCP + Census API
-    * Step 3: "Professional Output" showing Excel/PDF/Tableau integration
+    * Step 2: "AI-Powered Processing" showing Claude + MCP + DuckDB
+    * Step 3: "Professional Output" showing Excel/CSV/PDF export
   - Use icons and connecting arrows between steps
   - Mobile: Vertical flow, Desktop: Horizontal flow
 
-  ### 5. Technical Credibility Section
-  - Display key metrics in a 4-column grid:
-    * "Sub-2 Second Queries" on 11M+ Census records
-    * "89% Test Coverage" with containerized CI/CD
-    * "HIPAA-Ready Architecture" with enterprise security
-    * "First healthcare platform" combining MCP + Claude
+  ### 4. Technical Credibility Section
+  - Display key capabilities in a 4-column grid:
+    * "Sub-2 Second Query Target" with a 30-second enforced request timeout
+    * "SQL Injection Protection" via table/column allowlists and row limits
+    * "Privacy-First Architecture" - no PHI stored, audit logging, encryption at rest
+    * "MCP + Claude Sonnet 4" for natural-language-to-SQL translation
   - Use subtle background highlighting and icons
 
-  ### 6. Target Audience Section
+  ### 5. Target Audience Section
   - Create 3 cards for primary users:
     * Business Analysts (health systems/MA plans icon)
     * Strategy Teams (expansion/facility planning icon)
     * Healthcare Researchers (population health icon)
   - List healthcare-specific features as bullet points below
 
-  ### 7. Final CTA Section
+  ### 6. Final CTA Section
   - Large, centered call-to-action area
   - Headline: "Ready to Transform Your Healthcare Data Strategy?"
   - Subheadline: "Stop waiting weeks for a demographic report. Ask for a fixed-price analysis, or get free early access to the tool."
   - Same 3 CTA buttons as hero section
-  - Footer tagline: "Transforming healthcare demographic analysis from weeks to seconds"
+  - Footer tagline: "US Census demographics, queried in plain English"
 
-  ### 8. About Kevin Section (Bottom)
+  ### 7. About Kevin Section (Bottom)
   - Brief bio section with professional headshot placeholder
-  - Key points: "10+ years healthcare data experience", "2M+ member Medicare Advantage plans", "$50K consulting delays"
+  - Key points: "10+ years healthcare data experience"
   - Contact links: Email, LinkedIn, GitHub
 
   ## CODE EXAMPLES & CONSTRAINTS
