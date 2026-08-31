@@ -30,7 +30,7 @@ import { AddressInfo } from 'net';
 import { mcpTransportRouter } from '../../mcp/mcpRoutes';
 import { MCPHttpClient } from '../../mcp/mcpClient';
 import { getSessionManager, McpSessionManager } from '../../mcp/mcpSessionManager';
-import { getDuckDBPool } from '../../utils/duckdbPool';
+import { getDuckDBPool, closeDuckDBPool } from '../../utils/duckdbPool';
 
 describe('MCP HTTP Transport Integration', () => {
   let app: Application;
@@ -95,6 +95,8 @@ describe('MCP HTTP Transport Integration', () => {
         else resolve();
       });
     });
+
+    await closeDuckDBPool();
   });
 
   describe('Session Management', () => {

@@ -93,7 +93,7 @@ export interface QueryResult {
     recordCount: number;
     queryPattern: string;
     confidenceLevel: number;
-    dataFreshness?: Record<string, unknown>;
+    dataFreshness?: Record<string, any>;
   };
   error?: string;
 }
@@ -184,19 +184,21 @@ export interface DataSourceMetadata {
 }
 
 export interface PerformanceMetrics {
-  cacheStats: {
+  queryId?: string;
+  executionTime?: number;
+  dataSourcesUsed?: string[];
+  recordsProcessed?: number;
+  cacheHit?: boolean;
+  errors?: string[];
+  timestamp?: Date;
+  cacheStats?: {
     size: number;
     maxSize: number;
     hitRatio: number;
+    [key: string]: any;
   };
-  avgExecutionTime: number;
-  totalQueries: number;
-  sub2sCompliance: number;
-  performanceProfiles: Array<{
-    pattern: string;
-    avgExecutionTime: number;
-    hitRate: number;
-    lastOptimized: Date;
-    optimizations: any[];
-  }>;
+  avgExecutionTime?: number;
+  totalQueries?: number;
+  sub2sCompliance?: number;
+  performanceProfiles?: Array<Record<string, any>>;
 }

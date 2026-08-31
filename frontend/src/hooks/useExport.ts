@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { exportApi, downloadBlob, ExportApiError } from '../lib/api/exportApi';
-import { ExportRequest, ExportResponse, ExportProgress } from '../types/export.types';
+import { ExportRequest, ExportResponse, ExportProgress, ExportQueryResult } from '../types/export.types';
 
 interface UseExportOptions {
   onSuccess?: (response: ExportResponse) => void;
@@ -14,8 +14,8 @@ interface UseExportReturn {
   isExporting: boolean;
   progress: ExportProgress | null;
   error: ExportApiError | null;
-  exportToExcel: (queryResult: any, options?: Partial<ExportRequest['options']>, queryText?: string) => Promise<void>;
-  exportToCSV: (queryResult: any, queryText?: string) => Promise<void>;
+  exportToExcel: (queryResult: ExportQueryResult, options?: Partial<ExportRequest['options']>, queryText?: string) => Promise<void>;
+  exportToCSV: (queryResult: ExportQueryResult, queryText?: string) => Promise<void>;
   clearError: () => void;
   cancelExport: () => void;
 }
@@ -32,7 +32,7 @@ export const useExport = (options: UseExportOptions = {}): UseExportReturn => {
   const [isExporting, setIsExporting] = useState(false);
   const [progress, setProgress] = useState<ExportProgress | null>(null);
   const [error, setError] = useState<ExportApiError | null>(null);
-  const [currentExportId, setCurrentExportId] = useState<string | null>(null);
+  const [, setCurrentExportId] = useState<string | null>(null);
   const [pollTimeoutId, setPollTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
   const clearError = useCallback(() => {
@@ -125,7 +125,7 @@ export const useExport = (options: UseExportOptions = {}): UseExportReturn => {
   }, [onSuccess, onError, onProgress, pollInterval, maxRetries]);
 
   const exportToExcel = useCallback(async (
-    queryResult: any,
+    queryResult: ExportQueryResult,
     exportOptions: Partial<ExportRequest['options']> = {},
     queryText?: string
   ) => {
@@ -174,7 +174,7 @@ export const useExport = (options: UseExportOptions = {}): UseExportReturn => {
     }
   }, [isExporting, pollProgress, onError]);
 
-  const exportToCSV = useCallback(async (queryResult: any, queryText?: string) => {
+  const exportToCSV = useCallback(async (queryResult: ExportQueryResult, queryText?: string) => {
     if (isExporting) return;
 
     setIsExporting(true);

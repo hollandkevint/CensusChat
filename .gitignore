@@ -72,6 +72,11 @@ data/
 *.sqlite
 *.duckdb
 
+# Exception: the public county snapshot is generated from published ACS data
+# and must be committed -- the frontend build reads it and CI has no API key.
+!frontend/src/data/
+!frontend/src/data/*.json
+
 # Docker
 .dockerignore
 
@@ -135,3 +140,11 @@ private/
 *.private
 config/production.json
 config/staging.json
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/playwright/.cache/
+
+# Internal working docs (strategy, session notes) — not for the public repo
+internal/

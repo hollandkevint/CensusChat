@@ -52,6 +52,12 @@ export class ExcelExportService {
       // Validate request and data
       this.validateExportRequest(request, queryResult);
 
+      // Drop null/undefined rows so malformed data cannot break worksheet generation
+      queryResult = {
+        ...queryResult,
+        data: (queryResult.data || []).filter(row => row !== null && row !== undefined)
+      };
+
       // Generate filename
       const filename = ExcelFormattingUtils.generateFilename(
         this.getQueryType(queryResult),
@@ -507,6 +513,12 @@ export class ExcelExportService {
   }
 
   async getExportFile(exportId: string): Promise<{ filePath: string; filename: string } | null> {
+    // Prefer the tracked file mapping
+    const tracked = ExcelExportService.exportFileMap.get(exportId);
+    if (tracked && fs.existsSync(tracked.filePath)) {
+      return tracked;
+    }
+
     const progress = ExcelExportService.progressMap.get(exportId);
 
     if (!progress || progress.status !== 'completed') {

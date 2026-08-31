@@ -187,15 +187,19 @@ async function seedDemoData() {
     
     console.log('✅ Demo status created:', demoStatusPath);
     
-    // Create a simple DuckDB file with demo data (if DuckDB is available)
-    try {
-      const { Database } = require('duckdb');
+    // Create a simple DuckDB file with demo data.
+    // Ported to @duckdb/node-api: the legacy `duckdb` package is no longer a
+    // dependency, so the old require() always threw and this block silently
+    // no-op'd behind its own catch.
+    {
+      const { DuckDBInstance } = await import('@duckdb/node-api');
       const dbPath = path.join(dataDir, 'census.duckdb');
-      
-      const db = new Database(dbPath);
-      
+
+      const instance = await DuckDBInstance.create(dbPath);
+      const db = await instance.connect();
+
       // Create tables
-      db.exec(`
+      await db.run(`
         CREATE TABLE IF NOT EXISTS states (
           code VARCHAR(2) PRIMARY KEY,
           name VARCHAR(100) NOT NULL,
@@ -228,26 +232,24 @@ async function seedDemoData() {
         `('${s.code}', '${s.name}', '${s.fips_code}', ${s.population}, ${s.median_income}, ${s.seniors_65_plus})`
       ).join(',\n');
       
-      db.exec(`INSERT OR REPLACE INTO states VALUES ${states};`);
+      await db.run(`INSERT OR REPLACE INTO states VALUES ${states};`);
       
       const counties = demoData.counties.map(c => 
         `('${c.fips_code}', '${c.name}', '${c.state_code}', ${c.population}, ${c.median_income})`
       ).join(',\n');
       
-      db.exec(`INSERT OR REPLACE INTO counties VALUES ${counties};`);
+      await db.run(`INSERT OR REPLACE INTO counties VALUES ${counties};`);
       
       const metrics = demoData.healthcare_metrics.map(m => 
         `('${m.geography_code}', '${m.geography_type}', ${m.uninsured_rate}, ${m.medicare_eligible}, ${m.medicaid_eligible}, ${m.primary_care_physicians})`
       ).join(',\n');
       
-      db.exec(`INSERT OR REPLACE INTO healthcare_metrics VALUES ${metrics};`);
+      await db.run(`INSERT OR REPLACE INTO healthcare_metrics VALUES ${metrics};`);
       
-      db.close();
-      
+      db.closeSync();
+      instance.closeSync();
+
       console.log('✅ DuckDB demo database created:', dbPath);
-      
-    } catch (duckdbError) {
-      console.log('⚠️  DuckDB not available, skipping database creation');
     }
     
     console.log('🎉 Demo data seeding completed successfully!');

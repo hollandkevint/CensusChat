@@ -88,8 +88,8 @@ Metric: Click-through rate to email composition
 ```
 README.md:
 Version A: "I built a natural language interface to US Census data"
-Version B: "Turn 6-week demographic consulting into 6-second queries"
-Version C: "Stop wasting $50K on demographic analysis"
+Version B: "Query 3,144 counties and 239,741 block groups in plain English"
+Version C: "Stop waiting weeks for demographic analysis"
 Metric: Time on page, scroll depth, CTA clicks
 ```
 
@@ -97,7 +97,7 @@ Metric: Time on page, scroll depth, CTA clicks
 ```
 GITHUB_PAGE.md:
 Version A: Technical expertise focus (MCP + Claude innovation)
-Version B: Business results focus (89% test success, $50K savings)
+Version B: Data-coverage focus (3,144 counties, 239,741 block groups, 84 ACS variables)
 Version C: Personal journey focus (solopreneur building-in-public)
 Metric: Email signups, LinkedIn connections, demo requests
 ```
@@ -125,9 +125,9 @@ Metric: Trust indicators, time on page, conversions
 **6. Technical Credibility Optimization**
 ```
 GitHub Repository Optimization:
-Version A: Performance metrics prominent (89% tests, sub-2s queries)
-Version B: Innovation focus (First MCP + Claude healthcare platform)
-Version C: Enterprise focus (HIPAA-ready, production-grade)
+Version A: Engineering targets prominent (sub-2s target, SQL injection protection, audit logging)
+Version B: Innovation focus (MCP + Claude Sonnet 4 natural-language-to-SQL)
+Version C: Privacy focus (no PHI stored, audit logging, encryption at rest)
 Metric: Stars, forks, issues, technical demo requests
 ```
 

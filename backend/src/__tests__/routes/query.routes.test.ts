@@ -210,7 +210,7 @@ describe('POST /api/v1/queries', () => {
     expect(response.body.data.length).toBeGreaterThan(0);
   });
 
-  it('should return 500 with suggestions when query analysis throws', async () => {
+  it('should return 400 with suggestions when query analysis fails validation', async () => {
     mockAnthropicService.analyzeQuery.mockRejectedValue(
       new Error('Unable to parse query')
     );
@@ -219,9 +219,9 @@ describe('POST /api/v1/queries', () => {
       .post('/api/v1/queries')
       .send({ query: 'gibberish query that makes no sense' });
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toBe('INTERNAL_ERROR');
+    expect(response.body.error).toBe('VALIDATION_ERROR');
     expect(response.body.suggestions).toBeDefined();
     expect(response.body.suggestions.length).toBeGreaterThan(0);
   });

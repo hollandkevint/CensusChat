@@ -20,6 +20,13 @@ process.env.CENSUS_API_URL = 'https://api.census.gov';
 process.env.CENSUS_API_KEY = '';
 process.env.USE_LIVE_CENSUS_API = 'false';
 process.env.PORT = '3001';
+// Give each Jest worker its own port so app-importing suites don't collide,
+// and point the in-process MCP HTTP client at the right server
+const testPort = 3100 + parseInt(process.env.JEST_WORKER_ID || '1', 10);
+process.env.PORT = String(testPort);
+process.env.MCP_SERVER_URL = `http://localhost:${testPort}`;
+process.env.QUERY_TIMEOUT_MS = '2000';
+process.env.DISABLE_RATE_LIMITING = 'true';
 process.env.CORS_ORIGIN = 'http://localhost:3000';
 
 // Global test timeout
@@ -47,7 +54,6 @@ afterAll(() => {
 // Mock external dependencies
 beforeEach(() => {
   jest.clearAllMocks();
-  jest.resetModules();
 });
 
 // Global error handler for unhandled promises

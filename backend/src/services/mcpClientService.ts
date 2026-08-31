@@ -109,10 +109,16 @@ export class MCPClientService extends EventEmitter {
       throw new Error(`MCP client not connected: ${client}`);
     }
 
-    // Get circuit breaker for this client
-    const circuitBreaker = this.circuitBreakers.get(client);
+    // Get (or lazily create) the circuit breaker for this client
+    let circuitBreaker = this.circuitBreakers.get(client);
     if (!circuitBreaker) {
-      throw new Error(`Circuit breaker not found for client: ${client}`);
+      circuitBreaker = new CircuitBreaker(`mcp-client-${client}`, {
+        threshold: 3,
+        timeout: 30000,
+        resetTimeout: 300000,
+        monitorWindow: 60000
+      });
+      this.circuitBreakers.set(client, circuitBreaker);
     }
 
     const monitoring = getMCPMonitoring();
@@ -297,12 +303,13 @@ export class MCPClientService extends EventEmitter {
 
         const pool = getDuckDBPool();
 
-        // Try to detach MCP connection
+        // Try to detach MCP connection. Any failure is tolerated: the attachment
+        // is unusable either way, and rethrowing here used to leave the client
+        // in `connectedClients` forever (a stale-state leak).
         try {
           await pool.query(`DETACH ${client}_mcp`);
         } catch (error) {
-          // Connection might not exist or DETACH not available
-          console.warn(`⚠️ Could not detach MCP client ${client}`);
+          console.warn(`⚠️ Could not detach MCP client ${client}:`, error);
         }
 
         this.connectedClients.delete(client);

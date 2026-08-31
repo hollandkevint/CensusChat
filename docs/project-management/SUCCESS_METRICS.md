@@ -3,7 +3,7 @@
 
 ### Overview
 
-CensusChat's success is measured through three primary dimensions aligned with our business analyst and researcher user personas: **Engagement**, **Query Complexity**, and **Time-to-Insight**. These metrics directly correlate with our freemium business model and $297/month premium tier conversion.
+CensusChat's success is measured through three primary dimensions aligned with our business analyst and researcher user personas: **Engagement**, **Query Complexity**, and **Time-to-Insight**. These metrics support the current offers: a fixed-price delivered analysis and free early access.
 
 ---
 
@@ -190,7 +190,7 @@ Month 3: 120 queries average (team adoption)
 
 **CensusChat Performance Targets**:
 - Time-to-Insight: < 30 minutes (150x faster)
-- Cost per Analysis: $297/month unlimited (200x cheaper)
+- Cost per Analysis: fixed price, quoted per engagement
 - Iteration Capability: Unlimited real-time
 - Data Format: Excel/CSV ready for analysis
 
@@ -204,7 +204,7 @@ Month 3: 120 queries average (team adoption)
 - Setup Time: < 15 minutes
 - Learning Curve: < 2 hours (conversational interface)
 - Census Data: Pre-integrated and validated
-- Cost: $297/month for team access
+- Cost: fixed price, quoted per engagement
 
 ---
 

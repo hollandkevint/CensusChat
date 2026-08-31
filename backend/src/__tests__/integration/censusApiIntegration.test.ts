@@ -265,9 +265,9 @@ describe('Census API Integration Tests', () => {
           query: 'gibberish query that makes no sense'
         });
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('INTERNAL_ERROR');
+      expect(response.body.error).toBe('VALIDATION_ERROR');
       expect(response.body.suggestions).toBeDefined();
       expect(Array.isArray(response.body.suggestions)).toBe(true);
       expect(response.body.suggestions.length).toBeGreaterThan(0);

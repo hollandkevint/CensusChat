@@ -26,6 +26,8 @@ export abstract class BasePublicDatasetAdapter implements PublicDatasetAdapter {
 
   protected isConnected: boolean = false;
   protected connectionError?: string;
+  protected connectionStatus: ConnectionStatus = ConnectionStatus.Disconnected;
+  protected lastConnected?: Date;
 
   abstract connect(): Promise<void>;
   abstract query(pattern: string, params: any): Promise<any[]>;

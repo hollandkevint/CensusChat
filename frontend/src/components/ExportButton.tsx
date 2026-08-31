@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { Download, FileSpreadsheet, FileText, X, AlertCircle } from 'lucide-react';
 import { useExport } from '../hooks/useExport';
 import { ExportProgress } from './ExportProgress';
-import { formatFileSize } from '../lib/api/exportApi';
 import { ExportButtonProps } from '../types/export.types';
 
 export const ExportButton: React.FC<ExportButtonProps> = ({

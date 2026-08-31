@@ -1,3 +1,11 @@
+> **RETIRED DRAFT — DO NOT PUBLISH OR REUSE.**
+> This page is kept only as a record of an earlier draft. It contains claims that were
+> removed from every live surface because nothing in this repository supports them:
+> an invented customer testimonial and its employer, a test-coverage percentage, a
+> record count roughly 45x the real figure, an uptime SLA for a service that is not
+> deployed, and a subscription price that cannot be charged (there is no billing
+> integration). See CONTRIBUTING.md, section "Marketing and Public Claims".
+
 # Kevin Holland: Healthcare Data Products & Solopreneur Journey
 
 <div align="center">

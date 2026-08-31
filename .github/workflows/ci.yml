@@ -79,6 +79,17 @@ jobs:
       - name: Build
         run: npm run build
 
+  # Marketing claim guard
+  claims:
+    name: Marketing Claims
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check public surfaces for unsubstantiated claims
+        run: bash scripts/check-marketing-claims.sh
+
   # Frontend CI
   frontend:
     name: Frontend CI
@@ -114,6 +125,43 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+          NEXT_PUBLIC_SITE_URL: https://censuschat.example.com
+
+  # End-to-end tests (Playwright, mocked backend API)
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
 
   # Docker Build Test
   docker:
@@ -142,10 +190,12 @@ jobs:
           context: ./frontend
           push: false
           tags: censuschat/frontend:test
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=https://censuschat.example.com
           cache-from: type=gha
           cache-to: type=gha,mode=max
       
       - name: Test Docker Compose
         run: |
-          docker-compose config
-          docker-compose -f docker-compose.yml build
+          docker compose config
+          docker compose -f docker-compose.yml build

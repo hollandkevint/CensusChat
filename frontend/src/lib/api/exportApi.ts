@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { ExportRequest, ExportResponse, ExportProgress, ExportError } from '../../types/export.types';
+import { ExportRequest, ExportResponse, ExportProgress, ExportQueryResult } from '../../types/export.types';
 
 // Use internal URL for server-side calls (SSR/API routes) and public URL for client-side calls
 const getApiBaseUrl = () => {
@@ -16,7 +16,7 @@ export class ExportApiError extends Error {
     message: string,
     public code: string,
     public statusCode?: number,
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = 'ExportApiError';
@@ -59,7 +59,7 @@ export const exportApi = {
   /**
    * Export query results to CSV format (fallback)
    */
-  async exportToCSV(queryResult: any, queryText?: string): Promise<Blob> {
+  async exportToCSV(queryResult: ExportQueryResult, queryText?: string): Promise<Blob> {
     try {
       const response = await axios.post(
         `${getApiBaseUrl()}/api/v1/export/csv`,
@@ -129,7 +129,7 @@ export const exportApi = {
   /**
    * Download completed export file
    */
-  async downloadExportFile(exportId: string, filename?: string): Promise<Blob> {
+  async downloadExportFile(exportId: string): Promise<Blob> {
     try {
       const response = await axios.get(
         `${getApiBaseUrl()}/api/v1/export/download/${exportId}`,

@@ -210,7 +210,13 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
         }
 
         // Step 1: Use MCP service to analyze and validate the query
-        const analysis = await anthropicService.analyzeQuery(preprocessedQuery);
+        let analysis;
+        try {
+          analysis = await anthropicService.analyzeQuery(preprocessedQuery);
+        } catch (analysisError) {
+          const message = analysisError instanceof Error ? analysisError.message : 'Unknown error';
+          throw new Error(`MCP validation failed: ${message}`);
+        }
         console.log('✅ MCP analysis complete:', analysis);
 
         // Step 1.5: Check if this is a healthcare analytics request that should use MCP tools

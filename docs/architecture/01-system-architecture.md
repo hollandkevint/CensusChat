@@ -2,7 +2,7 @@
 
 ## Overview
 
-CensusChat implements a modern three-layer architecture designed for high performance, scalability, and reliability. This architecture supports natural language queries on 11M+ Census records with sub-2 second response times while maintaining enterprise-grade security and compliance. **As of September 2025, the DuckDB + MCP integration is fully operational**, providing complete "Natural Language → MCP Validation → DuckDB Query → Results" data flow.
+CensusChat implements a modern three-layer architecture designed for high performance, scalability, and reliability. This architecture supports natural language queries over the loaded ACS data (3,144 counties and 239,741 block groups today) with a sub-2-second response target while maintaining enterprise-grade security and compliance. **As of September 2025, the DuckDB + MCP integration is fully operational**, providing complete "Natural Language → MCP Validation → DuckDB Query → Results" data flow.
 
 ## Three-Layer Architecture
 
@@ -298,7 +298,7 @@ graph LR
 - **Storage Performance**: 10GB/s read throughput
 
 ### Reliability Targets
-- **System Uptime**: 99.9% availability (8.77 hours downtime/year)
+- **System Uptime**: no availability target is committed until the service is deployed
 - **Error Rate**: <0.1% failed requests under normal load
 - **Recovery Time**: <15 minutes for complete service restoration
 - **Data Consistency**: 100% accuracy for Census data replication

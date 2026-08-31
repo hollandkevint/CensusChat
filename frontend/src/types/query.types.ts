@@ -1,3 +1,6 @@
+// A single row of query result data
+export type QueryDataRow = Record<string, string | number | null | undefined>;
+
 // API request/response types
 export interface QueryRequest {
   query: string;
@@ -11,7 +14,7 @@ export interface QueryRequest {
 export interface QueryResponse {
   success: boolean;
   message: string;
-  data?: any[];
+  data?: QueryDataRow[];
   metadata?: {
     queryTime: number;
     totalRecords: number;
@@ -66,7 +69,7 @@ export interface ChatMessage {
   type: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  data?: any[];
+  data?: QueryDataRow[];
   isLoading?: boolean;
   error?: boolean;
   suggestions?: string[];

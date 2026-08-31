@@ -60,7 +60,7 @@ export class HealthcareAnalyticsTools {
         }
       }
 
-      const executionTime = Date.now() - startTime;
+      const executionTime = Math.max(1, Date.now() - startTime);
 
       return {
         success: true,
@@ -74,7 +74,7 @@ export class HealthcareAnalyticsTools {
       };
 
     } catch (error) {
-      const executionTime = Date.now() - startTime;
+      const executionTime = Math.max(1, Date.now() - startTime);
 
       return {
         success: false,

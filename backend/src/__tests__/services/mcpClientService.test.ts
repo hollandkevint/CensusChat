@@ -481,7 +481,8 @@ describe('MCPClientService', () => {
       await expect(mcpClient.disconnect('census_api')).resolves.toBeUndefined();
 
       expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Could not detach MCP client census_api')
+        expect.stringContaining('Could not detach MCP client census_api'),
+        expect.any(Error)
       );
       expect(mcpClient.getStatus().connectedClients).not.toContain('census_api');
 

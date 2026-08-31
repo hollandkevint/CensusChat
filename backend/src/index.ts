@@ -69,13 +69,23 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // Start server
-const PORT = config.port;
+// In the test environment, listen on an ephemeral port so multiple test suites
+// importing this module (in reused Jest workers) never collide on one port
+const isTestEnv = config.environment === 'test' || process.env.NODE_ENV === 'test';
+const PORT = isTestEnv ? 0 : config.port;
 
 // Under test, supertest drives the exported `app` directly. Binding the port
 // here causes EADDRINUSE when multiple suites import this module in parallel,
 // so skip listening in the test environment.
 if (process.env.NODE_ENV !== 'test') {
 server.listen(PORT, async () => {
+  if (isTestEnv) {
+    const address = server.address();
+    if (address && typeof address === 'object') {
+      // Publish the actual port for in-process HTTP clients (e.g. MCP client)
+      process.env.MCP_SERVER_URL = `http://localhost:${address.port}`;
+    }
+  }
   console.log(`
     🚀 CensusChat Backend Server Started
     ====================================

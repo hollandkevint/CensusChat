@@ -2,16 +2,16 @@
 
 **Natural language interface to US Census data for healthcare strategy teams**
 
-*Transform 6-week $50K demographic consulting into 6-second $297/month queries*
+*Query 3,144 US counties and 239,741 census block groups in plain English. Get an Excel-ready answer back.*
 
-**[📊 Foundation Data](docs/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
+**[📊 Foundation Data](docs/project-management/MVP_STATUS.md)** • **[📖 Quick Start](QUICK_START.md)** • **[📧 Get Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
 
 ---
 
 ## 🎉 **v1 Shipped** (February 3, 2026)
 
 [![DuckDB 1.4](https://img.shields.io/badge/DuckDB-1.4.3-blue?style=flat-square)](docs/references/duckdb/)
-[![MCP HTTP](https://img.shields.io/badge/MCP-HTTP%20Transport-success?style=flat-square)](docs/MCP_IMPLEMENTATION_SUMMARY.md)
+[![MCP HTTP](https://img.shields.io/badge/MCP-HTTP%20Transport-success?style=flat-square)](docs/implementation/MCP_IMPLEMENTATION_SUMMARY.md)
 [![Agent SDK](https://img.shields.io/badge/Claude-Agent%20SDK-purple?style=flat-square)](backend/src/agent/)
 [![Interactive UI](https://img.shields.io/badge/UI-MCP%20Apps-orange?style=flat-square)](mcp-apps/)
 
@@ -19,6 +19,7 @@
 
 - **DuckDB 1.4** — New async API, MERGE statements, encryption support, query profiler
 - **MCP HTTP Transport** — External client connections (Claude Desktop, Postman)
+- **MCP stdio Transport** — Run the MCP server standalone in [Claude Desktop](docs/guides/MCP_STDIO_SETUP.md), no web app required
 - **Interactive Data Tables** — TanStack Table with sorting, filtering, pagination, drill-down
 - **Chart Visualizations** — Recharts bar/line charts with export controls
 - **Claude Agent SDK** — Zod schema validation, parallel region comparison, conversational context
@@ -26,12 +27,12 @@
 
 ### Core Features
 
-- ✅ **TRUE MCP IMPLEMENTATION**: Production SQL validation layer with security policies
+- ✅ **Enterprise Security**: Privacy-first architecture with encryption at rest
 - ✅ **SQL Injection Protection**: Table/column allowlists, row limits, dangerous pattern blocking
 - ✅ **Interactive Results**: Sortable tables, filterable data, drill-down navigation
 - ✅ **Parallel Queries**: "Compare Tampa Bay vs Phoenix" runs both simultaneously
 - ✅ **Conversational Context**: "Now filter to income > $75K" understands prior query
-- ✅ **Audit Compliance**: All queries logged for HIPAA/GDPR
+- ✅ **Audit Compliance**: All queries logged
 
 **Current Data**:
 - **County Level**: 3,144 US counties with demographics
@@ -41,7 +42,9 @@
 
 ## 🎯 **The Problem**
 
-Healthcare strategy teams wait **6+ weeks** and pay **$50K+** for demographic analysis that CensusChat delivers in **seconds** for **$297/month**.
+Healthcare strategy teams wait weeks and pay tens of thousands of dollars for demographic analysis. CensusChat answers the same questions from ACS data.
+
+*The **6-week, $50K** consulting baseline used throughout this README is an estimate drawn from the maintainer's own experience buying and delivering this work. It is not a published benchmark.*
 
 ```typescript
 "Compare Medicare eligible seniors in Tampa Bay vs Phoenix with income over $75K"
@@ -91,11 +94,12 @@ const stack = {
 };
 ```
 
-### **Performance Metrics**
-- **Sub-2 Second Queries** with MCP validation
+### **Performance Targets**
+- **Sub-2 second query responses** — the target contributors maintain, not a measured guarantee
+- **30-second request timeout** enforced in `backend/src/routes/query.routes.ts`, covering MCP validation and the Anthropic API round trip
 - **Parallel Execution** for comparison queries
-- **82%+ Test Coverage** with comprehensive test suites
-- **HIPAA-Ready Architecture** with encryption and audit logging
+- **Comprehensive test suites** with CI on every push
+- **Privacy-first architecture** with encryption, audit logging, and no PHI stored
 
 ---
 
@@ -163,13 +167,14 @@ Open http://localhost:3000 and start querying.
 ### **Getting Started**
 - [📖 Quick Start Guide](QUICK_START.md)
 - [🔑 API Key Setup](API_KEY_SETUP.md)
-- [📊 MVP Status Report](docs/MVP_STATUS.md)
+- [📊 MVP Status Report](docs/project-management/MVP_STATUS.md)
 
 ### **Technical Guides**
 - [🏗️ System Architecture](docs/architecture/01-system-architecture.md)
 - [🗄️ DuckDB Reference](docs/references/duckdb/)
-- [🔗 MCP Implementation](docs/MCP_IMPLEMENTATION_SUMMARY.md)
-- [🧪 Testing Guide](docs/TESTING_GUIDE.md)
+- [🔗 MCP Implementation](docs/implementation/MCP_IMPLEMENTATION_SUMMARY.md)
+- [🖥️ Claude Desktop Setup (MCP stdio)](docs/guides/MCP_STDIO_SETUP.md)
+- [🧪 Testing Guide](docs/testing/TESTING_GUIDE.md)
 
 ### **Deployment**
 - [🚀 Railway Deployment](docs/guides/RAILWAY_DEPLOYMENT.md)
@@ -179,34 +184,43 @@ Open http://localhost:3000 and start querying.
 
 ## 📈 **Market Impact**
 
+*Illustrative framing — figures are directional estimates for the consulting work this replaces, not audited market data.*
+
 **Problem We Solve:**
-- **$2.8B** spent annually on demographic consulting
-- **6,090** hospitals needing demographic analysis
+- **~$2.8B** estimated annual spend on demographic consulting
+- **6,000+** hospitals needing demographic analysis
 - **30,000+** senior care facilities planning expansion
 
 **Our Solution:**
-- **200x cost reduction**: $50K → $297/month
-- **300x speed improvement**: 6 weeks → seconds
+- **Fixed-price analysis** instead of an estimated $50K consulting project
 - **Unlimited iterations** with conversational follow-up
+- **Excel-ready output** with query metadata attached
 
 ---
 
 ## 🚀 **Get Involved**
 
 ### **For Healthcare Teams**
-**[📧 Request Early Access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
+
+There is no subscription to buy. CensusChat has no billing, no signup, and no self-serve plan. Two things are real today:
+
+1. **A delivered analysis.** Describe the question. Kevin Holland runs it and sends back the Excel-ready result. Fixed price, scoped and quoted before any work starts.
+2. **Early access to the self-serve product.** Free while it is being built. You get the tool as it becomes usable, and your questions shape what ships next.
+
+**[📧 Ask for an analysis or early access](mailto:kevin@kevintholland.com?subject=CensusChat%20Early%20Access)**
 
 ### **For Developers**
-- Write quality TypeScript with 90%+ test coverage
-- Maintain sub-2s query response times
-- Follow HIPAA-ready security practices
+- Write quality TypeScript with comprehensive test coverage
+- CI runs lint, typecheck, unit tests, Playwright e2e (`cd frontend && npm run test:e2e`), and Docker builds on every push
+- Maintain the sub-2s query response-time target
+- Follow privacy-first security practices (no PHI stored, audit logging, encryption at rest)
 - Run `npm run secret-scan` before committing
 
 ---
 
 **⭐ Star this repository if CensusChat helps your healthcare data work**
 
-*Transforming healthcare demographic analysis from weeks to seconds*
+*US Census demographics, queried in plain English*
 
 ---
 

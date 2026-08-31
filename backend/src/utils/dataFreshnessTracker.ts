@@ -132,6 +132,8 @@ class DataFreshnessTracker {
 
     // Determine overall status
     let overallStatus: DataFreshnessReport['overallStatus'] = 'fresh';
+    // An error outranks 'mixed': a failing dataset is the more urgent signal and
+    // must not be masked by the presence of merely-stale datasets alongside it.
     if (summary.errorDatasets > 0) {
       overallStatus = 'error';
     } else if (summary.staleDatasets > 0 && summary.freshDatasets > 0) {

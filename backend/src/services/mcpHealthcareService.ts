@@ -32,6 +32,8 @@ export interface MCPToolDefinition {
     properties: Record<string, any>;
     required: string[];
   };
+  inputSchema?: Record<string, any>;
+  requiredPermission?: string;
   handler: (params: any) => Promise<MCPToolResponse>;
 }
 
@@ -508,6 +510,22 @@ export class MCPHealthcareService {
 
   getToolDefinitions(): MCPToolDefinition[] {
     return Array.from(this.tools.values());
+  }
+
+  getProtocolInfo(): { protocol: string; version: string; capabilities: MCPHealthcareCapabilities } {
+    return {
+      protocol: 'mcp-healthcare',
+      version: MCP_HEALTHCARE_PROTOCOL_VERSION,
+      capabilities: this.getCapabilities()
+    };
+  }
+
+  async getHealthStatus(): Promise<{ healthy: boolean; tools: Record<string, boolean>; version: string }> {
+    return this.healthCheck();
+  }
+
+  getAvailableTools(): Map<string, MCPToolDefinition> {
+    return this.tools;
   }
 
   async healthCheck(): Promise<{ healthy: boolean; tools: Record<string, boolean>; version: string }> {

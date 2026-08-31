@@ -146,8 +146,6 @@ describe('HealthcareAnalyticsTools', () => {
         parameters: {}
       };
 
-      mockMCPServer.executeTool.mockRejectedValueOnce(new Error('Unknown analysis type: unknown_analysis'));
-
       const result = await HealthcareAnalyticsTools.executeAnalysis(request);
 
       expect(result.success).toBe(false);

@@ -21,6 +21,11 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 # ENV NEXT_TELEMETRY_DISABLED 1
 
+# Origin for canonical URLs and sitemap.xml. The build fails without it rather
+# than publishing localhost URLs to crawlers; pass it with --build-arg.
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+
 RUN npm run build
 
 # Production image, copy all the files and run next

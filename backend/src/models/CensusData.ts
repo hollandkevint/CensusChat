@@ -266,7 +266,8 @@ export class CensusDataModel {
     let sql = 'SELECT variable_name, label, concept, table_id, universe, variable_type FROM census_variables';
 
     if (variableNames?.length) {
-      sql += ` WHERE variable_name IN ('${variableNames.join("','")}')`;
+      const nameList = variableNames.map(n => `'${n.replace(/'/g, "''")}'`).join(', ');
+      sql += ` WHERE variable_name IN (${nameList})`;
     }
 
     sql += ' ORDER BY variable_name';

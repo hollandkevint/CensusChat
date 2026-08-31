@@ -339,7 +339,7 @@ Navigate to `http://localhost:3000` and use the ChatInterface for interactive te
 - [System Architecture](../architecture/01-system-architecture.md) - Complete technical architecture
 - [DuckDB Reference](../references/duckdb/) - Database integration details
 - [MCP Comprehensive Guide](../references/duckdb-mcp/comprehensive-guide.md) - Deep dive into MCP
-- [Testing Guide](../TESTING_GUIDE.md) - Testing infrastructure and strategies
+- [Testing Guide](../testing/TESTING_GUIDE.md) - Testing infrastructure and strategies
 
 ---
 

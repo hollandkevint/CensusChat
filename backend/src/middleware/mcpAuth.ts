@@ -118,11 +118,9 @@ export class MCPAuthService {
       iat: Math.floor(Date.now() / 1000)
     };
 
-    const signOptions: jwt.SignOptions = {
+    return jwt.sign(payload, authConfig.jwtSecret, {
       expiresIn: authConfig.jwtExpirationTime as jwt.SignOptions['expiresIn']
-    };
-
-    return jwt.sign(payload, authConfig.jwtSecret, signOptions);
+    });
   }
 
   static verifyJWT(token: string): MCPAuthUser | null {

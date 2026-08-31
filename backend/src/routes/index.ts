@@ -18,7 +18,8 @@ export const setupRoutes = (app: Express) => {
   // app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/queries', queryRoutes);
   // app.use('/api/v1/users', userRoutes);
-  // app.use('/api/v1/census', censusRoutes); // disabled in production; censusApiIntegration test mounts it on its own app
+  // app.use('/api/v1/census', censusRoutes); // disabled in production (as before #55);
+  // the censusApiIntegration test mounts it on its own app
   app.use('/api/v1/export', exportRoutes);
   app.use('/api/v1/mcp', mcpRoutes);
   app.use('/api/v1/metrics', metricsRouter);
