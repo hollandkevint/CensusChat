@@ -53,7 +53,7 @@ Each epic includes:
 - Resource references and dependencies
 
 ### Epic Tracking
-- **Planning Documents**: This directory (`/docs/epics/`)
+- **Planning Documents**: This directory (`docs/internal/epics/`)
 - **Story Management**: BMAD Method tools
 - **Progress Tracking**: Todo lists and daily standups
 - **Success Metrics**: Performance dashboards and KPIs

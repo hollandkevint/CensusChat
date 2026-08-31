@@ -307,7 +307,7 @@ curl -X POST http://localhost:3001/api/v1/queries \
 - [Census Bureau API Documentation](https://www.census.gov/data/developers/data-sets.html)
 - [CensusChat Security Policy](SECURITY.md)
 - [Environment Variables Best Practices](https://12factor.net/config)
-- [Census API-Specific Setup Guide](docs/API_KEY_SETUP.md)
+- [Census API-Specific Setup Guide](docs/CENSUS_API_KEY_SETUP.md)
 
 ---
 

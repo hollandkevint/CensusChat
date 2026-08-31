@@ -837,8 +837,8 @@ You have access to 5 tables with comprehensive U.S. Census demographic data:
 
 - **Main Expansion Guide**: `/docs/MARKETING_ANALYTICS_EXPANSION.md`
 - **Quick Start**: `/docs/QUICK_START_EXPANDED.md`
-- **Epic 3 Documentation**: `/docs/epics/epic-3-marketing-analytics-expansion.md`
-- **Session Summary**: `/docs/sessions/SESSION_OCT_6_2025_EXPANSION.md`
+- **Epic 3 Documentation**: `docs/internal/epics/epic-3-marketing-analytics-expansion.md`
+- **Session Summary**: `docs/internal/sessions/SESSION_OCT_6_2025_EXPANSION.md`
 - **MCP API Docs**: `/docs/api/MCP_API_DOCUMENTATION.md`
 
 ---

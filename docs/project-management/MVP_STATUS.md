@@ -494,7 +494,7 @@ Return validated results to user
 ```
 
 **Documentation:**
-- Full implementation details: [docs/implementation/MCP_IMPLEMENTATION_SUMMARY.md](../implementation/MCP_IMPLEMENTATION_SUMMARY.md)
+- Full implementation details: [MCP Implementation Summary](../implementation/MCP_IMPLEMENTATION_SUMMARY.md)
 - Reference architecture: OMCP (OMOP Common Data Model MCP implementation)
 
 **Status:** **PRODUCTION READY** - True MCP validation layer operational with comprehensive security policies

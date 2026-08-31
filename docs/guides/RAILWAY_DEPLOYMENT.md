@@ -646,7 +646,7 @@ railway rollback
 
 - **Railway Docs**: https://docs.railway.com
 - **Vercel Docs**: https://vercel.com/docs
-- **CensusChat Docs**: `/docs/README.md`
+- **CensusChat Docs**: `docs/index.md`
 - **Technical Support**: Create GitHub issue
 - **Email Support**: kevin@kevintholland.com
 

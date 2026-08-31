@@ -347,7 +347,7 @@ Navigate to `http://localhost:3000` and use the ChatInterface for interactive te
 
 For production deployment instructions, see:
 - [Deployment Guide](DEPLOYMENT_GUIDE.md) - Complete production deployment guide
-- [Environment Configuration](../../.env.example) - Required environment variables
+- [Environment Configuration](../../env.example) - Required environment variables
 - [Docker Compose](../../docker-compose.yml) - Containerized deployment
 
 ### Environment Variables
