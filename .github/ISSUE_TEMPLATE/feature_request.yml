@@ -1,0 +1,49 @@
+name: Feature request
+description: Propose a change or addition to CensusChat
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do that CensusChat makes hard or impossible today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you want instead
+      description: Describe the behavior you want. A sample query and the output you expect helps.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part
+      options:
+        - Query understanding / prompt
+        - New Census variables or geography level
+        - Backend API (backend/)
+        - Frontend (frontend/)
+        - MCP server / Claude Desktop integration
+        - Export (Excel / CSV / PDF)
+        - Docs and setup
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+      description: Including doing nothing, or solving it outside CensusChat.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before filing
+      options:
+        - label: I searched existing issues for a duplicate.
+          required: true

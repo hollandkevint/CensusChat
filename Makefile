@@ -14,8 +14,8 @@ install: ## Install all dependencies
 
 .PHONY: dev
 dev: ## Start development environment with Docker Compose
-	@if [ ! -f .env ]; then echo "⚠️  .env file not found. Copy .env.example to .env first"; exit 1; fi
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+	@if [ ! -f .env ]; then echo "⚠️  .env file not found. Run 'make setup-env' first"; exit 1; fi
+	docker compose up
 
 .PHONY: dev-build
 dev-build: ## Build and start development environment
@@ -59,9 +59,12 @@ logs-frontend: ## Show frontend logs
 	docker-compose logs -f frontend
 
 .PHONY: test
-test: ## Run all tests
+test: ## Run backend unit tests (frontend has no unit suite; see test-e2e)
 	cd backend && npm test
-	cd frontend && npm test
+
+.PHONY: test-e2e
+test-e2e: ## Run frontend Playwright end-to-end tests (backend API mocked)
+	cd frontend && npm run test:e2e
 
 .PHONY: lint
 lint: ## Run linters
@@ -73,13 +76,9 @@ typecheck: ## Run TypeScript type checking
 	cd backend && npm run typecheck
 	cd frontend && npm run typecheck
 
-.PHONY: db-migrate
-db-migrate: ## Run database migrations
-	docker-compose exec backend npm run migrate
-
-.PHONY: db-seed
-db-seed: ## Seed the database
-	docker-compose exec backend npm run seed
+.PHONY: load-data
+load-data: ## Load Census data into DuckDB (long-running; needs CENSUS_API_KEY)
+	cd backend && ./scripts/setup-database.sh
 
 .PHONY: shell-backend
 shell-backend: ## Open shell in backend container
@@ -103,10 +102,10 @@ security-check: ## Run security checks (npm audit)
 	cd frontend && npm audit
 
 .PHONY: setup-env
-setup-env: ## Copy .env.example to .env with security warnings
+setup-env: ## Copy env.example to .env with security warnings
 	@if [ -f .env ]; then echo "⚠️  .env already exists. Remove it first if you want to recreate"; exit 1; fi
-	@cp .env.example .env
-	@echo "✅ Created .env file from .env.example"
+	@cp env.example .env
+	@echo "✅ Created .env file from env.example"
 	@echo "🔐 IMPORTANT: Update all passwords and secrets in .env before running!"
 	@echo "🔑 Generate secure JWT secret: openssl rand -base64 64"
 	@echo "🔒 Generate secure passwords: openssl rand -base64 32"
