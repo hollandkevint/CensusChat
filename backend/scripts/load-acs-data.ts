@@ -6,17 +6,20 @@
  */
 
 import axios from 'axios';
-import * as duckdb from 'duckdb';
+import { DuckDBInstance } from '@duckdb/node-api';
 import * as fs from 'fs';
 import * as path from 'path';
 import dotenv from 'dotenv';
+import { ACS_VINTAGE_YEAR } from '../src/config/censusVintage';
+import { replaceAll } from '../src/utils/loaderRefresh';
+import { recordVintage } from '../src/utils/dataVintage';
 
 // Load environment variables
 dotenv.config();
 
 const CENSUS_API_KEY = process.env.CENSUS_API_KEY;
 const CENSUS_API_BASE = 'https://api.census.gov/data';
-const YEAR = 2022; // Most recent complete 5-year ACS
+const YEAR = ACS_VINTAGE_YEAR;
 const DB_PATH = path.join(__dirname, '../data/census.duckdb');
 
 interface CountyData {
@@ -125,61 +128,42 @@ async function fetchCountyData(stateFips: string, stateName: string): Promise<Co
 }
 
 async function loadDataIntoDuckDB(data: CountyData[]): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const db = new duckdb.Database(DB_PATH, (err) => {
-      if (err) return reject(err);
+  const instance = await DuckDBInstance.create(DB_PATH);
+  const conn = await instance.connect();
 
-      const conn = db.connect();
+  await conn.run(`
+    CREATE TABLE IF NOT EXISTS county_data (
+      state VARCHAR,
+      county VARCHAR,
+      state_name VARCHAR,
+      county_name VARCHAR,
+      population INTEGER,
+      median_income INTEGER,
+      poverty_rate DOUBLE,
+      last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (state, county)
+    )
+  `);
 
-      // Create table
-      conn.run(`
-        CREATE TABLE IF NOT EXISTS county_data (
-          state VARCHAR,
-          county VARCHAR,
-          state_name VARCHAR,
-          county_name VARCHAR,
-          population INTEGER,
-          median_income INTEGER,
-          poverty_rate DOUBLE,
-          last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          PRIMARY KEY (state, county)
-        )
-      `, (err) => {
-        if (err) return reject(err);
-
-        // Clear existing data
-        conn.run('DELETE FROM county_data', (err) => {
-          if (err) return reject(err);
-
-          // Insert new data
-          const stmt = conn.prepare(`
-            INSERT INTO county_data (
-              state, county, state_name, county_name,
-              population, median_income, poverty_rate
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-          `);
-
-          data.forEach(row => {
-            stmt.run(
-              row.state,
-              row.county,
-              row.stateName,
-              row.countyName,
-              row.population,
-              row.medianIncome,
-              row.povertyRate
-            );
-          });
-
-          stmt.finalize((err) => {
-            if (err) return reject(err);
-            conn.close();
-            db.close(() => resolve());
-          });
-        });
-      });
+  // Clear + insert in ONE transaction: a failure part-way through must roll back
+  // to the previous vintage, not leave county_data empty.
+  // Positional params keep apostrophes (e.g. "O'Brien County") safe.
+  try {
+    await replaceAll(conn, 'county_data', async () => {
+      for (const row of data) {
+        await conn.run(
+          `INSERT INTO county_data (state, county, state_name, county_name, population, median_income, poverty_rate)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [row.state, row.county, row.stateName, row.countyName, row.population, row.medianIncome, row.povertyRate]
+        );
+      }
+      // Stamp inside the transaction, so the rows and the claim about them
+      // commit together — no window where loaded data sits unstamped.
+      await recordVintage(conn, 'county_data', data.length);
     });
-  });
+  } finally {
+    conn.closeSync();
+  }
 }
 
 async function main() {

@@ -120,8 +120,10 @@ export class HealthcareAnalyticsTools {
     parameters: any,
     mcpClient: any
   ): Promise<any[]> {
-    // Get Medicare Advantage penetration data from external source
-    // (errors propagate so the caller can fall back to internal data)
+    // Get Medicare Advantage penetration data from external source.
+    // Errors propagate to executeAnalysis so the outer handler can downgrade
+    // dataSource to 'CensusChat Internal' truthfully instead of reporting
+    // 'CensusChat + External MCP' after a failed enrichment.
     const maData = await mcpClient.callTool({
       client: 'medicare_api',
       tool: 'get_ma_penetration',
@@ -151,8 +153,10 @@ export class HealthcareAnalyticsTools {
     parameters: any,
     mcpClient: any
   ): Promise<any[]> {
-    // Get additional demographic data from Census API
-    // (errors propagate so the caller can fall back to internal data)
+    // Get additional demographic data from Census API.
+    // Errors propagate to executeAnalysis so the outer handler can downgrade
+    // dataSource to 'CensusChat Internal' truthfully instead of reporting
+    // 'CensusChat + External MCP' after a failed enrichment.
     const censusData = await mcpClient.callTool({
       client: 'census_api',
       tool: 'get_demographics',
@@ -179,8 +183,8 @@ export class HealthcareAnalyticsTools {
 
   private static async enrichFacilityData(
     internalData: any[],
-    parameters: any,
-    mcpClient: any
+    _parameters: any,
+    _mcpClient: any
   ): Promise<any[]> {
     // For facility data, we would typically connect to healthcare facility databases
     // For now, return internal data with a note about data sources

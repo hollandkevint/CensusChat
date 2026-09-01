@@ -3,12 +3,6 @@
  * Optimized SQL patterns for healthcare analytics
  */
 
-import {
-  PatternDefinition,
-  GeographicParams,
-  RiskFactorParams,
-  FacilityParams
-} from '../types/HealthcareAnalyticsTypes';
 import { getMedicarePatterns } from './MedicareEligibilityPatterns';
 import { getPopulationHealthPatterns } from './PopulationHealthPatterns';
 import { getFacilityAdequacyPatterns } from './FacilityAdequacyPatterns';

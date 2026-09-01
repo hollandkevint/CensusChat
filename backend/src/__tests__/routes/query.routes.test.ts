@@ -1,96 +1,147 @@
+// Prevent the Claude Agent SDK (shipped as an ESM .mjs that Jest cannot parse)
+// from loading through the query.routes -> agentSdkService import chain.
+jest.mock('@anthropic-ai/claude-agent-sdk', () => ({
+  query: jest.fn(),
+}));
+
+// @modelcontextprotocol/ext-apps ships ESM-only .js that Jest cannot parse. The
+// index -> mcpRoutes -> mcpSessionManager -> mcpServer chain pulls it in at load
+// time, so stub the subpath the server module consumes.
+jest.mock('@modelcontextprotocol/ext-apps/server', () => ({
+  registerAppTool: jest.fn(),
+  registerAppResource: jest.fn(),
+  RESOURCE_MIME_TYPE: 'text/html',
+}));
+
+// Avoid the heavy MCP server service initialization through the index import.
+jest.mock('../../services/mcpServerService', () => ({
+  getMCPServerService: jest.fn(() => ({
+    getStatus: jest.fn(() => ({ running: false })),
+    healthCheck: jest.fn().mockResolvedValue(true),
+  })),
+  closeMCPServerService: jest.fn().mockResolvedValue(undefined),
+}));
+
 import request from 'supertest';
 import { app } from '../../index';
 import { anthropicService } from '../../services/anthropicService';
-import { getDuckDBPool, closeDuckDBPool } from '../../utils/duckdbPool';
+import { getCensusChat_MCPClient } from '../../mcp/mcpClient';
+import { getHealthcareAnalyticsModule } from '../../modules/healthcare_analytics';
 
-// Mock the anthropicService
+// Mock the anthropicService (query analysis boundary)
 jest.mock('../../services/anthropicService', () => ({
   anthropicService: {
-    analyzeQuery: jest.fn()
-  }
+    analyzeQuery: jest.fn(),
+  },
 }));
 
-// Mock DuckDB for controlled testing
-jest.mock('duckdb', () => ({
-  Database: jest.fn().mockImplementation(() => ({
-    run: jest.fn((sql, callback) => {
-      setTimeout(() => callback(null), 10);
-    }),
-    all: jest.fn((sql, callback) => {
-      // Return mock healthcare data
-      const mockData = [
-        {
-          county: 'Miami-Dade',
-          state: 'Florida',
-          seniors: 486234,
-          median_income: 52800,
-          total_population: 2716940
-        },
-        {
-          county: 'Broward',
-          state: 'Florida',
-          seniors: 312567,
-          median_income: 59734,
-          total_population: 1944375
-        }
-      ];
-      setTimeout(() => callback(null, mockData), 10);
-    }),
-    close: jest.fn((callback) => {
-      setTimeout(() => callback(null), 10);
-    }),
+// Mock the MCP client (SQL validation + execution boundary)
+jest.mock('../../mcp/mcpClient', () => {
+  const executeQuery = jest.fn();
+  return {
+    getMcpClient: jest.fn(() => ({ executeQuery })),
+    getCensusChat_MCPClient: jest.fn(() => ({ executeQuery })),
+  };
+});
+
+// Mock the healthcare analytics module so keyword-triggered queries fall through
+// to the MCP/DuckDB path deterministically unless a test opts in.
+jest.mock('../../modules/healthcare_analytics', () => ({
+  getHealthcareAnalyticsModule: jest.fn(() => ({
+    executeQuery: jest.fn().mockResolvedValue({ success: false, error: 'disabled in test' }),
   })),
 }));
 
 const mockAnthropicService = anthropicService as jest.Mocked<typeof anthropicService>;
+const mockExecuteQuery = (getCensusChat_MCPClient() as unknown as {
+  executeQuery: jest.Mock;
+}).executeQuery;
+const mockGetHealthcareModule = getHealthcareAnalyticsModule as jest.Mock;
+
+/**
+ * Standard analyzeQuery response shape returned by the current route contract.
+ */
+const buildAnalysis = (overrides: Record<string, unknown> = {}) => ({
+  analysis: {
+    intent: 'demographics',
+    entities: {},
+    filters: {},
+    outputFormat: 'table',
+    confidence: 0.9,
+    ...overrides,
+  },
+  sqlQuery: 'SELECT county_name, state_name, population FROM county_data LIMIT 50',
+  explanation: 'Standard demographics query',
+  suggestedRefinements: [],
+});
+
+/**
+ * Successful MCP execution result matching MCPToolCallResult.
+ */
+const buildMcpSuccess = (rows: Array<Record<string, unknown>>) => ({
+  success: true,
+  result: {
+    data: rows,
+    metadata: {
+      rowCount: rows.length,
+      sanitizedSQL: 'SELECT county_name, state_name, population FROM county_data LIMIT 50',
+    },
+  },
+});
 
 describe('POST /api/v1/queries', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    delete process.env.QUERY_TIMEOUT_MS;
+    delete process.env.USE_AGENT_SDK;
+    // Re-establish default healthcare-module behavior after clearAllMocks.
+    mockGetHealthcareModule.mockReturnValue({
+      executeQuery: jest.fn().mockResolvedValue({ success: false, error: 'disabled in test' }),
+    });
   });
 
-  afterEach(async () => {
-    // Clean up DuckDB pool after each test
-    await closeDuckDBPool();
-  });
-
-  it('should successfully process a valid query', async () => {
+  it('should successfully process a valid query via the MCP/DuckDB path', async () => {
     const mockAnalysis = {
       intent: 'demographics',
       entities: {
         locations: ['Florida'],
         demographics: ['seniors'],
         ageGroups: ['65+'],
-        incomeRanges: ['$50k+']
+        incomeRanges: ['$50k+'],
       },
-      filters: {
-        minAge: 65,
-        minIncome: 50000,
-        state: 'FL'
-      },
+      filters: { minAge: 65, minIncome: 50000, state: 'FL' },
       outputFormat: 'table',
-      confidence: 0.95
+      confidence: 0.95,
     };
 
     mockAnthropicService.analyzeQuery.mockResolvedValue({
       analysis: mockAnalysis,
-      sqlQuery: 'SELECT * FROM census_data WHERE age >= 65',
+      sqlQuery: 'SELECT * FROM county_data WHERE state_name = \'FL\'',
       explanation: 'Query for seniors in Florida',
-      suggestedRefinements: []
+      suggestedRefinements: [],
     });
+
+    mockExecuteQuery.mockResolvedValue(
+      buildMcpSuccess([
+        { county_name: 'Miami-Dade', state_name: 'Florida', population: 2716940 },
+        { county_name: 'Broward', state_name: 'Florida', population: 1944375 },
+      ])
+    );
 
     const response = await request(app)
       .post('/api/v1/queries')
       .send({
-        query: 'Show me Medicare eligible seniors in Florida with income over $50k'
+        query: 'Show me Medicare eligible seniors in Florida with income over $50k',
       });
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.data).toBeDefined();
-    expect(response.body.data.length).toBeGreaterThan(0);
+    expect(response.body.data.length).toBe(2);
     expect(response.body.metadata).toBeDefined();
     expect(response.body.metadata.queryTime).toBeDefined();
+    expect(response.body.metadata.usedDuckDB).toBe(true);
+    expect(response.body.metadata.dataSource).toContain('MCP Validated');
     expect(response.body.metadata.analysis.analysis).toEqual(mockAnalysis);
     expect(mockAnthropicService.analyzeQuery).toHaveBeenCalledWith(
       'Show me Medicare eligible seniors in Florida with income over $50k'
@@ -111,44 +162,62 @@ describe('POST /api/v1/queries', () => {
   it('should return 400 for non-string query', async () => {
     const response = await request(app)
       .post('/api/v1/queries')
-      .send({
-        query: 123
-      });
+      .send({ query: 123 });
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toBe('INVALID_INPUT');
   });
 
-  it('should return 408 for timeout', async () => {
+  it('should return 408 when processing exceeds the timeout budget', async () => {
+    // Shrink the timeout budget so the test does not wait the 30s default.
+    process.env.QUERY_TIMEOUT_MS = '150';
+
     mockAnthropicService.analyzeQuery.mockImplementation(() => {
       return new Promise((resolve) => {
-        setTimeout(resolve, 3000); // 3 seconds - exceeds 2 second timeout
+        setTimeout(() => resolve(buildAnalysis()), 1500); // exceeds 150ms budget
       });
     });
 
     const response = await request(app)
       .post('/api/v1/queries')
-      .send({
-        query: 'Show me seniors in Florida'
-      });
+      .send({ query: 'Show me seniors in Florida' });
 
     expect(response.status).toBe(408);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toBe('TIMEOUT');
     expect(response.body.message).toContain('took too long');
-  }, 10000); // 10 second test timeout
+  }, 10000);
 
-  it('should return 400 for MCP validation errors with suggestions', async () => {
+  it('should fall back to mock healthcare data when MCP execution fails', async () => {
+    mockAnthropicService.analyzeQuery.mockResolvedValue(buildAnalysis());
+    mockExecuteQuery.mockResolvedValue({
+      success: false,
+      error: 'Table not allowed',
+      validationErrors: [{ message: 'Table not allowed' }],
+    });
+
+    const response = await request(app)
+      .post('/api/v1/queries')
+      .send({ query: 'Show me population data' });
+
+    // Current route contract: MCP failures are absorbed by the mock-data
+    // fallback, so the request still succeeds with usedDuckDB = false.
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.metadata.usedDuckDB).toBe(false);
+    expect(response.body.metadata.dataSource).toContain('Mock Healthcare Demographics');
+    expect(response.body.data.length).toBeGreaterThan(0);
+  });
+
+  it('should return 400 with suggestions when query analysis fails validation', async () => {
     mockAnthropicService.analyzeQuery.mockRejectedValue(
       new Error('Unable to parse query')
     );
 
     const response = await request(app)
       .post('/api/v1/queries')
-      .send({
-        query: 'gibberish query that makes no sense'
-      });
+      .send({ query: 'gibberish query that makes no sense' });
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
@@ -157,46 +226,19 @@ describe('POST /api/v1/queries', () => {
     expect(response.body.suggestions.length).toBeGreaterThan(0);
   });
 
-  it('should return 400 for MCP validation errors (covers unexpected errors)', async () => {
-    mockAnthropicService.analyzeQuery.mockRejectedValue(
-      new Error('Database connection failed')
+  it('should process queries within 2 second requirement', async () => {
+    const startTime = Date.now();
+
+    mockAnthropicService.analyzeQuery.mockResolvedValue(buildAnalysis());
+    mockExecuteQuery.mockResolvedValue(
+      buildMcpSuccess([{ county_name: 'Harris', state_name: 'Texas', population: 4731145 }])
     );
 
     const response = await request(app)
       .post('/api/v1/queries')
-      .send({
-        query: 'Show me population data'
-      });
+      .send({ query: 'Show me population data' });
 
-    expect(response.status).toBe(400);
-    expect(response.body.success).toBe(false);
-    expect(response.body.error).toBe('VALIDATION_ERROR');
-  });
-
-  it('should handle query processing within 2 second requirement', async () => {
-    const startTime = Date.now();
-
-    mockAnthropicService.analyzeQuery.mockResolvedValue({
-      analysis: {
-        intent: 'demographics',
-        entities: {},
-        filters: {},
-        outputFormat: 'table',
-        confidence: 0.8
-      },
-      sqlQuery: 'SELECT * FROM census_data',
-      explanation: 'Basic query',
-      suggestedRefinements: []
-    });
-
-    const response = await request(app)
-      .post('/api/v1/queries')
-      .send({
-        query: 'Show me population data'
-      });
-
-    const endTime = Date.now();
-    const actualResponseTime = (endTime - startTime) / 1000;
+    const actualResponseTime = (Date.now() - startTime) / 1000;
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
@@ -204,166 +246,27 @@ describe('POST /api/v1/queries', () => {
     expect(actualResponseTime).toBeLessThan(2.0);
   });
 
-  describe('DuckDB Pool Integration', () => {
-    beforeEach(async () => {
-      // Set environment variable to enable production DuckDB
-      process.env.USE_PRODUCTION_DUCKDB = 'true';
+  it('should handle concurrent requests through the MCP path', async () => {
+    mockAnthropicService.analyzeQuery.mockResolvedValue(buildAnalysis());
+    mockExecuteQuery.mockResolvedValue(
+      buildMcpSuccess([{ county_name: 'Harris', state_name: 'Texas', population: 4731145 }])
+    );
 
-      // Seed the in-memory DuckDB pool with the county_data table
-      const pool = getDuckDBPool();
-      await pool.initialize();
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS county_data (
-          county_name VARCHAR,
-          state_name VARCHAR,
-          population BIGINT,
-          median_income BIGINT,
-          poverty_rate DOUBLE
-        )
-      `);
-      await pool.query('DELETE FROM county_data');
-      await pool.query(`
-        INSERT INTO county_data (county_name, state_name, population, median_income, poverty_rate)
-        VALUES
-          ('Miami-Dade', 'Florida', 2716940, 52800, 15.8),
-          ('Broward', 'Florida', 1944375, 59734, 12.4)
-      `);
-    });
+    const promises = [];
+    for (let i = 0; i < 5; i++) {
+      promises.push(
+        request(app)
+          .post('/api/v1/queries')
+          .send({ query: `Query ${i}: Show me population data` })
+      );
+    }
 
-    afterEach(() => {
-      // Reset environment variable
-      delete process.env.USE_PRODUCTION_DUCKDB;
-    });
+    const responses = await Promise.all(promises);
 
-    it('should use DuckDB pool when feature flag is enabled', async () => {
-      mockAnthropicService.analyzeQuery.mockResolvedValue({
-        analysis: {
-          intent: 'demographics',
-          entities: { locations: ['Florida'] },
-          filters: { state: 'FL' },
-          outputFormat: 'table',
-          confidence: 0.95
-        },
-        sqlQuery: "SELECT county_name, state_name, population, median_income, poverty_rate FROM county_data WHERE state_name = 'Florida'",
-        explanation: 'Florida demographics query',
-        suggestedRefinements: []
-      });
-
-      const response = await request(app)
-        .post('/api/v1/queries')
-        .send({
-          query: 'Show me demographics for Florida'
-        });
-
+    responses.forEach((response) => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toHaveLength(2); // Seeded table has 2 records
-      expect(response.body.metadata.dataSource).toBe('DuckDB Production (MCP Validated)');
       expect(response.body.metadata.usedDuckDB).toBe(true);
-    });
-
-    it('should fall back to mock data when DuckDB pool fails', async () => {
-      // Mock DuckDB to fail
-      const mockDatabase = jest.fn().mockImplementation(() => ({
-        run: jest.fn((sql, callback) => callback(new Error('Connection failed'))),
-        all: jest.fn((sql, callback) => callback(new Error('Query failed'))),
-        close: jest.fn((callback) => callback(null)),
-      }));
-      (require('duckdb') as any).Database = mockDatabase;
-
-      mockAnthropicService.analyzeQuery.mockResolvedValue({
-        analysis: {
-          intent: 'demographics',
-          entities: {},
-          filters: {},
-          outputFormat: 'table',
-          confidence: 0.8
-        },
-        sqlQuery: 'SELECT * FROM demographics',
-        explanation: 'Basic query',
-        suggestedRefinements: []
-      });
-
-      const response = await request(app)
-        .post('/api/v1/queries')
-        .send({
-          query: 'Show me population data'
-        });
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.metadata.dataSource).toContain('Mock Healthcare Demographics');
-      expect(response.body.metadata.usedDuckDB).toBe(false);
-    });
-
-    it('should handle concurrent requests with DuckDB pool', async () => {
-      mockAnthropicService.analyzeQuery.mockResolvedValue({
-        analysis: {
-          intent: 'demographics',
-          entities: {},
-          filters: {},
-          outputFormat: 'table',
-          confidence: 0.9
-        },
-        sqlQuery: 'SELECT county_name, state_name, population FROM county_data',
-        explanation: 'Concurrent query',
-        suggestedRefinements: []
-      });
-
-      // Make 5 concurrent requests
-      const promises = [];
-      for (let i = 0; i < 5; i++) {
-        promises.push(
-          request(app)
-            .post('/api/v1/queries')
-            .send({
-              query: `Query ${i}: Show me population data`
-            })
-        );
-      }
-
-      const responses = await Promise.all(promises);
-
-      // All should succeed
-      responses.forEach((response, index) => {
-        expect(response.status).toBe(200);
-        expect(response.body.success).toBe(true);
-        expect(response.body.metadata.usedDuckDB).toBe(true);
-      });
-    });
-  });
-
-  describe('Feature Flag Behavior', () => {
-    it('should use fallback when production DuckDB is disabled', async () => {
-      // Ensure feature flag is disabled
-      process.env.USE_PRODUCTION_DUCKDB = 'false';
-
-      mockAnthropicService.analyzeQuery.mockResolvedValue({
-        analysis: {
-          intent: 'demographics',
-          entities: {},
-          filters: {},
-          outputFormat: 'table',
-          confidence: 0.8
-        },
-        sqlQuery: 'SELECT * FROM demographics',
-        explanation: 'Query with feature flag disabled',
-        suggestedRefinements: []
-      });
-
-      const response = await request(app)
-        .post('/api/v1/queries')
-        .send({
-          query: 'Show me population data'
-        });
-
-      expect(response.status).toBe(200);
-      expect(response.body.success).toBe(true);
-      expect(response.body.metadata.dataSource).toContain('Mock Healthcare Demographics');
-      expect(response.body.metadata.usedDuckDB).toBe(false);
-
-      // Clean up
-      delete process.env.USE_PRODUCTION_DUCKDB;
     });
   });
 });

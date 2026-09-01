@@ -55,10 +55,14 @@ export class ExcelFormattingUtils {
   }
 
   static autoSizeColumns(worksheet: Worksheet): void {
-    if (!worksheet.columns) {
+    // exceljs returns null for `columns` on a worksheet that has no cells yet
+    // (e.g. a dataset with no derivable headers), so guard before iterating.
+    const columns = worksheet.columns;
+    if (!columns) {
       return;
     }
-    worksheet.columns.forEach((column) => {
+
+    columns.forEach((column) => {
       let maxLength = 0;
       
       if (column && column.eachCell) {

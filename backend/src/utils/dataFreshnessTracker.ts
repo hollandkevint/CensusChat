@@ -1,3 +1,5 @@
+import { ACS_VINTAGE_LABEL } from '../config/censusVintage';
+
 export interface DataFreshness {
   dataset: string;
   lastUpdated: Date;
@@ -130,9 +132,9 @@ class DataFreshnessTracker {
 
     // Determine overall status
     let overallStatus: DataFreshnessReport['overallStatus'] = 'fresh';
-    if (summary.errorDatasets > 0 && summary.staleDatasets > 0) {
-      overallStatus = 'mixed';
-    } else if (summary.errorDatasets > 0) {
+    // An error outranks 'mixed': a failing dataset is the more urgent signal and
+    // must not be masked by the presence of merely-stale datasets alongside it.
+    if (summary.errorDatasets > 0) {
       overallStatus = 'error';
     } else if (summary.staleDatasets > 0 && summary.freshDatasets > 0) {
       overallStatus = 'mixed';
@@ -199,8 +201,8 @@ class DataFreshnessTracker {
   initializeHealthcareDatasets(): void {
     const healthcareDatasets = [
       { name: 'census_variables', source: 'US Census Bureau', staleHours: 168 }, // 1 week
-      { name: 'zip5_demographics', source: 'ACS 5-Year', staleHours: 24 }, // 1 day
-      { name: 'block_group_demographics', source: 'ACS 5-Year', staleHours: 24 }, // 1 day
+      { name: 'zip5_demographics', source: ACS_VINTAGE_LABEL, staleHours: 24 }, // 1 day
+      { name: 'block_group_demographics', source: ACS_VINTAGE_LABEL, staleHours: 24 }, // 1 day
       { name: 'healthcare_patterns', source: 'CensusChat Analytics', staleHours: 12 }, // 12 hours
       { name: 'medicare_eligibility', source: 'Healthcare Analytics', staleHours: 6 }, // 6 hours
       { name: 'population_health', source: 'Healthcare Analytics', staleHours: 6 }  // 6 hours

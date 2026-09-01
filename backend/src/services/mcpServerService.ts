@@ -151,7 +151,7 @@ export class MCPServerService extends EventEmitter {
           `;
         }
 
-        const result = await pool.query(publishQuery);
+        await pool.query(publishQuery);
         this.publishedResources.add(resourceName);
 
         console.log(`✅ Published resource: ${resourceName}`);
@@ -255,7 +255,7 @@ export class MCPServerService extends EventEmitter {
         `;
 
         const pool = getDuckDBPool();
-        const result = await pool.query(registerQuery);
+        await pool.query(registerQuery);
         this.registeredTools.add(toolName);
 
         console.log(`✅ Registered tool: ${toolName}`);
@@ -279,8 +279,6 @@ export class MCPServerService extends EventEmitter {
 
     const monitoring = getMCPMonitoring();
     const correlationId = monitoring.startOperation('tool_execution', 'mcp_server', toolName);
-
-    const pool = getDuckDBPool();
 
     try {
       let result: any;
@@ -314,7 +312,7 @@ export class MCPServerService extends EventEmitter {
   }
 
   private async calculateMedicareEligibility(parameters: any): Promise<any> {
-    const { geography_type, geography_codes, year } = parameters;
+    const { geography_type, geography_codes } = parameters;
     const pool = getDuckDBPool();
 
     let whereClause = '';
@@ -334,7 +332,7 @@ export class MCPServerService extends EventEmitter {
   }
 
   private async assessPopulationHealthRisk(parameters: any): Promise<any> {
-    const { geography_type, geography_codes, risk_factors } = parameters;
+    const { geography_type, geography_codes } = parameters;
     const pool = getDuckDBPool();
 
     let whereClause = '';
@@ -354,7 +352,7 @@ export class MCPServerService extends EventEmitter {
   }
 
   private async analyzeFacilityAdequacy(parameters: any): Promise<any> {
-    const { geography_type, geography_codes, facility_type } = parameters;
+    const { geography_type, geography_codes } = parameters;
     const pool = getDuckDBPool();
 
     let whereClause = '';

@@ -4,7 +4,7 @@
  */
 
 export interface QueryTranslationPattern {
-  intent: 'healthcare_analytics' | 'demographics' | 'economic_indicators';
+  intent: 'healthcare_analytics' | 'demographics' | 'economic_indicators' | string;
   entities: {
     geography: string[];
     metrics: string[];
@@ -121,7 +121,7 @@ export interface MCPHealthcareTools {
 }
 
 export interface PublicDatasetAdapter {
-  source: 'census_bureau' | 'cms' | 'cdc' | 'bls';
+  source: 'census_bureau' | 'cms' | 'cms_gov' | 'cdc' | 'bls';
   name: string;
   version: string;
   connect(): Promise<void>;

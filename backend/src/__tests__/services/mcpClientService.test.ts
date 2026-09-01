@@ -1,5 +1,7 @@
 import { getMCPClientService, closeMCPClientService } from '../../services/mcpClientService';
 import { getDuckDBPool } from '../../utils/duckdbPool';
+import { CircuitBreaker } from '../../utils/circuitBreaker';
+import { mcpClientConfigs } from '../../config/mcpConfig';
 
 // Mock DuckDB pool for testing
 jest.mock('../../utils/duckdbPool');
@@ -47,7 +49,18 @@ describe('MCPClientService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // clearAllMocks (mockClear) does not drain queued mockResolvedValueOnce /
+    // mockImplementation on query. Reset it so implementations set inside one
+    // describe block's beforeEach do not leak into later tests.
+    mockDuckDBPool.query.mockReset();
+    (getDuckDBPool as jest.Mock).mockReturnValue(mockDuckDBPool);
+
     mcpClient = getMCPClientService();
+    // MCPClientService is a process-wide singleton. Reset its internal state so
+    // each test starts from a clean connection/circuit-breaker set.
+    mcpClient.connectedClients = new Set();
+    mcpClient.circuitBreakers = new Map();
+    mcpClient.connectionErrors = new Map();
   });
 
   afterEach(async () => {
@@ -72,10 +85,13 @@ describe('MCPClientService', () => {
     });
 
     it('should handle no enabled clients', async () => {
-      // Temporarily disable all clients in the mocked configuration
-      const { mcpClientConfigs } = require('../../config/mcpConfig');
-      const originalEnabled = mcpClientConfigs.census_api.enabled;
+      // The service reads the (mocked) config object by reference at call time.
+      // jest.doMock cannot swap an already-imported module, so toggle the
+      // enabled flags on the shared mock object instead, then restore them.
+      const originalCensus = mcpClientConfigs.census_api.enabled;
+      const originalMedicare = mcpClientConfigs.medicare_api.enabled;
       mcpClientConfigs.census_api.enabled = false;
+      mcpClientConfigs.medicare_api.enabled = false;
 
       const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
@@ -83,8 +99,9 @@ describe('MCPClientService', () => {
         await mcpClient.initialize();
         expect(logSpy).toHaveBeenCalledWith('ℹ️ No external MCP clients configured');
       } finally {
-        mcpClientConfigs.census_api.enabled = originalEnabled;
         logSpy.mockRestore();
+        mcpClientConfigs.census_api.enabled = originalCensus;
+        mcpClientConfigs.medicare_api.enabled = originalMedicare;
       }
     });
 
@@ -312,8 +329,17 @@ describe('MCPClientService', () => {
         ]);
       });
 
-      // Add medicare client as enabled for this test
+      // Mark medicare client connected AND give it a circuit breaker, mirroring
+      // what initialize() would set up. callTool requires a breaker per client.
       mcpClient.connectedClients = new Set(['medicare_api']);
+      mcpClient.circuitBreakers = new Map([
+        ['medicare_api', new CircuitBreaker('mcp-client-medicare_api', {
+          threshold: 3,
+          timeout: 30000,
+          resetTimeout: 300000,
+          monitorWindow: 60000
+        })]
+      ]);
     });
 
     it('should simulate get_ma_penetration tool', async () => {
@@ -446,18 +472,21 @@ describe('MCPClientService', () => {
     });
 
     it('should handle disconnection errors gracefully', async () => {
+      // A failed DETACH is tolerated: the service warns and still removes the
+      // client from the connected set without throwing.
       mockDuckDBPool.query.mockRejectedValueOnce(new Error('Disconnection failed'));
 
-      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
-      await mcpClient.disconnect('census_api');
+      await expect(mcpClient.disconnect('census_api')).resolves.toBeUndefined();
 
-      expect(errorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error disconnecting MCP client census_api:'),
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Could not detach MCP client census_api'),
         expect.any(Error)
       );
+      expect(mcpClient.getStatus().connectedClients).not.toContain('census_api');
 
-      errorSpy.mockRestore();
+      warnSpy.mockRestore();
     });
   });
 });

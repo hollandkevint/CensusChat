@@ -8,7 +8,20 @@
  * - Technology adoption & digital access
  * - Transportation & commuting patterns
  *
- * Total: 84 variables across 12 categories (verified with ACS 2023 API)
+ * Total: 84 variables across 12 categories.
+ *
+ * VINTAGE: all 84 codes exist in the ACS 2024 5-year API
+ * (https://api.census.gov/data/2024/acs/acs5/variables.json) — checked
+ * code-by-code, none retired or renumbered since 2023.
+ *
+ * KNOWN DEFECT (pre-existing, NOT fixed here): the `label` on many entries below
+ * does not match the concept the Census publishes for that code. Examples:
+ * B01001_020E is "Male: 65 and 66 years", not all "Male 65+"; B08303_013E is
+ * "90 or more minutes" commute, not "Work from Home". The codes are unchanged by
+ * the ACS 2024 refresh, so this is a mapping bug, not a vintage bug. It affects
+ * block_group_data_expanded (reachable from the chat path), not county_data,
+ * whose 4 codes are correct. Tracked for a follow-up remap with the same
+ * label-assertion gate used by the county snapshot generator.
  */
 
 export interface ACSVariableExpanded {

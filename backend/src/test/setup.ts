@@ -14,6 +14,12 @@ process.env.REDIS_PORT = '6379';
 process.env.DUCKDB_PATH = ':memory:';
 process.env.DUCKDB_MEMORY = 'true';
 process.env.CENSUS_API_URL = 'https://api.census.gov';
+// Force the Census service into hermetic mock mode for tests. Set before the
+// app/dotenv loads so dotenv.config() (which does not override existing vars)
+// cannot leak a real key from .env into the test process.
+process.env.CENSUS_API_KEY = '';
+process.env.USE_LIVE_CENSUS_API = 'false';
+process.env.PORT = '3001';
 // Give each Jest worker its own port so app-importing suites don't collide,
 // and point the in-process MCP HTTP client at the right server
 const testPort = 3100 + parseInt(process.env.JEST_WORKER_ID || '1', 10);

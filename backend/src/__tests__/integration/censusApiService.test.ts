@@ -366,11 +366,18 @@ describe('CensusApiService Integration', () => {
 
     test('should report rate limit status with API key', () => {
       const originalApiKey = process.env.CENSUS_API_KEY;
-      process.env.CENSUS_API_KEY = 'test-key';
+      // The service reads its API key from config at construction time, so a
+      // fresh instance must be built inside an isolated module registry with
+      // the env var already set for getRateLimitInfo() to reflect it.
+      process.env.CENSUS_API_KEY = 'test-key-1234567890';
 
-      const rateLimitInfo = censusApiService.getRateLimitInfo();
-      expect(rateLimitInfo.hasKey).toBe(true);
-      expect(rateLimitInfo.dailyLimit).toBe('Unlimited');
+      jest.isolateModules(() => {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { censusApiService: freshService } = require('../../services/censusApiService');
+        const rateLimitInfo = freshService.getRateLimitInfo();
+        expect(rateLimitInfo.hasKey).toBe(true);
+        expect(rateLimitInfo.dailyLimit).toBe('Unlimited');
+      });
 
       // Restore original API key
       if (originalApiKey) {

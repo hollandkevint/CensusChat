@@ -8,16 +8,17 @@
  */
 
 import axios from 'axios';
-import * as duckdb from 'duckdb';
+import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import * as fs from 'fs';
 import * as path from 'path';
 import dotenv from 'dotenv';
+import { ACS_VINTAGE_YEAR } from '../src/config/censusVintage';
 
 dotenv.config();
 
 const CENSUS_API_KEY = process.env.CENSUS_API_KEY;
 const CENSUS_API_BASE = 'https://api.census.gov/data';
-const YEAR = 2023; // Most recent ACS 5-Year
+const YEAR = ACS_VINTAGE_YEAR;
 const DB_PATH = path.join(__dirname, '../data/census_blockgroups.duckdb');
 const PROGRESS_FILE = path.join(__dirname, '../data/blockgroup-progress.json');
 
@@ -371,9 +372,8 @@ function saveProgress(progress: LoadProgress): void {
 /**
  * Create database and table
  */
-function createTable(db: duckdb.Database): Promise<void> {
-  return new Promise((resolve, reject) => {
-    db.run(`
+async function createTable(conn: DuckDBConnection): Promise<void> {
+  await conn.run(`
       CREATE TABLE IF NOT EXISTS block_group_data (
         -- Geographic identifiers
         state_fips VARCHAR(2),
@@ -428,20 +428,14 @@ function createTable(db: duckdb.Database): Promise<void> {
         no_vehicle_pct DOUBLE,
         public_transit_pct DOUBLE
       )
-    `, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
+    `);
 }
 
 /**
  * Insert block groups into database (batch)
  */
-function insertBlockGroups(db: duckdb.Database, blockGroups: BlockGroupData[]): Promise<void> {
-  return new Promise((resolve, reject) => {
+async function insertBlockGroups(conn: DuckDBConnection, blockGroups: BlockGroupData[]): Promise<void> {
     if (blockGroups.length === 0) {
-      resolve();
       return;
     }
 
@@ -458,17 +452,15 @@ function insertBlockGroups(db: duckdb.Database, blockGroups: BlockGroupData[]): 
       `${bg.no_vehicle_pct}, ${bg.public_transit_pct})`
     ).join(',\n');
 
+    // ON CONFLICT DO NOTHING is a within-run resume guard: the fresh-start clear
+    // in loadBlockGroupData() (gated on progress-file absence) handles vintage refresh.
     const sql = `
       INSERT INTO block_group_data VALUES
       ${values}
       ON CONFLICT (geoid) DO NOTHING
     `;
 
-    db.run(sql, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
+    await conn.run(sql);
 }
 
 /**
@@ -484,16 +476,25 @@ async function loadBlockGroupData(): Promise<void> {
   }
 
   // Load progress
+  const isFreshRun = !fs.existsSync(PROGRESS_FILE);
   const progress = loadProgress();
   console.log(`📊 Progress: ${progress.completedStates.length}/${STATES.length} states completed`);
   console.log(`   Total block groups loaded: ${progress.totalBlockGroups}\n`);
 
   // Initialize database
-  const db = new duckdb.Database(DB_PATH);
+  const instance = await DuckDBInstance.create(DB_PATH);
+  const conn = await instance.connect();
 
   try {
-    await createTable(db);
+    await createTable(conn);
     console.log('✅ Database table ready\n');
+
+    // Fresh vintage refresh: clear existing rows so new values land. Gated on
+    // progress-file absence so a resumed run keeps already-loaded states.
+    if (isFreshRun) {
+      await conn.run('DELETE FROM block_group_data');
+      console.log('🧹 Fresh run — cleared existing block_group_data\n');
+    }
 
     // Process states
     const statesToProcess = STATES.filter(s => !progress.completedStates.includes(s.fips));
@@ -512,7 +513,7 @@ async function loadBlockGroupData(): Promise<void> {
           const batchSize = 1000;
           for (let i = 0; i < blockGroups.length; i += batchSize) {
             const batch = blockGroups.slice(i, i + batchSize);
-            await insertBlockGroups(db, batch);
+            await insertBlockGroups(conn, batch);
           }
         }
 
@@ -534,23 +535,23 @@ async function loadBlockGroupData(): Promise<void> {
     console.log(`   Total block groups: ${progress.totalBlockGroups}`);
 
     // Verify data
-    db.all('SELECT COUNT(*) as count FROM block_group_data', (err, rows: any[]) => {
-      if (!err && rows[0]) {
-        console.log(`   Database records: ${rows[0].count}\n`);
-      }
+    const countReader = await conn.runAndReadAll('SELECT COUNT(*) as count FROM block_group_data');
+    const countRows = countReader.getRowObjects();
+    if (countRows[0]) {
+      console.log(`   Database records: ${countRows[0].count}\n`);
+    }
 
-      db.close();
+    conn.closeSync();
 
-      // Clean up progress file
-      if (progress.completedStates.length === STATES.length) {
-        fs.unlinkSync(PROGRESS_FILE);
-        console.log('✅ All states completed - progress file removed\n');
-      }
-    });
+    // Clean up progress file
+    if (progress.completedStates.length === STATES.length) {
+      fs.unlinkSync(PROGRESS_FILE);
+      console.log('✅ All states completed - progress file removed\n');
+    }
 
   } catch (error) {
     console.error('❌ Load failed:', error);
-    db.close();
+    conn.closeSync();
     throw error;
   }
 }

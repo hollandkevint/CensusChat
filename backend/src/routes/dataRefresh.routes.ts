@@ -232,7 +232,7 @@ router.delete('/refresh/cancel', async (req, res) => {
  * Rollback to last known good data state
  * POST /api/data/refresh/rollback
  */
-router.post('/refresh/rollback', async (req, res) => {
+router.post('/refresh/rollback', async (_req, res) => {
   try {
     console.log('🔄 Starting data rollback operation...');
 
@@ -271,7 +271,7 @@ router.post('/refresh/rollback', async (req, res) => {
  * Health check for refresh service
  * GET /api/data/refresh/health
  */
-router.get('/refresh/health', async (req, res) => {
+router.get('/refresh/health', async (_req, res) => {
   try {
     const status = await dataRefreshService.getRefreshStatus();
 

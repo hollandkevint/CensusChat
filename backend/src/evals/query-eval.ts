@@ -13,7 +13,6 @@ import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
 import { anthropicService } from '../services/anthropicService';
-import { getDuckDBPool } from '../utils/duckdbPool';
 
 interface EvalTestCase {
   id: string;

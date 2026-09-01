@@ -10,19 +10,13 @@ import {
   GeographicParams,
   RiskFactorParams,
   FacilityParams,
-  QueryRequest,
-  QueryResult,
-  AnalysisResult,
-  RiskAnalysis,
-  AdequacyMetrics
+  QueryRequest
 } from '../modules/healthcare_analytics/types/HealthcareAnalyticsTypes';
 import {
-  MCPResponseFormatter,
   MCPErrorCode,
   createHealthcareResponse,
   createErrorResponse,
-  MCPResponseEnvelope,
-  HealthcareMCPResponse
+  MCPResponseEnvelope
 } from '../utils/mcpResponseFormatter';
 
 // MCP Protocol Version

@@ -9,16 +9,19 @@
  */
 
 import axios from 'axios';
-import * as duckdb from 'duckdb';
+import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import * as path from 'path';
 import dotenv from 'dotenv';
+import { ACS_VINTAGE_YEAR } from '../src/config/censusVintage';
 import { getVariableCodesBatched } from '../src/utils/acsVariablesExpanded';
+import { replaceAll } from '../src/utils/loaderRefresh';
+import { recordVintage } from '../src/utils/dataVintage';
 
 dotenv.config();
 
 const CENSUS_API_KEY = process.env.CENSUS_API_KEY;
 const CENSUS_API_BASE = 'https://api.census.gov/data';
-const YEAR = 2023;
+const YEAR = ACS_VINTAGE_YEAR;
 const DB_PATH = path.join(__dirname, '../data/census.duckdb');
 
 interface StateData {
@@ -254,9 +257,8 @@ async function fetchStateDataBatched(): Promise<StateData[]> {
   }
 }
 
-function createTable(db: duckdb.Database): Promise<void> {
-  return new Promise((resolve, reject) => {
-    db.run(`
+async function createTable(conn: DuckDBConnection): Promise<void> {
+  await conn.run(`
       CREATE TABLE IF NOT EXISTS state_data (
         -- Geographic (2-digit GEOID)
         state_fips VARCHAR(2),
@@ -287,17 +289,11 @@ function createTable(db: duckdb.Database): Promise<void> {
         children_with_2_parents_pct DOUBLE, children_single_parent_pct DOUBLE,
         single_person_households_pct DOUBLE, seniors_living_alone_pct DOUBLE, grandparents_responsible_pct DOUBLE
       )
-    `, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
+    `);
 }
 
-function insertStates(db: duckdb.Database, states: StateData[]): Promise<void> {
-  return new Promise((resolve, reject) => {
+async function insertStates(conn: DuckDBConnection, states: StateData[]): Promise<void> {
     if (states.length === 0) {
-      resolve();
       return;
     }
 
@@ -326,13 +322,17 @@ function insertStates(db: duckdb.Database, states: StateData[]): Promise<void> {
         `${s.seniors_living_alone_pct},${s.grandparents_responsible_pct})`;
     }).join(',\n');
 
-    const sql = `INSERT INTO state_data VALUES ${values} ON CONFLICT (geoid) DO NOTHING`;
-
-    db.run(sql, (err) => {
-      if (err) reject(err);
-      else resolve();
+    // Fresh vintage refresh: clear existing rows so new values land. Without the
+    // clear, ON CONFLICT DO NOTHING would silently skip every existing geoid and
+    // the refresh would be a no-op. This loader is not resumable (all 51 states
+    // load in one shot), so the clear and the insert go in ONE transaction: a
+    // malformed value in any state rolls back to the previous vintage instead of
+    // leaving state_data empty.
+    await replaceAll(conn, 'state_data', async () => {
+      await conn.run(`INSERT INTO state_data VALUES ${values}`);
+      // Stamp inside the transaction so the rows and the claim commit together.
+      await recordVintage(conn, 'state_data', states.length);
     });
-  });
 }
 
 async function loadStateData(): Promise<void> {
@@ -343,26 +343,27 @@ async function loadStateData(): Promise<void> {
     throw new Error('CENSUS_API_KEY not configured');
   }
 
-  const db = new duckdb.Database(DB_PATH);
+  const instance = await DuckDBInstance.create(DB_PATH);
+  const conn = await instance.connect();
 
   try {
-    await createTable(db);
+    await createTable(conn);
     console.log('✅ State table ready\n');
 
     const states = await fetchStateDataBatched();
 
     if (states.length > 0) {
-      await insertStates(db, states);
+      await insertStates(conn, states);
     }
 
     console.log('\n✅ State load complete!');
     console.log(`   Total: ${states.length} states\n`);
 
-    db.close();
+    conn.closeSync();
 
   } catch (error) {
     console.error('❌ Load failed:', error);
-    db.close();
+    conn.closeSync();
     throw error;
   }
 }

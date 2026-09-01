@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { getDuckDBPool } from '../utils/duckdbPool';
 import { mcpClientConfigs, MCPClientConfig } from '../config/mcpConfig';
-import { CircuitBreaker, CircuitState } from '../utils/circuitBreaker';
+import { CircuitBreaker } from '../utils/circuitBreaker';
 import { getMCPMonitoring } from '../utils/mcpMonitoring';
 
 export interface MCPClientStatus {
@@ -176,8 +176,6 @@ export class MCPClientService extends EventEmitter {
   }
 
   private async simulateToolCall(client: string, tool: string, parameters: any): Promise<any> {
-    const pool = getDuckDBPool();
-
     // Simulate external data source calls with local data
     switch (client) {
       case 'census_api':
@@ -224,13 +222,11 @@ export class MCPClientService extends EventEmitter {
     }
   }
 
-  private async simulateMedicareAPICall(tool: string, parameters: any): Promise<any> {
+  private async simulateMedicareAPICall(tool: string, _parameters: any): Promise<any> {
     const pool = getDuckDBPool();
 
     switch (tool) {
       case 'get_ma_penetration':
-        const { geography, year } = parameters;
-
         // Simulate Medicare Advantage penetration data
         const query = `
           SELECT
@@ -255,6 +251,8 @@ export class MCPClientService extends EventEmitter {
   async listAvailableTools(client?: string): Promise<Record<string, any>> {
     const tools: Record<string, any> = {};
 
+    // Only list tools for connected clients. A specific client that is not
+    // connected yields no entry (rather than a phantom empty-tools record).
     const clientsToCheck = client
       ? (this.connectedClients.has(client) ? [client] : [])
       : Array.from(this.connectedClients);
@@ -305,16 +303,13 @@ export class MCPClientService extends EventEmitter {
 
         const pool = getDuckDBPool();
 
-        // Try to detach MCP connection
+        // Try to detach MCP connection. Any failure is tolerated: the attachment
+        // is unusable either way, and rethrowing here used to leave the client
+        // in `connectedClients` forever (a stale-state leak).
         try {
           await pool.query(`DETACH ${client}_mcp`);
         } catch (error) {
-          if (error instanceof Error && (error.message.includes('DETACH') || error.message.includes('not found'))) {
-            // Connection might not exist or DETACH not available
-            console.warn(`⚠️ Could not detach MCP client ${client}`);
-          } else {
-            throw error;
-          }
+          console.warn(`⚠️ Could not detach MCP client ${client}:`, error);
         }
 
         this.connectedClients.delete(client);
@@ -367,18 +362,12 @@ export class MCPClientService extends EventEmitter {
 
       const firstClient = Array.from(this.connectedClients)[0];
 
-      // Try to list tools as a health check
+      // Probe the connection directly. Unlike listAvailableTools (which
+      // deliberately falls back to a static tool list on error), a failed
+      // probe here must surface as unhealthy.
       const pool = getDuckDBPool();
-      try {
-        await pool.query(`SELECT mcp_list_tools('${firstClient}') as tools`);
-        return true;
-      } catch (error) {
-        if (error instanceof Error && error.message.includes('mcp_list_tools')) {
-          // MCP extension function not available - fall back to known tools
-          return this.getKnownToolsForClient(firstClient) !== undefined;
-        }
-        throw error;
-      }
+      await pool.query(`SELECT mcp_list_tools('${firstClient}') as tools`);
+      return true;
 
     } catch (error) {
       console.error('❌ MCP Client health check failed:', error);

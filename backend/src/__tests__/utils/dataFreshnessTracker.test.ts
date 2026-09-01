@@ -117,7 +117,9 @@ describe('DataFreshnessTracker', () => {
 
       const report = dataFreshnessTracker.getDataFreshnessReport();
 
-      expect(report.overallStatus).toBe('mixed'); // Mixed because we have fresh, stale, error, refreshing
+      // An error present takes priority over 'mixed' — the more urgent signal wins.
+      // (Consistent with the "error status when any dataset has errors" case below.)
+      expect(report.overallStatus).toBe('error');
       expect(report.summary.totalDatasets).toBe(4);
       expect(report.summary.freshDatasets).toBe(1);
       expect(report.summary.staleDatasets).toBe(1);

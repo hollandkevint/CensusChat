@@ -4,7 +4,6 @@
  */
 
 import { SqlPattern } from './HealthcareSqlLibrary';
-import { FacilityParams } from '../types/HealthcareAnalyticsTypes';
 
 export class FacilityAdequacyPatterns {
   static getBasicFacilityAdequacyPattern(): SqlPattern {

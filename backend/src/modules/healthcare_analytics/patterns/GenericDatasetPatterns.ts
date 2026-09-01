@@ -3,7 +3,7 @@
  * Demonstrates FDB-MCP framework applicability beyond healthcare
  */
 
-import { QueryTranslationPattern, PublicDatasetAdapter, StandardizedDataFormat } from '../types/HealthcareAnalyticsTypes';
+import { QueryTranslationPattern } from '../types/HealthcareAnalyticsTypes';
 
 export interface GenericDatasetConfig {
   domain: 'education' | 'transportation' | 'environment' | 'economics' | 'housing';

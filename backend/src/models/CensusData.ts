@@ -257,6 +257,31 @@ export class CensusDataModel {
   }
 
   /**
+   * Read census variable metadata, optionally filtered by variable name
+   */
+  async getCensusVariables(variableNames?: string[]): Promise<CensusVariable[]> {
+    await this.ensureInitialized();
+    if (!this.connection) throw new Error('Database not initialized');
+
+    let sql = 'SELECT variable_name, label, concept, table_id, universe, variable_type FROM census_variables';
+
+    // An explicit empty list means "no variables", not "all of them".
+    if (variableNames && variableNames.length === 0) {
+      return [];
+    }
+
+    if (variableNames?.length) {
+      const nameList = variableNames.map(n => `'${n.replace(/'/g, "''")}'`).join(', ');
+      sql += ` WHERE variable_name IN (${nameList})`;
+    }
+
+    sql += ' ORDER BY variable_name';
+
+    const reader = await this.connection.runAndReadAll(sql);
+    return reader.getRowObjects() as unknown as CensusVariable[];
+  }
+
+  /**
    * Query census data with filters
    */
   async queryCensusData(filters: {
@@ -300,22 +325,6 @@ export class CensusDataModel {
 
     const reader = await this.connection.runAndReadAll(sql);
     return reader.getRowObjects() as unknown as CensusDataRecord[];
-  }
-
-  /**
-   * Get census variable metadata by variable names
-   */
-  async getCensusVariables(variableNames: string[]): Promise<CensusVariable[]> {
-    await this.ensureInitialized();
-    if (!this.connection) throw new Error('Database not initialized');
-
-    if (variableNames.length === 0) return [];
-
-    const nameList = variableNames.map(name => `'${name.replace(/'/g, "''")}'`).join(', ');
-    const reader = await this.connection.runAndReadAll(
-      `SELECT * FROM census_variables WHERE variable_name IN (${nameList})`
-    );
-    return reader.getRowObjects() as unknown as CensusVariable[];
   }
 
   /**

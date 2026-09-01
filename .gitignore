@@ -148,3 +148,7 @@ frontend/playwright/.cache/
 
 # Internal working docs (strategy, session notes) — not for the public repo
 internal/
+
+# Local, machine-specific agent config
+.claude/settings.local.json
+**/.claude/settings.local.json

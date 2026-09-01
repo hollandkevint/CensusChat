@@ -19,7 +19,6 @@ export * from './types/HealthcareAnalyticsTypes';
 // Main Healthcare Analytics Module Class
 import { NaturalLanguageQueryRouter } from './core/NaturalLanguageQueryRouter';
 import { MCPConnector } from './core/MCPConnector';
-import { getPublicDatasetRegistry } from './core/PublicDatasetInterface';
 import {
   QueryRequest,
   QueryResult,
