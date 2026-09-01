@@ -19,8 +19,8 @@ dev: ## Start development environment with Docker Compose
 
 .PHONY: dev-build
 dev-build: ## Build and start development environment
-	@if [ ! -f .env ]; then echo "⚠️  .env file not found. Copy .env.example to .env first"; exit 1; fi
-	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+	@if [ ! -f .env ]; then echo "⚠️  .env file not found. Run 'make setup-env' first"; exit 1; fi
+	docker compose up --build
 
 .PHONY: dev-backend
 dev-backend: ## Start only backend in development mode
@@ -32,31 +32,31 @@ dev-frontend: ## Start only frontend in development mode
 
 .PHONY: build
 build: ## Build production Docker images
-	docker-compose build
+	docker compose build
 
 .PHONY: up
 up: ## Start production environment
-	docker-compose up -d
+	docker compose up -d
 
 .PHONY: down
 down: ## Stop all containers
-	docker-compose down
+	docker compose down
 
 .PHONY: clean
 clean: ## Clean all containers, volumes, and images
-	docker-compose down -v --rmi all
+	docker compose down -v --rmi all
 
 .PHONY: logs
 logs: ## Show logs from all containers
-	docker-compose logs -f
+	docker compose logs -f
 
 .PHONY: logs-backend
 logs-backend: ## Show backend logs
-	docker-compose logs -f backend
+	docker compose logs -f backend
 
 .PHONY: logs-frontend
 logs-frontend: ## Show frontend logs
-	docker-compose logs -f frontend
+	docker compose logs -f frontend
 
 .PHONY: test
 test: ## Run backend unit tests (frontend has no unit suite; see test-e2e)
@@ -82,19 +82,19 @@ load-data: ## Load Census data into DuckDB (long-running; needs CENSUS_API_KEY)
 
 .PHONY: shell-backend
 shell-backend: ## Open shell in backend container
-	docker-compose exec backend sh
+	docker compose exec backend sh
 
 .PHONY: shell-frontend
 shell-frontend: ## Open shell in frontend container
-	docker-compose exec frontend sh
+	docker compose exec frontend sh
 
 .PHONY: shell-postgres
 shell-postgres: ## Open PostgreSQL shell
-	docker-compose exec postgres psql -U postgres -d censuschat
+	docker compose exec postgres psql -U postgres -d censuschat
 
 .PHONY: shell-redis
 shell-redis: ## Open Redis CLI
-	docker-compose exec redis redis-cli
+	docker compose exec redis redis-cli
 
 .PHONY: security-check
 security-check: ## Run security checks (npm audit)
