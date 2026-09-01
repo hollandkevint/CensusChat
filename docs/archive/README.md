@@ -10,7 +10,7 @@ This folder contains documentation that has been superseded by newer versions or
 - **BLOCK_GROUP_IMPLEMENTATION.md** - Superseded by [MARKETING_ANALYTICS_EXPANSION.md](../MARKETING_ANALYTICS_EXPANSION.md)
 - **BLOCK_GROUP_QUERIES_READY.md** - Superseded by [guides/BLOCK_GROUP_VARIABLES.md](../guides/BLOCK_GROUP_VARIABLES.md)
 - **DATABASE_MERGE_COMPLETE.md** - One-time status, no longer relevant
-- **SESSION_SUMMARY.md** - Superseded by [sessions/](../sessions/) folder
+- **SESSION_SUMMARY.md** - Superseded by `docs/internal/sessions/` folder
 - **NEXT_STEPS.md** - Outdated action items
 - **GITHUB_PAGE.md** - Old landing page plan
 

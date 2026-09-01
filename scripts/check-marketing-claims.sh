@@ -26,6 +26,16 @@ if ! grep -qE '^[[:space:]]*-[[:space:]]*archive/[[:space:]]*$' "$SITE_CONFIG"; 
   exit 1
 fi
 
+# docs/internal/ holds session notes and epic planning: in git for history, off the
+# published site. Same failure mode as archive/ -- if the exclusion is dropped, every
+# one of those pages goes live and jekyll-sitemap submits it. Verify, do not assume.
+if [ -d docs/internal ] && ! grep -qE '^[[:space:]]*-[[:space:]]*internal/[[:space:]]*$' "$SITE_CONFIG"; then
+  echo "FAIL: docs/internal/ exists and $SITE_CONFIG does not exclude internal/, so every"
+  echo "      session note and epic plan renders as a live, indexed page."
+  echo "      Add '- internal/' under exclude: in $SITE_CONFIG."
+  exit 1
+fi
+
 # ponytail: one grep -E, no per-pattern loop. Add a pattern, not a framework.
 PATTERN='Sarah L\.|2\.8B|\$150M facility|196,436|5,500% ROI|89% [Tt]est|80%\+ Cache|99\.9%|11M\+|23 minutes|6-second|delivers them in 6 seconds|~300x|~200x'
 

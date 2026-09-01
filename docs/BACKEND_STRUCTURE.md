@@ -398,11 +398,11 @@ Healthcare-specific analytics modules organized by domain.
 
 ## 📚 Additional Resources
 
-- [API Documentation](/docs/api/README.md) - Complete API reference
-- [DuckDB Reference](/docs/references/duckdb/) - DuckDB integration details
-- [MCP Integration Guide](/docs/references/duckdb-mcp/) - MCP implementation guide
-- [Epic 2 Documentation](/docs/epics/epic-2-duckdb-mcp-integration.md) - Complete Epic 2 details
-- [Changelog](/CHANGELOG.md) - Detailed implementation history
+- [API Documentation](api/README.md) - Complete API reference
+- [DuckDB Reference](references/duckdb/) - DuckDB integration details
+- [MCP Integration Guide](references/duckdb-mcp/) - MCP implementation guide
+- [Epic 2 Documentation](internal/epics/epic-2-duckdb-mcp-integration.md) - Complete Epic 2 details
+- [Changelog](../CHANGELOG.md) - Detailed implementation history
 
 ---
 

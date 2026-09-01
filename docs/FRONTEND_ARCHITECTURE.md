@@ -82,12 +82,14 @@ const handleQuery = async (query: string) => {
 #### Healthcare-Focused Value Proposition
 The main page (`/src/app/page.tsx`) is optimized for business analysts:
 
-**Key Sections**:
-1. **Hero Section**: "Healthcare Competitive Data in a Spreadsheet-Ready Box"
-2. **Problem Identification**: Addresses delays, technical bottlenecks, consultant costs
-3. **Solution Demo**: Interactive ChatInterface component
-4. **Social Proof**: Healthcare system testimonials and use cases
-5. **Pilot Program CTA**: Clear conversion path for enterprise users
+**Key Sections** (as of `frontend/src/app/page.tsx`):
+1. **Header**: product name, one-line description, and a link into the public county pages
+2. **Chat**: the `ChatInterface` component, which is the whole product surface
+3. **Footer**: data-source and attribution line
+
+The earlier marketing layout described here -- a problem section, a social-proof
+section carrying customer testimonials, and a pilot-program CTA -- is not in the
+code. The testimonial it referred to was fabricated and was removed in #57.
 
 #### Responsive Design
 - Mobile-first approach with Tailwind CSS
