@@ -59,7 +59,7 @@ Read this before you invest an afternoon.
 - **No authentication.** `backend/src/routes/auth.routes.ts` is four handlers that return `"...to be implemented"`. Register, login, refresh, and logout do nothing.
 - **No billing, no accounts, no signup.** Nothing to buy and nothing to log into.
 - **No production users and no hosted instance.** There is nothing to sign up for. Everything below is how it behaves when you run it yourself.
-- **Mixed ACS vintages.** `county_data` was loaded at ACS 2022 (`backend/scripts/load-acs-data.ts`, `YEAR = 2022`). The block group, tract, and state loaders use `YEAR = 2023`. The frontend county snapshot uses ACS 2024 ([`counties.meta.json`](frontend/src/data/counties.meta.json)). [PR #54](https://github.com/hollandkevint/CensusChat/pull/54) is open to unify them.
+- **Mixed ACS vintages, and a loader that disagrees with its own output.** Don't read the vintage off the loader constants. `backend/scripts/load-acs-data.ts` declares `YEAR = 2022`, but the shipped `county_data` checks out as **ACS 2024**: Los Angeles County holds `population` 9808667 and `median_income` 90112, which match only the 2024 5-year endpoint, not 2022 or 2023. `block_group_data_expanded` really is ACS 2023, matching its loader — so one DuckDB file carries two vintages. The frontend county snapshot is ACS 2020-2024 ([`counties.meta.json`](frontend/src/data/counties.meta.json)) and agrees with `county_data` on those LA figures. Verification detail: [docs/plans/2026-08-29-public-county-pages.md](docs/plans/2026-08-29-public-county-pages.md). [PR #54](https://github.com/hollandkevint/CensusChat/pull/54) refreshes the loaders to match.
 - **`block_group_data_expanded` has known-bad columns.** Its age brackets are built from single narrow ACS cells rather than bracket sums, so `age_65_plus` sums to roughly 7.8M nationally against a true figure near 58M. Several columns are constant zero and `median_age` holds Census `-666666666` sentinels. Detail and the affected list: [docs/plans/2026-08-29-public-county-pages.md](docs/plans/2026-08-29-public-county-pages.md). `county_data` and the frontend county snapshot are clean.
 
 Performance numbers are targets, not measurements. Contributors aim for sub-2-second query responses; the enforced ceiling is the 30-second request timeout in `backend/src/routes/query.routes.ts` (`QUERY_TIMEOUT_MS`), which covers validation and the Anthropic round trip.
@@ -94,8 +94,8 @@ The validation layer is the part worth reading: [`backend/src/validation/sqlSecu
 
 | Table | Rows | Notes |
 |---|---|---|
-| `county_data` | 3,144 counties | Name, state, population, median income, poverty rate. Clean. |
-| `block_group_data_expanded` | 239,741 block groups | 84 variables. See the status section — several are wrong. |
+| `county_data` | 3,144 counties | Name, state, population, median income, poverty rate. Clean, ACS 2024. |
+| `block_group_data_expanded` | 239,741 block groups | 84 variables, ACS 2023. See the status section — several are wrong. |
 | `frontend/src/data/counties.json` | 3,144 counties | Committed snapshot behind the county pages. Clean, ACS 2020-2024. |
 
 ---
