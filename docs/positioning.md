@@ -30,7 +30,7 @@ contain evidence for it.
 ## What you can actually get today
 
 There is no subscription and no self-serve plan. See the status section in
-[README.md](../README.md) — authentication is unimplemented, there is no billing, and
+[README.md](https://github.com/hollandkevint/CensusChat/blob/main/README.md) — authentication is unimplemented, there is no billing, and
 there are no production users. Two things are real:
 
 1. **A delivered analysis.** Describe the question. Kevin Holland runs it and sends back
