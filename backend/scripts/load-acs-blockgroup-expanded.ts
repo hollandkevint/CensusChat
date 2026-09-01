@@ -12,13 +12,16 @@ import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import * as fs from 'fs';
 import * as path from 'path';
 import dotenv from 'dotenv';
+import { ACS_VINTAGE_YEAR } from '../src/config/censusVintage';
 import { getVariableCodesBatched } from '../src/utils/acsVariablesExpanded';
+import { createDeferredClear } from '../src/utils/loaderRefresh';
+import { recordVintage } from '../src/utils/dataVintage';
 
 dotenv.config();
 
 const CENSUS_API_KEY = process.env.CENSUS_API_KEY;
 const CENSUS_API_BASE = 'https://api.census.gov/data';
-const YEAR = 2024;
+const YEAR = ACS_VINTAGE_YEAR;
 const DB_PATH = path.join(__dirname, '../data/census.duckdb'); // Use main census DB
 const PROGRESS_FILE = path.join(__dirname, '../data/blockgroup-expanded-progress.json');
 
@@ -528,12 +531,18 @@ async function loadBlockGroupDataExpanded(): Promise<void> {
     await createTable(conn);
     console.log('✅ Table ready\n');
 
-    // Fresh vintage refresh: clear existing rows so new values land. Gated on
-    // progress-file absence so a resumed run keeps already-loaded states.
-    if (isFreshRun) {
-      await conn.run('DELETE FROM block_group_data_expanded');
-      console.log('🧹 Fresh run — cleared existing block_group_data_expanded\n');
-    }
+    // Fresh vintage refresh: clear existing rows so new values land, because
+    // ON CONFLICT DO NOTHING would otherwise skip every existing geoid.
+    //
+    // The clear is DEFERRED until the first fetch actually returns rows. This
+    // load streams state by state over 2-3 hours and cannot sit in one
+    // transaction, so clearing up front means a rejected API key or an outage
+    // empties block_group_data_expanded and leaves it empty for hours. Waiting for
+    // real data means a failed run leaves the previous vintage intact.
+    //
+    // `isFreshRun` keeps the clear off entirely on a resumed run, which would
+    // otherwise wipe the states already loaded.
+    const clearOnFirstData = createDeferredClear(conn, 'block_group_data_expanded', isFreshRun);
 
     const statesToProcess = STATES.filter(s => !progress.completedStates.includes(s.fips));
     console.log(`🔄 Processing ${statesToProcess.length} states...\n`);
@@ -545,6 +554,10 @@ async function loadBlockGroupDataExpanded(): Promise<void> {
         const blockGroups = await fetchBlockGroupDataBatched(state.fips, state.name);
 
         if (blockGroups.length > 0) {
+          if (await clearOnFirstData(blockGroups.length)) {
+            console.log('🧹 Fresh run — cleared existing block_group_data_expanded before the first insert\n');
+          }
+
           const batchSize = 500;
           for (let i = 0; i < blockGroups.length; i += batchSize) {
             const batch = blockGroups.slice(i, i + batchSize);
@@ -561,6 +574,8 @@ async function loadBlockGroupDataExpanded(): Promise<void> {
         console.error(`❌ Failed ${state.name}:`, error);
       }
     }
+
+    await recordVintage(conn, 'block_group_data_expanded', progress.totalBlockGroups);
 
     console.log('\n✅ Load Complete!');
     console.log(`   Total: ${progress.totalBlockGroups} block groups\n`);

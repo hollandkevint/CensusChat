@@ -12,12 +12,13 @@ import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import * as fs from 'fs';
 import * as path from 'path';
 import dotenv from 'dotenv';
+import { ACS_VINTAGE_YEAR } from '../src/config/censusVintage';
 
 dotenv.config();
 
 const CENSUS_API_KEY = process.env.CENSUS_API_KEY;
 const CENSUS_API_BASE = 'https://api.census.gov/data';
-const YEAR = 2024; // Most recent ACS 5-Year
+const YEAR = ACS_VINTAGE_YEAR;
 const DB_PATH = path.join(__dirname, '../data/census_blockgroups.duckdb');
 const PROGRESS_FILE = path.join(__dirname, '../data/blockgroup-progress.json');
 

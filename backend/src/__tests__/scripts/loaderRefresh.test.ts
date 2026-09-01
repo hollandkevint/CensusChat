@@ -1,19 +1,17 @@
 /**
  * Regression tests for the ACS loader vintage-refresh semantics.
  *
- * The loaders (load-acs-state/tract/blockgroup/blockgroup-expanded) insert with
- * `ON CONFLICT (geoid) DO NOTHING`. Run against an already-populated table, that
- * clause SILENTLY SKIPS every existing geoid, so a vintage refresh becomes a
- * no-op and new values never land. The fix is a fresh-start `DELETE` before the
- * insert loop (gated on progress-file absence in the resumable loaders).
+ * These import the real helpers the loaders use (src/utils/loaderRefresh.ts),
+ * so reverting a loader to a bare `DELETE` fails these tests rather than
+ * merely disagreeing with a comment.
  *
- * These tests pin that behavior at the SQL level using @duckdb/node-api — the
- * same driver and query shapes the ported loaders use. If someone drops the
- * fresh-start clear and relies on ON CONFLICT alone again, the "replace" test
- * fails.
+ * Two failure modes are pinned:
+ *  - ON CONFLICT DO NOTHING silently no-ops a refresh on a populated table.
+ *  - A naive clear-then-load destroys the table when the load then fails.
  */
 
 import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
+import { replaceAll, createDeferredClear } from '../../utils/loaderRefresh';
 
 const CREATE = `
   CREATE TABLE IF NOT EXISTS demo_data (
@@ -39,43 +37,73 @@ describe('ACS loader vintage-refresh semantics', () => {
     instance = await DuckDBInstance.create(':memory:');
     conn = await instance.connect();
     await conn.run(CREATE);
-    // Seed an "old vintage" row.
-    await conn.run("INSERT INTO demo_data VALUES ('06', 83411)");
+    // Pre-existing old-vintage rows
+    await conn.run("INSERT INTO demo_data VALUES ('A', 100), ('B', 200)");
   });
 
   afterEach(() => {
     conn.closeSync();
+    instance.closeSync();
   });
 
   it('demonstrates the bug: ON CONFLICT DO NOTHING no-ops on a populated table', async () => {
-    // This is what the loaders did before the fix — re-running with new-vintage
-    // values against existing geoids changes nothing.
-    await conn.run("INSERT INTO demo_data VALUES ('06', 90112) ON CONFLICT (geoid) DO NOTHING");
+    await conn.run("INSERT INTO demo_data VALUES ('A', 999) ON CONFLICT (geoid) DO NOTHING");
 
-    const rows = await rowsByGeoid(conn);
-    expect(rows['06']).toBe(83411); // stale value survives — the silent no-op
+    // The new vintage never lands.
+    expect((await rowsByGeoid(conn))['A']).toBe(100);
   });
 
-  it('the fix: DELETE-on-fresh replaces old-vintage values with the new vintage', async () => {
-    // Non-resumable loaders (state) always clear; resumable loaders clear on a
-    // fresh start. Either way the new value must land.
-    await conn.run('DELETE FROM demo_data');
-    await conn.run("INSERT INTO demo_data VALUES ('06', 90112)");
+  describe('replaceAll (non-resumable loaders: county, state)', () => {
+    it('replaces old-vintage values with the new vintage', async () => {
+      await replaceAll(conn, 'demo_data', async () => {
+        await conn.run("INSERT INTO demo_data VALUES ('A', 999), ('B', 888)");
+      });
 
-    const rows = await rowsByGeoid(conn);
-    expect(rows['06']).toBe(90112); // refreshed — this fails if the clear is removed
+      expect(await rowsByGeoid(conn)).toEqual({ A: 999, B: 888 });
+    });
+
+    it('rolls back to the previous vintage when the load fails', async () => {
+      // This is the blocker a bare DELETE-then-INSERT introduces: a failure
+      // part-way through must not leave the table empty.
+      await expect(
+        replaceAll(conn, 'demo_data', async () => {
+          await conn.run("INSERT INTO demo_data VALUES ('A', 999)");
+          throw new Error('Census parse error');
+        })
+      ).rejects.toThrow('Census parse error');
+
+      expect(await rowsByGeoid(conn)).toEqual({ A: 100, B: 200 });
+    });
   });
 
-  it('resume-safe: skipping the clear preserves already-loaded rows while new rows insert', async () => {
-    // Simulates a resumed run (progress file present -> no DELETE). California
-    // is already loaded; Texas is the newly-processed state. ON CONFLICT guards
-    // the re-fetched California rows from duplicating.
-    await conn.run("INSERT INTO demo_data VALUES ('06', 83411) ON CONFLICT (geoid) DO NOTHING"); // re-fetched, skipped
-    await conn.run("INSERT INTO demo_data VALUES ('48', 75780) ON CONFLICT (geoid) DO NOTHING"); // new state
+  describe('createDeferredClear (resumable loaders: tract, block group)', () => {
+    it('does not clear before data arrives', async () => {
+      const clear = createDeferredClear(conn, 'demo_data', true);
 
-    const rows = await rowsByGeoid(conn);
-    expect(rows['06']).toBe(83411); // preserved
-    expect(rows['48']).toBe(75780); // added
-    expect(Object.keys(rows)).toHaveLength(2);
+      // First state's fetch came back empty (API down, key rejected).
+      expect(await clear(0)).toBe(false);
+      expect(await rowsByGeoid(conn)).toEqual({ A: 100, B: 200 });
+    });
+
+    it('clears exactly once, on the first fetch that returns rows', async () => {
+      const clear = createDeferredClear(conn, 'demo_data', true);
+
+      expect(await clear(0)).toBe(false);
+      expect(await clear(5)).toBe(true);
+      await conn.run("INSERT INTO demo_data VALUES ('A', 999)");
+
+      // A later state must not wipe the states already loaded this run.
+      expect(await clear(5)).toBe(false);
+      expect(await rowsByGeoid(conn)).toEqual({ A: 999 });
+    });
+
+    it('resume-safe: never clears when the run is not fresh', async () => {
+      const clear = createDeferredClear(conn, 'demo_data', false);
+
+      expect(await clear(5)).toBe(false);
+
+      await conn.run("INSERT INTO demo_data VALUES ('C', 300) ON CONFLICT (geoid) DO NOTHING");
+      expect(await rowsByGeoid(conn)).toEqual({ A: 100, B: 200, C: 300 });
+    });
   });
 });

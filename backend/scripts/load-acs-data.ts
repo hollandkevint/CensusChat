@@ -10,13 +10,16 @@ import { DuckDBInstance } from '@duckdb/node-api';
 import * as fs from 'fs';
 import * as path from 'path';
 import dotenv from 'dotenv';
+import { ACS_VINTAGE_YEAR } from '../src/config/censusVintage';
+import { replaceAll } from '../src/utils/loaderRefresh';
+import { recordVintage } from '../src/utils/dataVintage';
 
 // Load environment variables
 dotenv.config();
 
 const CENSUS_API_KEY = process.env.CENSUS_API_KEY;
 const CENSUS_API_BASE = 'https://api.census.gov/data';
-const YEAR = 2024; // Most recent complete 5-year ACS (2020-2024)
+const YEAR = ACS_VINTAGE_YEAR;
 const DB_PATH = path.join(__dirname, '../data/census.duckdb');
 
 interface CountyData {
@@ -142,20 +145,23 @@ async function loadDataIntoDuckDB(data: CountyData[]): Promise<void> {
     )
   `);
 
-  await conn.run('DELETE FROM county_data');
-
-  // Bulk insert in one transaction; positional params keep apostrophes (e.g. "O'Brien County") safe
-  await conn.run('BEGIN TRANSACTION');
-  for (const row of data) {
-    await conn.run(
-      `INSERT INTO county_data (state, county, state_name, county_name, population, median_income, poverty_rate)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [row.state, row.county, row.stateName, row.countyName, row.population, row.medianIncome, row.povertyRate]
-    );
+  // Clear + insert in ONE transaction: a failure part-way through must roll back
+  // to the previous vintage, not leave county_data empty.
+  // Positional params keep apostrophes (e.g. "O'Brien County") safe.
+  try {
+    await replaceAll(conn, 'county_data', async () => {
+      for (const row of data) {
+        await conn.run(
+          `INSERT INTO county_data (state, county, state_name, county_name, population, median_income, poverty_rate)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [row.state, row.county, row.stateName, row.countyName, row.population, row.medianIncome, row.povertyRate]
+        );
+      }
+    });
+    await recordVintage(conn, 'county_data', data.length);
+  } finally {
+    conn.closeSync();
   }
-  await conn.run('COMMIT');
-
-  conn.closeSync();
 }
 
 async function main() {

@@ -30,11 +30,10 @@ export const setupRoutes = (app: Express) => {
     res.json({
       message: 'CensusChat API v1',
       version: '1.0.0',
+      // Only mounted routes are advertised; auth, users and census are
+      // commented out above and would 404.
       endpoints: {
-        auth: '/api/v1/auth',
         queries: '/api/v1/queries',
-        users: '/api/v1/users',
-        census: '/api/v1/census',
         export: '/api/v1/export',
         mcp: '/api/v1/mcp',
         mcpTransport: '/mcp',

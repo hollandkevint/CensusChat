@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { anthropicService } from '../services/anthropicService';
 import { queryRateLimit, censusApiUserRateLimit } from '../middleware/rateLimiting';
 import { FallbackService, CensusApiErrorType } from '../services/fallbackService';
-import { ACS_VINTAGE_LABEL } from '../config/censusVintage';
+import { getLoadedVintageLabel } from '../utils/dataVintage';
+import { getDuckDBPool } from '../utils/duckdbPool';
 import { mapStateAbbreviationsInQuery } from '../utils/stateMapper';
 import { getCensusChat_MCPClient } from '../mcp/mcpClient';
 import { getHealthcareAnalyticsModule } from '../modules/healthcare_analytics';
@@ -322,7 +323,14 @@ router.post('/', queryRateLimit, censusApiUserRateLimit, async (req, res) => {
 
             data = mcpResult.result.data;
             totalRecords = mcpResult.result.metadata.rowCount;
-            dataSource = `DuckDB Production (MCP Validated) · ${ACS_VINTAGE_LABEL}`;
+            // Label the vintage the DATA carries, not the one the code targets.
+            // An unstamped DB predates vintage tracking, so claim nothing.
+            const loadedVintage = await getLoadedVintageLabel(
+              (sql) => getDuckDBPool().query(sql)
+            );
+            dataSource = loadedVintage
+              ? `DuckDB Production (MCP Validated) · ${loadedVintage}`
+              : 'DuckDB Production (MCP Validated)';
             usedDuckDB = true;
 
             // Log successful execution

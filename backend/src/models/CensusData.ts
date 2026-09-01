@@ -265,6 +265,11 @@ export class CensusDataModel {
 
     let sql = 'SELECT variable_name, label, concept, table_id, universe, variable_type FROM census_variables';
 
+    // An explicit empty list means "no variables", not "all of them".
+    if (variableNames && variableNames.length === 0) {
+      return [];
+    }
+
     if (variableNames?.length) {
       const nameList = variableNames.map(n => `'${n.replace(/'/g, "''")}'`).join(', ');
       sql += ` WHERE variable_name IN (${nameList})`;

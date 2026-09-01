@@ -12,13 +12,16 @@ import axios from 'axios';
 import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import * as path from 'path';
 import dotenv from 'dotenv';
+import { ACS_VINTAGE_YEAR } from '../src/config/censusVintage';
 import { getVariableCodesBatched } from '../src/utils/acsVariablesExpanded';
+import { replaceAll } from '../src/utils/loaderRefresh';
+import { recordVintage } from '../src/utils/dataVintage';
 
 dotenv.config();
 
 const CENSUS_API_KEY = process.env.CENSUS_API_KEY;
 const CENSUS_API_BASE = 'https://api.census.gov/data';
-const YEAR = 2024;
+const YEAR = ACS_VINTAGE_YEAR;
 const DB_PATH = path.join(__dirname, '../data/census.duckdb');
 
 interface StateData {
@@ -319,12 +322,15 @@ async function insertStates(conn: DuckDBConnection, states: StateData[]): Promis
         `${s.seniors_living_alone_pct},${s.grandparents_responsible_pct})`;
     }).join(',\n');
 
-    // Fresh vintage refresh: clear existing rows so new values land.
-    // This loader is not resumable (all 51 states load in one shot), so a fresh
-    // start is always a full replace. Without this, ON CONFLICT DO NOTHING would
-    // silently skip every existing geoid and the refresh would be a no-op.
-    await conn.run('DELETE FROM state_data');
-    await conn.run(`INSERT INTO state_data VALUES ${values}`);
+    // Fresh vintage refresh: clear existing rows so new values land. Without the
+    // clear, ON CONFLICT DO NOTHING would silently skip every existing geoid and
+    // the refresh would be a no-op. This loader is not resumable (all 51 states
+    // load in one shot), so the clear and the insert go in ONE transaction: a
+    // malformed value in any state rolls back to the previous vintage instead of
+    // leaving state_data empty.
+    await replaceAll(conn, 'state_data', async () => {
+      await conn.run(`INSERT INTO state_data VALUES ${values}`);
+    });
 }
 
 async function loadStateData(): Promise<void> {
@@ -346,6 +352,7 @@ async function loadStateData(): Promise<void> {
 
     if (states.length > 0) {
       await insertStates(conn, states);
+      await recordVintage(conn, 'state_data', states.length);
     }
 
     console.log('\n✅ State load complete!');

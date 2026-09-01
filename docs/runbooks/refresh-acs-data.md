@@ -21,12 +21,20 @@ If it returns an error page, the vintage is not published yet — stop here.
 
 ## 2. Bump the vintage in one place per file
 
-- `const YEAR = <YEAR>` in each loader: `scripts/load-acs-data.ts`,
-  `scripts/load-acs-state.ts`, `scripts/load-acs-tract.ts`,
-  `scripts/load-acs-blockgroup.ts`, `scripts/load-acs-blockgroup-expanded.ts`.
-  (`scripts/create-geo-hierarchy.ts` has no `YEAR` — it derives from the base tables.)
-- `ACS_VINTAGE_LABEL = 'ACS <YEAR> 5-Year'` in `src/config/censusVintage.ts` — this is
-  what the UI's data-source line shows.
+One line, in `src/config/censusVintage.ts`:
+
+```ts
+export const ACS_VINTAGE_YEAR = <YEAR>;
+```
+
+All five loaders import `ACS_VINTAGE_YEAR` for their `YEAR` constant and
+`ACS_VINTAGE_LABEL` is derived from it, so nothing can drift out of lockstep.
+(`scripts/create-geo-hierarchy.ts` has no year — it derives from the base tables.)
+
+Note this constant sets what the code TARGETS. The vintage the UI reports comes
+from the database: each loader stamps a `data_vintage` row, and the query path
+reads it. Bumping this constant alone does not make the app claim a new vintage —
+only a completed reload does.
 
 ## 3. Back up the current database
 
@@ -38,10 +46,19 @@ cp data/census.duckdb data/census.duckdb.bak
 
 ## 4. Reload
 
-The loaders clear each table on a **fresh** run (no progress file present), so a
-clean reload replaces the old vintage. If a run is interrupted, re-running
-resumes from its progress file and does **not** re-clear — to force a full
-fresh reload instead, delete the loader's `data/*-progress.json` first.
+The loaders replace each table on a **fresh** run, so a clean reload swaps the
+old vintage out. A failed reload will not leave you with an empty table:
+
+- `load-acs-data` (county) and `load-acs-state` clear and insert inside **one
+  transaction** — any failure rolls back to the previous vintage.
+- `load-acs-tract` and `load-acs-blockgroup-expanded` stream for hours and cannot
+  hold one transaction, so they **defer the clear until the first state actually
+  returns rows**. A rejected API key or an outage aborts before anything is
+  deleted.
+
+If a run is interrupted, re-running resumes from its progress file and does
+**not** re-clear — to force a full fresh reload instead, delete the loader's
+`data/*-progress.json` first.
 
 ```bash
 npm run load-acs-data        # county_data (~3,144 rows, minutes)
@@ -80,6 +97,13 @@ npm run dev   # or restart the running backend
 ```
 
 Send a query in the app and confirm the data-source line shows the new vintage.
+It reads `data_vintage` in the DB, so if it still shows the old vintage (or no
+vintage at all), the reload did not complete — check the loader output rather
+than the constant.
+
+```bash
+npm run duckdb -- -c "SELECT * FROM data_vintage"
+```
 
 ## Rollback
 
