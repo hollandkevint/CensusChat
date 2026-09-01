@@ -80,7 +80,7 @@ The validation layer is the part worth reading: [`backend/src/validation/sqlSecu
 
 - `SELECT` only, against three allowlisted tables: `county_data`, `block_group_data`, `block_group_data_expanded`.
 - Per-table column allowlist. A column outside it is rejected by name.
-- 1,000-row cap. A user `LIMIT` is replaced by the policy maximum, not merely capped.
+- 1,000-row cap. A `LIMIT` above 1,000 is rejected outright (`ROW_LIMIT_EXCEEDED`); any other `LIMIT` is stripped and replaced by the 1,000-row policy maximum, so `LIMIT 10` is raised rather than capped.
 - Multi-statement queries and SQL comments are blocked.
 - Every query is written to `backend/logs/sql-audit.log`.
 
