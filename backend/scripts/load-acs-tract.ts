@@ -441,7 +441,17 @@ async function loadTractData(): Promise<void> {
       }
     }
 
-    await recordVintage(conn, 'tract_data', progress.totalTracts);
+    // Stamp only a COMPLETE load. The per-state catch above swallows failures,
+    // so the loop finishes even when most states never loaded — stamping there
+    // would assert a completeness the table does not have.
+    if (progress.completedStates.length === STATES.length) {
+      await recordVintage(conn, 'tract_data', progress.totalTracts);
+    } else {
+      console.warn(
+        `\u26a0\ufe0f  Partial load (${progress.completedStates.length}/${STATES.length} states) \u2014 `
+        + 'not stamping a vintage; re-run to resume.'
+      );
+    }
 
     console.log('\n✅ Tract load complete!');
     console.log(`   Total: ${progress.totalTracts} tracts\n`);

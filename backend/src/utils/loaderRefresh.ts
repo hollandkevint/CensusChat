@@ -28,7 +28,13 @@ export async function replaceAll(
     await insert();
     await conn.run('COMMIT');
   } catch (error) {
-    await conn.run('ROLLBACK');
+    // Rethrow the ORIGINAL failure. A throwing ROLLBACK would otherwise replace
+    // it and the caller would lose the cause of the failed load.
+    try {
+      await conn.run('ROLLBACK');
+    } catch (rollbackError) {
+      console.error('ROLLBACK failed after a load error:', rollbackError);
+    }
     throw error;
   }
 }

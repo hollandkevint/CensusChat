@@ -575,7 +575,17 @@ async function loadBlockGroupDataExpanded(): Promise<void> {
       }
     }
 
-    await recordVintage(conn, 'block_group_data_expanded', progress.totalBlockGroups);
+    // Stamp only a COMPLETE load. The per-state catch above swallows failures,
+    // so the loop finishes even when most states never loaded — stamping there
+    // would assert a completeness the table does not have.
+    if (progress.completedStates.length === STATES.length) {
+      await recordVintage(conn, 'block_group_data_expanded', progress.totalBlockGroups);
+    } else {
+      console.warn(
+        `\u26a0\ufe0f  Partial load (${progress.completedStates.length}/${STATES.length} states) \u2014 `
+        + 'not stamping a vintage; re-run to resume.'
+      );
+    }
 
     console.log('\n✅ Load Complete!');
     console.log(`   Total: ${progress.totalBlockGroups} block groups\n`);

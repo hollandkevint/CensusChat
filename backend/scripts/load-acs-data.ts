@@ -157,8 +157,10 @@ async function loadDataIntoDuckDB(data: CountyData[]): Promise<void> {
           [row.state, row.county, row.stateName, row.countyName, row.population, row.medianIncome, row.povertyRate]
         );
       }
+      // Stamp inside the transaction, so the rows and the claim about them
+      // commit together — no window where loaded data sits unstamped.
+      await recordVintage(conn, 'county_data', data.length);
     });
-    await recordVintage(conn, 'county_data', data.length);
   } finally {
     conn.closeSync();
   }

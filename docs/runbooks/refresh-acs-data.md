@@ -99,7 +99,16 @@ npm run dev   # or restart the running backend
 Send a query in the app and confirm the data-source line shows the new vintage.
 It reads `data_vintage` in the DB, so if it still shows the old vintage (or no
 vintage at all), the reload did not complete — check the loader output rather
-than the constant.
+than the constant. Two rules govern that label:
+
+- A loader stamps only a **complete** run. A tract or block-group load that ends
+  with states outstanding logs a partial-load warning and stamps nothing.
+- An answer is labelled only when **every table the query reads** is stamped and
+  the stamps agree. So a DB where `county_data` is reloaded but the block groups
+  are not will label county answers and stay silent on block-group answers.
+
+That means the label goes quiet mid-refresh. That is the intended behaviour, not
+a fault: it is silent rather than wrong.
 
 ```bash
 npm run duckdb -- -c "SELECT * FROM data_vintage"

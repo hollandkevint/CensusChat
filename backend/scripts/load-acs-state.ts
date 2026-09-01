@@ -330,6 +330,8 @@ async function insertStates(conn: DuckDBConnection, states: StateData[]): Promis
     // leaving state_data empty.
     await replaceAll(conn, 'state_data', async () => {
       await conn.run(`INSERT INTO state_data VALUES ${values}`);
+      // Stamp inside the transaction so the rows and the claim commit together.
+      await recordVintage(conn, 'state_data', states.length);
     });
 }
 
@@ -352,7 +354,6 @@ async function loadStateData(): Promise<void> {
 
     if (states.length > 0) {
       await insertStates(conn, states);
-      await recordVintage(conn, 'state_data', states.length);
     }
 
     console.log('\n✅ State load complete!');
