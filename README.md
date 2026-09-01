@@ -22,6 +22,8 @@ Ask US Census demographics a question in plain English. Claude turns it into SQL
 
 Those are real values, read from [`frontend/src/data/counties.json`](frontend/src/data/counties.json) — the committed county snapshot, ACS 2020-2024 5-year estimates. The same rows render at `/counties/florida/pinellas-county`, and you can serve that page in about a minute with no API key.
 
+**Who this is for:** A healthcare strategy analyst deciding where to expand services, place facilities, or investigate a market. CensusChat is meant to shorten the first demographic cut from a custom SQL request to a reviewable answer. It does not replace source review or a formal market study.
+
 ---
 
 ## Run it
@@ -63,6 +65,18 @@ Read this before you invest an afternoon.
 - **`block_group_data_expanded` has known-bad columns.** Its age brackets are built from single narrow ACS cells rather than bracket sums, so `age_65_plus` sums to roughly 7.8M nationally against a true figure near 58M. Several columns are constant zero and `median_age` holds Census `-666666666` sentinels. Detail and the affected list: [docs/plans/2026-08-29-public-county-pages.md](docs/plans/2026-08-29-public-county-pages.md). `county_data` and the frontend county snapshot are clean.
 
 Performance numbers are targets, not measurements. Contributors aim for sub-2-second query responses; the enforced ceiling is the 30-second request timeout in `backend/src/routes/query.routes.ts` (`QUERY_TIMEOUT_MS`), which covers validation and the Anthropic round trip.
+
+## Product decisions, tests, and iteration
+
+Three choices define the current product:
+
+- **Validate generated SQL before execution.** Claude proposes the query; the allowlist and row policy decide whether DuckDB may run it. This narrows the query surface, but keeps model output outside the trust boundary.
+- **Offer a keyless county-page path beside the full chat.** A reviewer can inspect real output in about a minute. The tradeoff is that the county pages do not demonstrate the natural-language flow; the full path still requires API keys and a multi-hour data load.
+- **Keep questionable data visible.** The repository labels mixed ACS vintages and the known-bad block-group columns instead of hiding them behind a polished demo. That makes the limitations noisier and the useful datasets easier to choose correctly.
+
+Evaluation currently covers two boundaries: SQL-policy tests check what generated queries may reach DuckDB, and `backend/scripts/verify-mcp-stdio.ts` exercises a real MCP `SELECT` plus rejection of a destructive statement. Data checks exposed the vintage mismatch and broken derived fields documented above; the opening example now uses the clean county snapshot and the affected block-group table remains flagged.
+
+There is not yet a published natural-language-to-SQL accuracy benchmark, recorded demo, hosted chat, production-user feedback loop, or production user base. Current iteration evidence comes from repository tests and review findings, not customer outcomes.
 
 ---
 
