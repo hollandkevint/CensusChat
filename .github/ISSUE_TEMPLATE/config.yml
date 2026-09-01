@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/hollandkevint/CensusChat/security/advisories/new
+    about: Report privately through GitHub Security Advisories. Do not open a public issue.
+  - name: Setup and environment guide
+    url: https://github.com/hollandkevint/CensusChat/blob/main/QUICK_START.md
+    about: Read this before filing a setup issue. Most local-run problems are covered here.
