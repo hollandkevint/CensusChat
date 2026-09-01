@@ -28,7 +28,7 @@
     "test-blockgroup": "ts-node scripts/test-blockgroup-load.ts",
     "duckdb": "duckdb data/census.duckdb",
     "eval": "ts-node src/evals/query-eval.ts",
-    "secret-scan": "git diff --cached --name-only -z | xargs -0 grep -l -E '(sk-ant-api03-[a-zA-Z0-9_-]{95}|[a-f0-9]{40})' 2>/dev/null && echo '\n❌ ERROR: Potential API key detected! Remove before committing.\n' && exit 1 || exit 0",
+    "secret-scan": "files=$(git diff --cached --name-only -z | xargs -0 grep -l -E '(sk-ant-api03-[a-zA-Z0-9_-]{95}|[a-f0-9]{40})' 2>/dev/null); if [ -n \"$files\" ]; then printf '%s\\n' \"$files\"; echo '❌ ERROR: Potential API key detected! Remove before committing.'; exit 1; fi",
     "prepare": "husky"
   },
   "keywords": [

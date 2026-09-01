@@ -159,7 +159,7 @@ Examples:
 
 ## Marketing and Public Claims
 
-Public surfaces are `README.md`, `index.md`, `_config.yml`, `landing/`, `docs/landing/`,
+Public surfaces are `README.md`, `index.md`, `_config.yml`, `landing/`, all of `docs/`,
 `marketing/`, `content/`, and user-visible strings in `frontend/src/`.
 
 **Every factual claim on a public surface must be checkable against a file in this repo.**
