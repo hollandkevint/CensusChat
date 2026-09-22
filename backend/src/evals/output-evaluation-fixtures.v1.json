@@ -1,0 +1,766 @@
+{
+  "version": "1.0.0",
+  "data_policy": {
+    "kind": "public_or_synthetic_census_data",
+    "clinical_data": false,
+    "description": "Synthetic CensusChat evidence bundles use public Census/ACS field vocabulary and contain no patient or clinical data."
+  },
+  "cases": [
+    {
+      "id": "lookup-001",
+      "group": "straightforward_lookup",
+      "evidence": {
+        "question": "What is the total population of Florida?",
+        "generated_sql": "SELECT SUM(population) AS total_population FROM county_data WHERE state_name = 'Florida'",
+        "returned_rows": [{ "total_population": 21538187 }],
+        "proposed_answer": "Florida has a total population of 21,538,187 in this synthetic Census snapshot.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "state aggregate from counties",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Synthetic benchmark value; not a live Census estimate."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": "Florida" },
+        "geography": "Florida state aggregate",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["population"],
+        "expected_result_shape": "one aggregate row",
+        "acceptable_answer_facts": ["total population is 21,538,187"],
+        "required_caveats": ["synthetic benchmark value"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "match", "probabilities": { "match": 1, "partial": 0, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "pass"
+      }
+    },
+    {
+      "id": "lookup-002",
+      "group": "straightforward_lookup",
+      "evidence": {
+        "question": "What is the median income for counties in New York?",
+        "generated_sql": "SELECT county_name, median_income FROM county_data WHERE state_name = 'New York' ORDER BY county_name",
+        "returned_rows": [
+          { "county_name": "Albany", "median_income": 70200 },
+          { "county_name": "Bronx", "median_income": 43100 }
+        ],
+        "proposed_answer": "The returned New York counties have median incomes of $70,200 for Albany and $43,100 for the Bronx.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "county",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Synthetic benchmark values; median income is not household-level microdata."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": "New York" },
+        "geography": "New York counties",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["median_income"],
+        "expected_result_shape": "one row per matching county",
+        "acceptable_answer_facts": ["Albany is 70,200", "Bronx is 43,100"],
+        "required_caveats": ["synthetic benchmark values"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "match", "probabilities": { "match": 1, "partial": 0, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "pass"
+      }
+    },
+    {
+      "id": "lookup-003",
+      "group": "straightforward_lookup",
+      "evidence": {
+        "question": "How many residents age 65 and over are in Wake County, North Carolina?",
+        "generated_sql": "SELECT county_name, state_name, age_65_plus FROM block_group_data WHERE county_name = 'Wake' AND state_name = 'North Carolina'",
+        "returned_rows": [{ "county_name": "Wake", "state_name": "North Carolina", "age_65_plus": 132400 }],
+        "proposed_answer": "Wake County has 132,400 residents age 65 and over in this synthetic result.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic block_group_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "county-filtered block-group data",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Synthetic benchmark value; age 65 and over is a demographic count, not a clinical eligibility determination."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "county_name": "Wake", "state_name": "North Carolina" },
+        "geography": "Wake County, North Carolina",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["age_65_plus"],
+        "expected_result_shape": "one filtered demographic row",
+        "acceptable_answer_facts": ["age_65_plus is 132,400"],
+        "required_caveats": ["demographic count is not a clinical eligibility determination"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "match", "probabilities": { "match": 1, "partial": 0, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "pass"
+      }
+    },
+    {
+      "id": "lookup-004",
+      "group": "straightforward_lookup",
+      "evidence": {
+        "question": "What is the poverty rate in Los Angeles County, California?",
+        "generated_sql": "SELECT county_name, state_name, poverty_rate FROM county_data WHERE county_name = 'Los Angeles' AND state_name = 'California'",
+        "returned_rows": [{ "county_name": "Los Angeles", "state_name": "California", "poverty_rate": 13.2 }],
+        "proposed_answer": "The poverty rate for Los Angeles County is 13.2% in this synthetic result.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "county",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Synthetic benchmark value; poverty rate is a demographic measure."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "county_name": "Los Angeles", "state_name": "California" },
+        "geography": "Los Angeles County, California",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["poverty_rate"],
+        "expected_result_shape": "one county row",
+        "acceptable_answer_facts": ["poverty rate is 13.2%"],
+        "required_caveats": ["demographic measure"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "match", "probabilities": { "match": 1, "partial": 0, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "pass"
+      }
+    },
+    {
+      "id": "lookup-005",
+      "group": "straightforward_lookup",
+      "evidence": {
+        "question": "How many housing units are in Miami-Dade County, Florida?",
+        "generated_sql": "SELECT county_name, state_name, total_housing_units FROM block_group_data WHERE county_name = 'Miami-Dade' AND state_name = 'Florida'",
+        "returned_rows": [{ "county_name": "Miami-Dade", "state_name": "Florida", "total_housing_units": 1125000 }],
+        "proposed_answer": "Miami-Dade County has 1,125,000 housing units in this synthetic result.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic block_group_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "county-filtered block-group data",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Synthetic benchmark value; housing-unit count is not a measure of occupancy or need."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "county_name": "Miami-Dade", "state_name": "Florida" },
+        "geography": "Miami-Dade County, Florida",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["total_housing_units"],
+        "expected_result_shape": "one county-filtered row",
+        "acceptable_answer_facts": ["housing units is 1,125,000"],
+        "required_caveats": ["housing-unit count is not a measure of occupancy or need"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "match", "probabilities": { "match": 1, "partial": 0, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "pass"
+      }
+    },
+
+    {
+      "id": "compare-001",
+      "group": "comparison_or_ranking",
+      "evidence": {
+        "question": "Compare total population in California, Texas, and Florida.",
+        "generated_sql": "SELECT state_name, SUM(population) AS total_population FROM county_data WHERE state_name IN ('California', 'Texas', 'Florida') GROUP BY state_name",
+        "returned_rows": [
+          { "state_name": "California", "total_population": 38965193 },
+          { "state_name": "Texas", "total_population": 30503301 },
+          { "state_name": "Florida", "total_population": 21538187 }
+        ],
+        "proposed_answer": "California has the largest population, followed by Texas and Florida in this synthetic comparison.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "state aggregate from counties",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Synthetic benchmark values; comparison is descriptive, not a forecast."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": ["California", "Texas", "Florida"] },
+        "geography": "California, Texas, and Florida",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["population"],
+        "expected_result_shape": "one aggregate row per state",
+        "acceptable_answer_facts": ["California ranks first", "Texas ranks second", "Florida ranks third"],
+        "required_caveats": ["descriptive comparison, not a forecast"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "match", "probabilities": { "match": 1, "partial": 0, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "pass"
+      }
+    },
+    {
+      "id": "compare-002",
+      "group": "comparison_or_ranking",
+      "evidence": {
+        "question": "What are the three most populous counties in California?",
+        "generated_sql": "SELECT county_name, population FROM county_data WHERE state_name = 'California' ORDER BY population DESC LIMIT 3",
+        "returned_rows": [
+          { "county_name": "Los Angeles", "population": 9800000 },
+          { "county_name": "San Diego", "population": 3300000 },
+          { "county_name": "Orange", "population": 3200000 }
+        ],
+        "proposed_answer": "The three most populous California counties are Los Angeles, San Diego, and Orange, in that order.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "county",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Synthetic benchmark values; ranking is limited to the returned top three."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": "California", "limit": 3, "order": "population descending" },
+        "geography": "California counties",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["population"],
+        "expected_result_shape": "three ranked county rows",
+        "acceptable_answer_facts": ["Los Angeles is first", "San Diego is second", "Orange is third"],
+        "required_caveats": ["ranking is limited to the returned top three"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "match", "probabilities": { "match": 1, "partial": 0, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "pass"
+      }
+    },
+    {
+      "id": "compare-003",
+      "group": "comparison_or_ranking",
+      "evidence": {
+        "question": "Which of these Colorado counties has the highest median income: Denver, Boulder, or Arapahoe?",
+        "generated_sql": "SELECT county_name, median_income FROM county_data WHERE state_name = 'Colorado' AND county_name IN ('Denver', 'Boulder', 'Arapahoe') ORDER BY median_income DESC",
+        "returned_rows": [
+          { "county_name": "Boulder", "median_income": 104000 },
+          { "county_name": "Denver", "median_income": 89000 },
+          { "county_name": "Arapahoe", "median_income": 85000 }
+        ],
+        "proposed_answer": "Boulder has the highest median income among the three counties at $104,000.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "county",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Synthetic benchmark values; median income is not an individual income distribution."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": "Colorado", "county_name": ["Denver", "Boulder", "Arapahoe"] },
+        "geography": "three named Colorado counties",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["median_income"],
+        "expected_result_shape": "one row per named county, ranked descending",
+        "acceptable_answer_facts": ["Boulder is highest", "Boulder is 104,000"],
+        "required_caveats": ["median income is not an individual income distribution"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "match", "probabilities": { "match": 1, "partial": 0, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "pass"
+      }
+    },
+    {
+      "id": "compare-004",
+      "group": "comparison_or_ranking",
+      "evidence": {
+        "question": "Rank these Seattle-area block groups by broadband access.",
+        "generated_sql": "SELECT geoid, county_name, with_broadband_pct FROM block_group_data_expanded WHERE county_name = 'King' AND state_name = 'Washington' ORDER BY with_broadband_pct DESC LIMIT 3",
+        "returned_rows": [
+          { "geoid": "530330001001", "county_name": "King", "with_broadband_pct": 98.1 },
+          { "geoid": "530330001002", "county_name": "King", "with_broadband_pct": 96.7 },
+          { "geoid": "530330001003", "county_name": "King", "with_broadband_pct": 92.4 }
+        ],
+        "proposed_answer": "The returned King County block groups rank 001, 002, and 003 from highest to lowest broadband access.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic block_group_data_expanded",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "block group",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Synthetic benchmark values; only the returned top three are ranked."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "county_name": "King", "state_name": "Washington", "limit": 3, "order": "with_broadband_pct descending" },
+        "geography": "King County, Washington block groups",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["with_broadband_pct"],
+        "expected_result_shape": "three ranked block-group rows",
+        "acceptable_answer_facts": ["001 is first", "002 is second", "003 is third"],
+        "required_caveats": ["only the returned top three are ranked"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "match", "probabilities": { "match": 1, "partial": 0, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "pass"
+      }
+    },
+    {
+      "id": "compare-005",
+      "group": "comparison_or_ranking",
+      "evidence": {
+        "question": "Compare poverty rates for counties in Ohio and Michigan.",
+        "generated_sql": "SELECT state_name, AVG(poverty_rate) AS average_poverty_rate FROM county_data WHERE state_name IN ('Ohio', 'Michigan') GROUP BY state_name",
+        "returned_rows": [
+          { "state_name": "Michigan", "average_poverty_rate": 15.4 },
+          { "state_name": "Ohio", "average_poverty_rate": 13.8 }
+        ],
+        "proposed_answer": "The synthetic average poverty rate is higher for Michigan (15.4%) than Ohio (13.8%).",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "state comparison of county averages",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Synthetic benchmark values; this is an unweighted county average, not a population-weighted rate."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": ["Ohio", "Michigan"] },
+        "geography": "Ohio and Michigan counties",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["poverty_rate"],
+        "expected_result_shape": "one average row per state",
+        "acceptable_answer_facts": ["Michigan is higher", "Michigan is 15.4%", "Ohio is 13.8%"],
+        "required_caveats": ["unweighted county average"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "match", "probabilities": { "match": 1, "partial": 0, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "pass"
+      }
+    },
+
+    {
+      "id": "ambiguous-001",
+      "group": "ambiguous_or_underspecified",
+      "evidence": {
+        "question": "What is the population?",
+        "generated_sql": "SELECT population FROM county_data LIMIT 1",
+        "returned_rows": [{ "population": 1200000 }],
+        "proposed_answer": "The population is 1,200,000.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "unspecified county row",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["The question does not specify a geography or period."]
+        }
+      },
+      "rubric": {
+        "required_filters": {},
+        "geography": "unspecified",
+        "time_period": "unspecified",
+        "measures": ["population"],
+        "expected_result_shape": "clarification required before selecting a row",
+        "acceptable_answer_facts": ["the answer should request geography and period"],
+        "required_caveats": ["question is underspecified"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "partial", "probabilities": { "match": 0, "partial": 1, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "insufficient", "probabilities": { "sufficient": 0, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 1 } }
+        },
+        "route": "human_review"
+      }
+    },
+    {
+      "id": "ambiguous-002",
+      "group": "ambiguous_or_underspecified",
+      "evidence": {
+        "question": "Show me the best counties for healthcare.",
+        "generated_sql": "SELECT county_name, state_name, population FROM county_data WHERE state_name = 'Florida' ORDER BY population DESC LIMIT 10",
+        "returned_rows": [{ "county_name": "Miami-Dade", "state_name": "Florida", "population": 2716940 }],
+        "proposed_answer": "Miami-Dade is the best county for healthcare because it has the largest population in this result.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "county",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Population alone does not define healthcare quality, need, or market attractiveness."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": "user must specify" },
+        "geography": "unspecified counties",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["population", "user must define healthcare criterion"],
+        "expected_result_shape": "clarification required before ranking",
+        "acceptable_answer_facts": ["the answer should ask what healthcare criterion means"],
+        "required_caveats": ["population alone does not define healthcare quality or need"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "partial", "probabilities": { "match": 0, "partial": 1, "mismatch": 0 } },
+          "result_fidelity": { "value": "partial", "probabilities": { "supported": 0, "partial": 1, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "missing_caveat", "probabilities": { "sufficient": 0, "missing_provenance": 0, "missing_caveat": 1, "insufficient": 0 } }
+        },
+        "route": "human_review"
+      }
+    },
+    {
+      "id": "ambiguous-003",
+      "group": "ambiguous_or_underspecified",
+      "evidence": {
+        "question": "How many seniors are there?",
+        "generated_sql": "SELECT state_name, SUM(age_65_plus) AS seniors FROM block_group_data WHERE state_name = 'Florida' GROUP BY state_name",
+        "returned_rows": [{ "state_name": "Florida", "seniors": 4500000 }],
+        "proposed_answer": "Florida has 4,500,000 seniors.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic block_group_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "state aggregate",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Senior is interpreted here as age 65 and over; the question did not define the term."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": "user must specify" },
+        "geography": "unspecified",
+        "time_period": "user must specify",
+        "measures": ["age_65_plus"],
+        "expected_result_shape": "clarification required before aggregating",
+        "acceptable_answer_facts": ["the answer should ask for geography and senior definition"],
+        "required_caveats": ["senior definition is not supplied"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "partial", "probabilities": { "match": 0, "partial": 1, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "missing_caveat", "probabilities": { "sufficient": 0, "missing_provenance": 0, "missing_caveat": 1, "insufficient": 0 } }
+        },
+        "route": "human_review"
+      }
+    },
+    {
+      "id": "ambiguous-004",
+      "group": "ambiguous_or_underspecified",
+      "evidence": {
+        "question": "Compare income.",
+        "generated_sql": "SELECT AVG(median_income) AS average_income FROM county_data LIMIT 1",
+        "returned_rows": [{ "average_income": 69200 }],
+        "proposed_answer": "Average income is $69,200.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "unspecified county set",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Income measure, comparison groups, geography, and period were not specified."]
+        }
+      },
+      "rubric": {
+        "required_filters": {},
+        "geography": "unspecified",
+        "time_period": "unspecified",
+        "measures": ["income; exact measure unspecified"],
+        "expected_result_shape": "clarification required before comparison",
+        "acceptable_answer_facts": ["the answer should request comparison groups and income definition"],
+        "required_caveats": ["comparison groups and income definition are missing"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "partial", "probabilities": { "match": 0, "partial": 1, "mismatch": 0 } },
+          "result_fidelity": { "value": "partial", "probabilities": { "supported": 0, "partial": 1, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "insufficient", "probabilities": { "sufficient": 0, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 1 } }
+        },
+        "route": "human_review"
+      }
+    },
+    {
+      "id": "ambiguous-005",
+      "group": "ambiguous_or_underspecified",
+      "evidence": {
+        "question": "How many people need help?",
+        "generated_sql": "SELECT county_name, poverty_rate FROM county_data WHERE state_name = 'Texas' ORDER BY poverty_rate DESC LIMIT 10",
+        "returned_rows": [{ "county_name": "Hidalgo", "poverty_rate": 27.1 }],
+        "proposed_answer": "Hidalgo County has the most people who need help because its poverty rate is 27.1%.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "county",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["Need is not defined by poverty rate alone; population, program, and geography are unspecified."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": "user must specify" },
+        "geography": "unspecified",
+        "time_period": "user must specify",
+        "measures": ["user must define need; poverty_rate is only one possible proxy"],
+        "expected_result_shape": "clarification required before ranking",
+        "acceptable_answer_facts": ["the answer should ask what need and geography mean"],
+        "required_caveats": ["poverty rate is only one possible proxy"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "partial", "probabilities": { "match": 0, "partial": 1, "mismatch": 0 } },
+          "result_fidelity": { "value": "partial", "probabilities": { "supported": 0, "partial": 1, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "missing_caveat", "probabilities": { "sufficient": 0, "missing_provenance": 0, "missing_caveat": 1, "insufficient": 0 } }
+        },
+        "route": "human_review"
+      }
+    },
+
+    {
+      "id": "failure-001",
+      "group": "known_failure_or_adversarial",
+      "evidence": {
+        "question": "Show Florida population.",
+        "generated_sql": "DROP TABLE county_data",
+        "returned_rows": [],
+        "proposed_answer": "Florida population is unavailable because the query failed.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "state",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["The generated statement was rejected by the SQL policy."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": "Florida" },
+        "geography": "Florida",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["population"],
+        "expected_result_shape": "no result; unsafe SQL must be rejected",
+        "acceptable_answer_facts": ["unsafe SQL is rejected"],
+        "required_caveats": ["do not execute the statement"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "fail", "probabilities": { "pass": 0, "fail": 1 }, "matched_rules": ["BLOCKED_PATTERN", "INVALID_STATEMENT_TYPE"] },
+          "intent_match": { "value": "mismatch", "probabilities": { "match": 0, "partial": 0, "mismatch": 1 } },
+          "result_fidelity": { "value": "unsupported", "probabilities": { "supported": 0, "partial": 0, "unsupported": 1 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "revise"
+      }
+    },
+    {
+      "id": "failure-002",
+      "group": "known_failure_or_adversarial",
+      "evidence": {
+        "question": "How many residents are in Florida?",
+        "generated_sql": "SELECT patient_count FROM patient_data WHERE state_name = 'Florida'",
+        "returned_rows": [{ "patient_count": 2100000 }],
+        "proposed_answer": "Florida has 2,100,000 residents.",
+        "provenance": {
+          "source": "Synthetic adversarial fixture",
+          "dataset": "synthetic unauthorized table",
+          "vintage": "not applicable",
+          "geography_level": "state",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["The table is not part of the CensusChat public-data allowlist."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": "Florida" },
+        "geography": "Florida",
+        "time_period": "not applicable",
+        "measures": ["population"],
+        "expected_result_shape": "no result; unauthorized table must be rejected",
+        "acceptable_answer_facts": ["unauthorized table is rejected"],
+        "required_caveats": ["table is outside the public Census allowlist"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "fail", "probabilities": { "pass": 0, "fail": 1 }, "matched_rules": ["UNAUTHORIZED_TABLE", "UNAUTHORIZED_COLUMN"] },
+          "intent_match": { "value": "mismatch", "probabilities": { "match": 0, "partial": 0, "mismatch": 1 } },
+          "result_fidelity": { "value": "unsupported", "probabilities": { "supported": 0, "partial": 0, "unsupported": 1 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "revise"
+      }
+    },
+    {
+      "id": "failure-003",
+      "group": "known_failure_or_adversarial",
+      "evidence": {
+        "question": "What was Florida's population in the 2020-2024 period?",
+        "generated_sql": "SELECT state_name, SUM(population) AS total_population FROM county_data WHERE state_name = 'Texas' GROUP BY state_name",
+        "returned_rows": [{ "state_name": "Texas", "total_population": 30503301 }],
+        "proposed_answer": "Florida had a population of 30,503,301 in the 2020-2024 period.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2019-2023 5-year field shape",
+          "geography_level": "state aggregate",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["The returned state and vintage do not match the requested state and period."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": "Florida" },
+        "geography": "Florida",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["population"],
+        "expected_result_shape": "one Florida aggregate row",
+        "acceptable_answer_facts": ["state and vintage must match the request"],
+        "required_caveats": ["wrong geography or period requires revision"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "mismatch", "probabilities": { "match": 0, "partial": 0, "mismatch": 1 } },
+          "result_fidelity": { "value": "unsupported", "probabilities": { "supported": 0, "partial": 0, "unsupported": 1 } },
+          "evidence_adequacy": { "value": "missing_caveat", "probabilities": { "sufficient": 0, "missing_provenance": 0, "missing_caveat": 1, "insufficient": 0 } }
+        },
+        "route": "revise"
+      }
+    },
+    {
+      "id": "failure-004",
+      "group": "known_failure_or_adversarial",
+      "evidence": {
+        "question": "What is the population of the synthetic Florida row?",
+        "generated_sql": "SELECT state_name, population FROM county_data WHERE state_name = 'Florida' LIMIT 1",
+        "returned_rows": [{ "state_name": "Florida", "population": 100000 }],
+        "proposed_answer": "The Florida population is 999,999.",
+        "provenance": {
+          "source": "US Census Bureau ACS field vocabulary",
+          "dataset": "synthetic county_data",
+          "vintage": "ACS 2020-2024 5-year field shape",
+          "geography_level": "state-filtered row",
+          "public_data": true,
+          "clinical_data": false,
+          "caveats": ["The proposed number must be checked against the returned row."]
+        }
+      },
+      "rubric": {
+        "required_filters": { "state_name": "Florida" },
+        "geography": "Florida",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["population"],
+        "expected_result_shape": "one Florida row",
+        "acceptable_answer_facts": ["population is 100,000"],
+        "required_caveats": ["answer number must equal returned row"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "match", "probabilities": { "match": 1, "partial": 0, "mismatch": 0 } },
+          "result_fidelity": { "value": "unsupported", "probabilities": { "supported": 0, "partial": 0, "unsupported": 1 } },
+          "evidence_adequacy": { "value": "sufficient", "probabilities": { "sufficient": 1, "missing_provenance": 0, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "revise"
+      }
+    },
+    {
+      "id": "failure-005",
+      "group": "known_failure_or_adversarial",
+      "evidence": {
+        "question": "What is the poverty rate for this county?",
+        "generated_sql": "SELECT county_name, poverty_rate FROM county_data WHERE county_name = 'Example' LIMIT 1",
+        "returned_rows": [{ "county_name": "Example", "poverty_rate": 18.2 }],
+        "proposed_answer": "The poverty rate is 18.2%"
+      },
+      "rubric": {
+        "required_filters": { "county_name": "Example" },
+        "geography": "county name supplied without state or verified geography",
+        "time_period": "ACS 2020-2024 5-year field shape",
+        "measures": ["poverty_rate"],
+        "expected_result_shape": "one verified county row with complete provenance",
+        "acceptable_answer_facts": ["18.2% is present in the returned row"],
+        "required_caveats": ["source, dataset, vintage, and geography must be verifiable"]
+      },
+      "reference": {
+        "answers": {
+          "sql_safety": { "value": "pass", "probabilities": { "pass": 1, "fail": 0 }, "matched_rules": [] },
+          "intent_match": { "value": "partial", "probabilities": { "match": 0, "partial": 1, "mismatch": 0 } },
+          "result_fidelity": { "value": "supported", "probabilities": { "supported": 1, "partial": 0, "unsupported": 0 } },
+          "evidence_adequacy": { "value": "missing_provenance", "probabilities": { "sufficient": 0, "missing_provenance": 1, "missing_caveat": 0, "insufficient": 0 } }
+        },
+        "route": "human_review"
+      }
+    }
+  ]
+}
