@@ -79,6 +79,15 @@ jobs:
       - name: Build
         run: npm run build
 
+  # Validate Deploy's tag generation without pushing images or using secrets.
+  deploy-workflow:
+    name: Deploy Workflow Regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check lowercase image names and deployment outputs
+        run: python3 scripts/test-deploy-workflow.py
+
   # Marketing claim guard
   claims:
     name: Marketing Claims
