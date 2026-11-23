@@ -1,8 +1,9 @@
 name: Deploy
 
+# Manual only. CensusChat has no live site, so nothing publishes images on push.
+# Frontend builds need the NEXT_PUBLIC_SITE_URL repo variable (Settings >
+# Secrets and variables > Actions > Variables).
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
     inputs:
       environment:
@@ -53,6 +54,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
+      - name: Require NEXT_PUBLIC_SITE_URL
+        env:
+          SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+        run: |
+          if [ -z "$SITE_URL" ]; then
+            echo "::error::NEXT_PUBLIC_SITE_URL is not set. Set the NEXT_PUBLIC_SITE_URL repo variable (Settings > Secrets and variables > Actions > Variables), then run Deploy again."
+            exit 1
+          fi
+
       - name: Build and push Backend Docker image
         uses: docker/build-push-action@v6
         with:
@@ -68,6 +78,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:latest

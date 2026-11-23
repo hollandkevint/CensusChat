@@ -50,6 +50,15 @@ class DeployImageNamesTest(unittest.TestCase):
             )
         self.assertNotIn('${{ github.repository }}', workflow)
 
+    def test_manual_only_and_requires_site_url(self):
+        workflow = WORKFLOW.read_text()
+        on_block = workflow.split('\njobs:')[0]
+        self.assertIn('workflow_dispatch:', on_block)
+        self.assertNotRegex(on_block, r'(?m)^  (push|pull_request|schedule):')
+        self.assertIn('NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}', workflow)
+        self.assertIn('Set the NEXT_PUBLIC_SITE_URL repo variable', workflow)
+        self.assertLess(workflow.index('Require NEXT_PUBLIC_SITE_URL'), workflow.index('Build and push Backend'))
+
 
 if __name__ == '__main__':
     unittest.main()
